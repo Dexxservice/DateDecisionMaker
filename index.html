@@ -250,9 +250,13 @@
     <!-- NEW LOGIN SCREEN -->
     <div id="login-screen" class="w-full max-w-md px-8 flex flex-col justify-center min-h-screen relative overflow-hidden z-10">
         
-        <div class="mint-card p-12 text-center relative z-10 bg-white/80 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl">
+        <!-- Increased opacity from bg-white/80 to bg-white/95 for readability -->
+        <div class="mint-card p-12 text-center relative z-10 bg-white/95 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl">
             <div class="mb-10">
-                <p class="text-pink-500 font-black text-xs uppercase tracking-[0.3em] mb-3">System Booting...</p>
+                <div class="flex items-center justify-center gap-3 mb-3">
+                    <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
+                    <p class="text-pink-500 font-black text-xs uppercase tracking-[0.3em] animate-pulse">System Loading</p>
+                </div>
                 <h1 class="text-4xl font-black text-teal-800 tracking-tighter">MerSam OS</h1>
                 <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">Valentinstag '26 - Special Build</p>
             </div>
@@ -318,24 +322,38 @@
         <div class="mint-card p-8 w-full max-w-sm relative shadow-2xl border-4 border-yellow-300 bg-gradient-to-br from-yellow-50 to-white text-center pop-in">
             <div class="text-6xl mb-4">🎁</div>
             <h3 class="text-2xl font-black text-yellow-600 mb-2 tracking-tight">Belohnung!</h3>
-            <p class="text-xs text-gray-500 font-bold uppercase mb-6">Ihr habt 3 Wochen in Folge geschafft!</p>
+            <p class="text-xs text-gray-500 font-bold uppercase mb-6">Für mehr Quality Time & Verwöhnmomente!</p>
             
             <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-yellow-200 mb-6 shadow-inner">
                 <p id="reward-text" class="text-lg font-black text-teal-800 leading-relaxed"></p>
             </div>
             
-            <button onclick="document.getElementById('reward-modal').classList.add('hidden')" class="bg-yellow-400 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs hover:bg-yellow-500 transition-colors">Einlösen & Feiern 🎉</button>
+            <button onclick="document.getElementById('reward-modal').classList.add('hidden')" class="bg-yellow-400 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs hover:bg-yellow-500 transition-colors">Einlösen & Reset 🔄</button>
         </div>
     </div>
 
     <div id="main-dashboard" class="hidden w-full max-w-md p-4 relative z-10">
-        <header class="flex justify-between items-center mb-6 mt-4 px-2">
-            <div>
-                <div class="flex items-center"><span id="partner-status" class="online-indicator offline"></span><h1 class="text-2xl font-bold text-teal-800 tracking-tighter">MerSam OS</h1></div>
-                <button onclick="editSystemStart()" id="uptime-display" class="text-[9px] text-pink-500 font-bold uppercase tracking-widest hover:bg-pink-50 rounded px-2 py-0.5 transition-colors text-left block">System Uptime: 0T 0h 0m</button>
-                <p id="user-greeting" class="text-[10px] text-teal-600 font-bold uppercase mt-0.5"></p>
+        <header class="flex flex-col mb-6 mt-4 px-2">
+            <div class="flex justify-between items-center w-full">
+                <div>
+                    <div class="flex items-center"><span id="partner-status" class="online-indicator offline"></span><h1 class="text-2xl font-bold text-teal-800 tracking-tighter">MerSam OS</h1></div>
+                    <button onclick="editSystemStart()" id="uptime-display" class="text-[9px] text-pink-500 font-bold uppercase tracking-widest hover:bg-pink-50 rounded px-2 py-0.5 transition-colors text-left block">System Uptime: 0T 0h 0m</button>
+                    <p id="user-greeting" class="text-[10px] text-teal-600 font-bold uppercase mt-0.5"></p>
+                </div>
+                <div class="flex gap-2 items-center">
+                    <button onclick="shareLocation()" id="btn-share-loc" class="bg-white border-2 border-teal-100 text-teal-500 hover:text-teal-600 hover:border-teal-200 w-10 h-10 rounded-xl text-lg font-black transition-all shadow-sm flex items-center justify-center" title="Standort senden">
+                        📍
+                    </button>
+                    <button id="btn-logout" class="bg-white border-2 border-pink-100 text-pink-400 hover:text-pink-500 hover:border-pink-200 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 h-10">
+                        <span class="text-lg leading-none">⏻</span> <span>Logout</span>
+                    </button>
+                </div>
             </div>
-            <button id="btn-logout" class="text-xs text-gray-400 underline uppercase font-bold">Abmelden</button>
+            <!-- ZENTRIERTER ONLINE & STANDORT STATUS -->
+            <div class="mt-3 text-center w-full">
+                <p id="partner-last-seen" class="text-[9px] text-gray-400 font-medium transition-all"></p>
+                <a id="partner-location-link" href="#" target="_blank" class="hidden inline-block mt-1 text-[9px] font-bold text-white bg-teal-400 px-3 py-1 rounded-full shadow-sm hover:bg-teal-500 transition-colors animate-bounce">🗺️ Route zum Partner</a>
+            </div>
         </header>
 
         <div id="tab-home">
@@ -389,7 +407,7 @@
                     <div class="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
                         <div id="reward-progress-bar" class="bg-yellow-400 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
                     </div>
-                    <p id="reward-progress-text" class="text-[9px] font-bold text-gray-400">0 / 3 Wochen Streak</p>
+                    <p id="reward-progress-text" class="text-[9px] font-bold text-gray-400">0 / 5 Dates bis zur Belohnung</p>
                 </div>
                 <div class="ml-4">
                     <button id="btn-claim-reward" onclick="claimReward()" class="text-3xl filter grayscale opacity-50 transition-all transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed" disabled>🎁</button>
@@ -416,7 +434,7 @@
                 <input id="info-input" type="text" placeholder="💡 Insider-Info?" class="w-full p-3 bg-white border border-teal-100 rounded-xl mb-4 outline-none text-sm italic">
                 <div class="flex gap-2 mb-6">
                     <select id="cat-select" class="flex-1 filter-select"><option value="Sofort">⚡ Spontan?</option><option value="Planung">📅 Planung?</option></select>
-                    <select id="weather-select" class="flex-1 filter-select"><option value="Egal">☁️ Wetter?</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
+                    <select id="weather-select" class="flex-1 filter-select"><option value="Egal">☁️ Wetter egal?</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
                 </div>
                 <div class="flex justify-between items-center px-2 mb-6">
                     <span class="text-[10px] font-bold text-gray-400 uppercase">Geheim? 🤫 <label class="switch"><input type="checkbox" id="surprise-toggle"><span class="slider"></span></label></span>
@@ -426,6 +444,7 @@
             </div>
 
             <div class="mint-card p-8 mb-6 text-center bg-gradient-to-b from-white to-teal-50">
+                <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">🎲 Zufallsgenerator Date Maker</h3>
                 <div class="flex gap-2 mb-6 justify-center text-[10px] font-bold">
                     <select id="filter-cat" class="flex-1 filter-select"><option value="Alle">Für alle Optionen offen?</option><option value="Sofort">⚡ Spontan</option><option value="Planung">📅 Planung</option></select>
                     <select id="filter-weather" class="flex-1 filter-select"><option value="Alle">Wetter egal?</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
@@ -466,7 +485,9 @@
                 <button id="btn-roll" class="mt-6 bg-teal-700 text-white px-12 py-5 rounded-full font-bold shadow-xl w-full active:scale-95 uppercase tracking-widest">WÜRFELN</button>
             </div>
 
+            <h3 class="font-black text-teal-800 mb-4 px-2 text-sm uppercase tracking-widest text-center italic">Unsere Ideen 💡</h3>
             <div id="wish-list" class="space-y-4 mb-10"></div>
+            
             <h3 class="font-bold text-gray-400 mb-3 px-2 text-sm uppercase tracking-widest italic text-center">Meilensteine 🏆</h3>
             <div id="archive-list" class="space-y-3 pb-20 opacity-90"></div>
         </div>
@@ -584,29 +605,143 @@
             "Handy-Verbot 📵 (30 min)", "Filmszene nachstellen 📸", "Song summen & raten 🎵", 
             "Kompliment flüstern 🤫", "Akzent beim Bestellen 🗣️", "Gegenseitig füttern 🍇",
             "3 Min. Augenkontakt ohne Lachen 👀", "Tanz ohne Musik 💃", 
-            "Lustiges Selfie machen 🤪", "Masseur spielen (5 min) 💆‍♂️"
+            "Lustiges Selfie machen 🤪", "Masseur spielen (5 min) 💆‍♂️",
+            "Blindverkostung: Füttere den Partner mit etwas und er muss es erraten. 🍓",
+            "Mache 10 Kniebeugen mit dem Partner auf dem Rücken (oder Huckepack). 🏋️‍♂️",
+            "Sprecht 5 Minuten lang nur in Reimen. 🎤",
+            "Der Partner darf dir 3 Minuten lang die Haare stylen – Ergebnis bleibt für das Date. 💇‍♀️",
+            "Macht ein 'hässliches' Selfie zusammen. 🤪",
+            "Tauscht ein Kleidungsstück. 👕",
+            "3 Minuten Augenkontakt ohne Reden. 👀",
+            "Huckepack-Rennen durch den Flur. 🏃‍♂️",
+            "Kitzelschlacht (1 Minute). 😂",
+            "Smartphone-Tausch für 5 Minuten (nur Galerie gucken!). 📱",
+            "Sprecht für 10 Minuten mit französischem Akzent. 🇫🇷",
+            "Baut eine Höhle aus Decken und Kissen. ⛺",
+            "Massiere den Nacken des Partners (5 Min). 💆‍♀️",
+            "Küsse den Partner an einer Stelle, wo er/sie es nicht erwartet. 💋",
+            "Tanzt einen langsamen Walzer ohne Musik. 💃",
+            "Wer kann länger die Luft anhalten? (Gewinner kriegt einen Kuss). ⏱️",
+            "Erzähle einen Witz. Wer zuerst lacht, verliert. 🤣",
+            "Schreibt euch gegenseitig eine geheime Nachricht auf den Rücken (mit dem Finger). ✍️",
+            "Immitiert ein berühmtes Filmpaar. 🎬",
+            "Macht ein Selfie, auf dem ihr beide schielt. 🤪",
+            "Der Partner darf dir Lippenstift auftragen (Blind). 💄",
+            "Spielt Schnick-Schnack-Schnuck. Verlierer muss strippen (ein Teil). 🎲",
+            "Flüstere dem Partner 3 Dinge ins Ohr, die du an ihm liebst. ❤️",
+            "Bestellt das Essen für den anderen (im Restaurant oder Lieferdienst). 🍕",
+            "Macht ein Foto von euren Füßen. 🦶",
+            "Singt zusammen ein Duett (Karaoke ohne Musik). 🎤",
+            "Erfindet einen geheimen Handschlag. 🤝",
+            "Zeichnet euch gegenseitig (Porträt in 2 Minuten). 🎨",
+            "Spielt 'Wahrheit oder Pflicht' (3 Runden). 🎲",
+            "Der Partner ist für 10 Minuten der 'König/in' und darf befehlen (im Rahmen). 👑",
+            "Macht Liegestütze und gebt euch bei jedem Hochkommen einen Kuss (High-Five Kuss). 💪",
+            "Versucht, synchron zu sprechen. 🗣️",
+            "Ratet, was der andere gerade denkt. 🤔",
+            "Geht raus und umarmt den nächsten Baum zusammen. 🌳",
+            "Schreibt eine Bucket-List-Idee auf einen Zettel und versteckt ihn in der Wohnung. 📝",
+            "Macht ein Video in Slow-Motion, wie ihr euch küsst. 🎥",
+            "Tauscht die Socken. 🧦",
+            "Imitiert das Lachen des anderen. 😂",
+            "Versucht, euch gegenseitig hochzuheben. 🏋️‍♀️",
+            "Macht ein Daumencatchen-Turnier (Best of 3). 👍",
+            "Sprecht nur in Fragen für 5 Minuten. ❓",
+            "Der Partner darf dir eine neue Frisur machen. 💇‍♂️",
+            "Riecht an den Füßen des anderen (Mutprobe!). 👃",
+            "Küsst euch 'kopfüber' (Spiderman-Kuss). 🕷️",
+            "Schreibt euch gegenseitig ein 'Gutschein' für später auf den Arm. 🎟️",
+            "Tanzt Macarena. 💃",
+            "Macht Planking (wer hält länger durch?). ⏱️",
+            "Versucht, einen Apfel zwischen euren Stirnen zu balancieren. 🍎",
+            "Sagt das Alphabet rückwärts auf, abwechselnd jeder einen Buchstaben. 🔡",
+            "Bewerte das Outfit des anderen wie ein Modedesigner (lustig!). 👗",
+            "Macht Schattenfiguren an der Wand. 🔦",
+            "Spielt 'Boden ist Lava'. 🔥",
+            "Umarmt euch für genau 60 Sekunden ohne Loslassen. 🤗",
+            "Macht ein 'hässliches' Gesicht-Wettbewerb. 🤪"
         ];
 
         const deepTalkQuestions = [
-            "Was ist deine schönste Kindheitserinnerung?",
-            "Wofür bist du in deinem Leben am meisten dankbar?",
-            "Wenn du eine Sache an deiner Vergangenheit ändern könntest, was wäre das?",
-            "Was bedeutet für dich ein perfekter Tag?",
-            "Welche Eigenschaft bewunderst du an mir am meisten?",
-            "Wo sehen wir uns in 5 Jahren?",
-            "Was ist deine größte Angst?",
-            "Was würdest du tun, wenn Geld keine Rolle spielen würde?"
+            "Was ist eine Sache, die du mir noch nie erzählt hast, weil du Angst hattest, ich würde dich verurteilen?",
+            "Welcher Moment in deinem Leben hat dich am stärksten zu der Person gemacht, die du heute bist?",
+            "Wenn du wüsstest, dass du in einem Jahr stirbst, was würdest du heute an deinem Leben ändern?",
+            "Was bedeutet Verletzlichkeit für dich und wann fällt es dir schwer, verletzlich zu sein?",
+            "Gibt es einen Traum, den du aufgegeben hast? Warum?",
+            "Was ist deine größte Angst in Bezug auf unsere Beziehung?",
+            "Welche Eigenschaft von dir möchtest du am liebsten ändern?",
+            "Wann hast du dich zuletzt so richtig stolz auf dich selbst gefühlt?",
+            "Was bedeutet für dich wahres Glück?",
+            "Wenn du eine Botschaft an dein jüngeres Ich senden könntest, was würdest du sagen?",
+            "Welche Rolle spielt Vergebung in deinem Leben?",
+            "Was ist der schönste Kompliment, das du je bekommen hast?",
+            "Gibt es etwas, das du in deinem Leben bereust?",
+            "Was würdest du tun, wenn du absolut keine Angst vorm Scheitern hättest?",
+            "Wie definierst du Erfolg?",
+            "Was bedeutet Liebe für dich in einem Wort?",
+            "Welches Buch oder welcher Film hat dein Leben verändert?",
+            "Was ist deine liebste Erinnerung an uns beide?",
+            "Was glaubst du, ist der Sinn des Lebens?",
+            "Welche Tradition aus deiner Kindheit möchtest du unbedingt weiterführen?",
+            "Was ist das Mutigste, das du je getan hast?",
+            "Wenn du eine Superkraft haben könntest, welche wäre es und warum?",
+            "Was schätzt du an unserer Freundschaft am meisten?",
+            "Gibt es etwas, worüber du dir oft Sorgen machst, obwohl du weißt, dass es unnötig ist?",
+            "Was würdest du tun, wenn du einen Tag lang unsichtbar wärst?",
+            "Welchen Rat würdest du deinem besten Freund geben?",
+            "Was ist dein größtes Ziel für die nächsten 5 Jahre?",
+            "Was bedeutet Familie für dich?",
+            "Was ist das Verrückteste, das du je getan hast?",
+            "Gibt es etwas, das du schon immer lernen wolltest?",
+            "Was ist deine größte Stärke?",
+            "Was ist deine größte Schwäche?",
+            "Was würdest du tun, wenn du im Lotto gewinnen würdest?",
+            "Was ist dein Lieblingsort auf der Welt?",
+            "Was ist dein Lieblingsessen?",
+            "Was ist dein Lieblingslied?",
+            "Was ist dein Lieblingsbuch?",
+            "Was ist dein Lieblingsfilm?",
+            "Was ist deine Lieblingsserie?",
+            "Was ist dein Lieblingsspiel?",
+            "Was ist dein Lieblingssport?",
+            "Was ist dein Lieblingshobby?",
+            "Was ist dein Lieblingstier?",
+            "Was ist deine Lieblingsfarbe?",
+            "Was ist deine Lieblingszahl?",
+            "Was ist deine Lieblingsjahreszeit?",
+            "Was ist dein Lieblingsfeiertag?",
+            "Was ist dein Lieblingswochentag?",
+            "Was ist deine Lieblings-Tageszeit?",
+            "Was ist dein Lieblingswetter?",
+            "Was ist dein Lieblingsgetränk?",
+            "Was ist dein Lieblingsnachtisch?",
+            "Was ist deine Lieblingsblume?",
+            "Was ist dein Lieblingsduft?",
+            "Was ist dein Lieblingsgeräusch?",
+            "Was ist dein Lieblingsgefühl?",
+            "Was ist dein Lieblingszitat?",
+            "Was ist dein Lieblingswitz?",
+            "Was ist dein Lieblingswort?",
+            "Was ist dein Lieblingsbuchstabe?",
+            "Was ist dein Lieblingssymbol?",
+            "Was ist dein Lieblings-Emoji?"
         ];
 
+        // ANGEPASSTE BELOHNUNGEN (Kein Haushalt, Fokus auf Quality Time & Büro-Couch)
         const rewardPool = [
-            "💆 20 Min. Massage Gutschein",
-            "🥞 Partner macht Frühstück",
-            "🎬 Film aussuchen (ohne Veto)",
-            "🧹 Partner übernimmt 1x Hausarbeit",
-            "🍕 Pizza bestellen (Partner zahlt)",
-            "💋 1 freier Wunsch",
-            "🚗 Chauffeur für einen Abend",
-            "🍨 Eis essen gehen (Partner zahlt)"
+            "💆 20 Min. Massage (Ganzkörper)",
+            "🧖‍♀️ 10 Min. Kopfkraulen",
+            "🦶 15 Min. Fußmassage",
+            "🤐 10 Min. 'Ja'-Sagen (Partner bestimmt)",
+            "🛁 Ein Bad einlassen & bedienen",
+            "🥞 Frühstück ans Bett",
+            "🍝 Lieblingsessen wird gekocht",
+            "🧼 Eine lästige Pflicht abgeben",
+            "🎬 Film-Wahl ohne Veto",
+            "👑 1 Tag König/in sein (kleine Wünsche erfüllen)",
+            "🍫 Lieblings-Snack sofort besorgen",
+            "🍹 Cocktail/Drink mixen & servieren",
+            "🤫 15 Min. Ruhe genießen (Partner kümmert sich um alles)"
         ];
 
         let usedIndices = []; 
@@ -615,7 +750,9 @@
         let currentPhotoBase64 = "";
         let countdownTarget = null;
         let countdownTitle = "";
-        let relationshipStart = null; // Store for relationship start time
+        let relationshipStart = null;
+        let globalDoneCount = 0;
+        let globalClaimedCount = 0;
 
         // HEART ANIMATION
         const createHeart = () => {
@@ -736,7 +873,7 @@
             container.classList.remove('hidden');
             qEl.style.opacity = '0.5';
 
-            const prompt = "Generiere eine tiefgründige, interessante Frage für ein Paar, um ein Gespräch zu starten. Auf Deutsch. Nur die Frage.";
+            const prompt = "Generiere eine sehr tiefgründige, psychologische oder philosophische Frage für ein Paar, die zu einem langen, intensiven Gespräch anregt. Vermeide Standardfragen. Sei kreativ, emotional und spezifisch. Auf Deutsch. Gib nur die Frage zurück.";
             const question = await callGemini(prompt);
 
             if (question) {
@@ -759,7 +896,52 @@
             const reward = rewardPool[Math.floor(Math.random() * rewardPool.length)];
             textEl.innerText = reward;
             
+            // Update DB to mark as claimed
+            set(ref(db, 'stats/claimedCount'), globalClaimedCount + 1);
+
             modal.classList.remove('hidden');
+        };
+
+        const updateRewardUI = (doneCount, claimedCount) => {
+            const rewardBar = document.getElementById('reward-progress-bar');
+            const rewardText = document.getElementById('reward-progress-text');
+            const rewardBtn = document.getElementById('btn-claim-reward');
+            
+            const datesPerReward = 5;
+            
+            // Logic: Is there a pending reward?
+            // e.g. done=5, claimed=0 -> yes (5 >= (0+1)*5)
+            // e.g. done=6, claimed=1 -> no (6 < (1+1)*5 -> 6 < 10)
+            const targetForNextReward = (claimedCount + 1) * datesPerReward;
+            const isClaimable = doneCount >= targetForNextReward;
+
+            // Calculate progress for current cycle
+            // If claimed=0, we look at doneCount (0-5)
+            // If claimed=1, we look at doneCount (5-10), so doneCount - 5
+            const currentBase = claimedCount * datesPerReward;
+            let currentProgress = doneCount - currentBase;
+            
+            // Cap progress for display if we are ready to claim
+            if (currentProgress > datesPerReward) currentProgress = datesPerReward;
+            if (currentProgress < 0) currentProgress = 0; // Should not happen
+
+            let progressPercent = (currentProgress / datesPerReward) * 100;
+
+            rewardBar.style.width = `${progressPercent}%`;
+            
+            if (isClaimable) {
+                rewardText.innerText = "🎉 5 Dates geschafft! Öffne mich!";
+                rewardText.classList.add('text-pink-500', 'animate-pulse');
+                rewardBtn.disabled = false;
+                rewardBtn.classList.remove('grayscale', 'opacity-50');
+                rewardBtn.classList.add('chest-shake');
+            } else {
+                rewardText.innerText = `${currentProgress} / ${datesPerReward} Dates bis zur Belohnung`;
+                rewardText.classList.remove('text-pink-500', 'animate-pulse');
+                rewardBtn.disabled = true;
+                rewardBtn.classList.add('grayscale', 'opacity-50');
+                rewardBtn.classList.remove('chest-shake');
+            }
         };
 
         // 6. UPTIME / SYSTEM START LOGIC
@@ -786,15 +968,45 @@
             const diff = now - relationshipStart;
             
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const years = Math.floor(days / 365);
-            const remainingDays = days % 365;
-            
-            // Simple format: X Years, Y Days (approx)
-            // Or just total days for "System Uptime" feel
+            // Simple format: System Uptime in Days
             display.innerText = `System Uptime: ${days} Tage`;
         };
-        setInterval(updateUptime, 1000 * 60 * 60); // Update every hour is enough for days, but let's do it on load
+        setInterval(updateUptime, 1000 * 60 * 60);
 
+        // 7. LOCATION SHARING
+        window.shareLocation = () => {
+            const btn = document.getElementById('btn-share-loc');
+            
+            if (!navigator.geolocation) {
+                alert("Dein Browser unterstützt keine Ortung.");
+                return;
+            }
+
+            btn.classList.add('animate-spin'); // Feedback
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const u = localStorage.getItem('currentUser');
+                    
+                    // Update DB with location
+                    update(ref(db, `presence/${u}`), {
+                        lat: lat,
+                        lng: lng,
+                        locTime: Date.now()
+                    });
+                    
+                    btn.classList.remove('animate-spin');
+                    alert("📍 Standort gesendet!");
+                },
+                (error) => {
+                    btn.classList.remove('animate-spin');
+                    alert("Ortung fehlgeschlagen. Bitte GPS erlauben.");
+                    console.error(error);
+                }
+            );
+        };
 
         // AUTH & PASSWORT
         window.startAuth = async (user) => {
@@ -838,11 +1050,57 @@
         };
         
         const startPresence = (u) => { 
-            setInterval(() => set(ref(db, `presence/${u}`), Date.now()), 5000); 
+            // Update own presence every 5s (timestamp only)
+            setInterval(() => update(ref(db, `presence/${u}`), { onlineAt: Date.now() }), 5000); 
+            
             const partner = u === "Samet" ? "Meriam" : "Samet"; 
+            
             onValue(ref(db, `presence/${partner}`), (s) => { 
-                const isOnline = s.val() && (Date.now() - s.val() < 12000); 
-                document.getElementById('partner-status').className = "online-indicator " + (isOnline ? "online" : "offline"); 
+                const data = s.val();
+                const indicator = document.getElementById('partner-status');
+                const lastSeenText = document.getElementById('partner-last-seen');
+                const locLink = document.getElementById('partner-location-link');
+                
+                if (!data || !data.onlineAt) {
+                    indicator.className = "online-indicator offline";
+                    lastSeenText.innerText = `${partner} war noch nie hier`;
+                    locLink.classList.add('hidden');
+                    return;
+                }
+
+                const now = Date.now();
+                const isOnline = (now - data.onlineAt) < 15000; 
+                
+                indicator.className = "online-indicator " + (isOnline ? "online" : "offline");
+                
+                // Online Status Text
+                if (isOnline) {
+                    lastSeenText.innerText = `${partner} online`;
+                    lastSeenText.className = "text-[9px] font-bold text-green-500 transition-all";
+                } else {
+                    const date = new Date(data.onlineAt);
+                    const dateStr = date.toLocaleDateString('de-DE');
+                    const timeStr = date.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+                    
+                    const today = new Date().toLocaleDateString('de-DE');
+                    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('de-DE');
+                    
+                    let displayDate = dateStr;
+                    if (dateStr === today) displayDate = "Heute";
+                    else if (dateStr === yesterday) displayDate = "Gestern";
+
+                    lastSeenText.innerText = `${partner} zuletzt: ${displayDate} um ${timeStr}`;
+                    lastSeenText.className = "text-[9px] text-gray-400 font-medium transition-all";
+                }
+
+                // Location Logic (Show link if location is shared within last 30 mins)
+                if (data.lat && data.lng && data.locTime && (now - data.locTime) < 1800000) {
+                    locLink.href = `https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}`;
+                    locLink.innerText = `🗺️ Zu ${partner} navigieren`;
+                    locLink.classList.remove('hidden');
+                } else {
+                    locLink.classList.add('hidden');
+                }
             }); 
         };
 
@@ -957,7 +1215,7 @@
         window.deleteCountdown = () => {
             if(confirm("Diesen Countdown wirklich löschen?")) {
                 // Remove the specific path
-                remove(ref(db, 'countdown/current'));
+                set(ref(db, 'countdown/current'), null);
             }
         };
 
@@ -986,10 +1244,27 @@
         // Update countdown every second
         setInterval(updateCountdownUI, 1000);
 
+        const getCatLabel = (val) => val === 'Planung' ? '📅 Planung nötig' : '⚡ Spontan möglich';
+        const getWeatherLabel = (val) => {
+            if (val === 'Sonne') return '☀️ Bei Sonne schöner';
+            // UPDATE: Label text updated here
+            if (val === 'Regen') return '🏠 Indoor / Auch bei schlechten Wetter möglich';
+            return '☁️ Wetter spielt keine Rolle';
+        };
+
         const syncData = (currentUser) => {
             const partner = currentUser === "Samet" ? "Meriam" : "Samet";
             document.getElementById('love-letter-title').innerText = `Post-it an ${partner} 📝`;
             document.getElementById('vs-label').innerText = `Ich vs ${partner}`;
+
+            // Sync Claimed Rewards Count
+            onValue(ref(db, 'stats/claimedCount'), (snap) => {
+                globalClaimedCount = snap.val() || 0;
+                // Re-calculate UI if we already have doneCount
+                if (globalDoneCount !== undefined) {
+                    updateRewardUI(globalDoneCount, globalClaimedCount);
+                }
+            });
 
             // Sync Uptime
             onValue(ref(db, 'systemStart'), (snap) => {
@@ -1055,6 +1330,10 @@
                     if(item.by === 'Samet') sametTotal++; else meriamTotal++;
                 });
 
+                // Update global tracking variable
+                globalDoneCount = doneCount;
+                updateRewardUI(globalDoneCount, globalClaimedCount);
+
                 let streak = 0; let weekIt = new Date();
                 if(!thisWeekDone) weekIt.setDate(weekIt.getDate() - 7);
                 while(doneWeekKeys.has(getWeekKey(weekIt))) { streak++; weekIt.setDate(weekIt.getDate() - 7); }
@@ -1065,35 +1344,6 @@
                 const streakInfo = document.getElementById('streak-info');
                 streakInfo.innerText = thisWeekDone ? "✅ Serie sicher" : `⏳ Nötig bis ${getNextSunday()}`;
                 streakInfo.className = "streak-status " + (thisWeekDone ? "text-teal-500 font-bold" : "text-pink-500 animate-pulse font-bold");
-
-                // --- REWARD LOGIC ---
-                const rewardBar = document.getElementById('reward-progress-bar');
-                const rewardText = document.getElementById('reward-progress-text');
-                const rewardBtn = document.getElementById('btn-claim-reward');
-                
-                const targetStreak = Math.ceil((streak + 1) / 3) * 3;
-                // If streak is a multiple of 3 and > 0, we can claim (logic simplified for demo)
-                const isClaimable = (streak > 0 && streak % 3 === 0);
-                
-                // Calculate progress relative to current 3-week block
-                const currentBlockProgress = streak % 3;
-                const progressPercent = isClaimable ? 100 : (currentBlockProgress / 3) * 100;
-
-                rewardBar.style.width = `${progressPercent}%`;
-                rewardText.innerText = isClaimable 
-                    ? "Belohnung freigeschaltet! 🎁" 
-                    : `${currentBlockProgress} / 3 Wochen bis zur Belohnung`;
-                
-                if (isClaimable) {
-                    rewardBtn.disabled = false;
-                    rewardBtn.classList.remove('grayscale', 'opacity-50');
-                    rewardBtn.classList.add('chest-shake');
-                } else {
-                    rewardBtn.disabled = true;
-                    rewardBtn.classList.add('grayscale', 'opacity-50');
-                    rewardBtn.classList.remove('chest-shake');
-                }
-
 
                 const allIds = Object.keys(data);
                 const activeIds = allIds.filter(id => data[id].status === 'active');
@@ -1106,7 +1356,7 @@
                     const item = data[id];
                     const isSecret = item.surprise && item.by !== currentUser;
                     const card = document.createElement('div');
-                    card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/30 shadow-md relative overflow-hidden";
+                    card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/90 shadow-md relative overflow-hidden";
                     card.innerHTML = `
                         <div class="absolute top-0 right-0 bg-green-400 text-white text-[9px] font-black px-2 py-1 rounded-bl-xl uppercase tracking-widest">Läuft gerade</div>
                         <div class="flex justify-between items-start">
@@ -1130,7 +1380,7 @@
                     const isSecret = item.surprise && item.by !== currentUser;
                     const card = document.createElement('div'); 
                     card.className = "mint-card p-4 border-l-4 " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
-                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${item.cat}</span></div></div><div class="flex gap-2"><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
+                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2"><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
                     wishList.appendChild(card);
                 });
 
@@ -1147,8 +1397,7 @@
                     const item = data[id];
                     const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
                     const card = document.createElement('div'); 
-                    card.className = "mint-card p-4 bg-white/60 border border-teal-50 shadow-inner";
-                    const labels = `<div class="flex gap-2 my-2"><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${item.cat}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${item.weather}</span></div>`;
+                    card.className = "mint-card p-4 bg-white/95 border border-teal-50 shadow-inner";
                     const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
                     
                     let ratingUI = `<div class="mt-4 border-t border-teal-50 pt-3">`;
@@ -1182,7 +1431,7 @@
                     }
                     
                     ratingUI += `</div>`;
-                    card.innerHTML = `<p class="font-bold text-teal-800">${item.text} 🏆</p><p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p>${labels}${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}${memoryUI}${ratingUI}`;
+                    card.innerHTML = `<p class="font-bold text-teal-800">${item.text} 🏆</p><p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p><div class="flex gap-2 my-2"><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div>${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}${item.info ? `<p class="text-[10px] text-gray-500 italic mt-1 border-l-2 border-teal-100 pl-2">💡 ${item.info}</p>` : ''}${memoryUI}${ratingUI}`;
                     archiveList.appendChild(card);
                 });
             });
@@ -1309,8 +1558,8 @@
             document.getElementById('final-info').innerText = chosen.info ? chosen.info : "";
             
             // Mapping für bessere Lesbarkeit - ANGEPASST
-            const catMap = { 'Sofort': '⚡ Spontan möglich', 'Planung': '📅 Muss reserviert werden' };
-            const weatherMap = { 'Egal': '☁️ Wetter egal', 'Sonne': '☀️ Sonne nötig', 'Regen': '🏠 Indoor / Regen' };
+            const catMap = { 'Sofort': '⚡ Spontan möglich', 'Planung': '📅 Planung nötig' };
+            const weatherMap = { 'Egal': '☁️ Wetter spielt keine Rolle', 'Sonne': '☀️ Bei Sonne schöner', 'Regen': '🏠 Indoor / Auch bei schlechten Wetter möglich' };
             const catText = catMap[chosen.cat] || chosen.cat;
             const weatherText = weatherMap[chosen.weather] || chosen.weather;
 
