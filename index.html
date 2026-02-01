@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MerSam OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Quicksand', sans-serif;
@@ -65,6 +65,15 @@
             100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } 
         }
 
+        /* Header Animation */
+        .animate-fade-in-down {
+            animation: fadeInDown 0.8s ease-out forwards;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Dice Animation */
         #dice {
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -119,14 +128,12 @@
         }
         
         .online-indicator {
-            width: 10px;
-            height: 10px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             display: inline-block;
-            margin-right: 8px;
-            vertical-align: middle;
         }
-        .online { background-color: #4ADE80; box-shadow: 0 0 10px #4ADE80; }
+        .online { background-color: #4ADE80; box-shadow: 0 0 8px #4ADE80; }
         .offline { background-color: #CBD5E1; }
         
         .stat-card {
@@ -278,7 +285,7 @@
         <footer class="text-center mt-12 relative z-10">
             <p class="text-[9px] text-teal-900 font-black uppercase tracking-widest leading-loose opacity-70">
                 Coded, Assembled & Designed by <br>
-                <span class="text-pink-500 text-xs">Samet</span> für <span class="text-pink-500 text-xs">Meriam</span>
+                <span class="text-teal-500 text-xs">Samet</span> für <span class="text-pink-500 text-xs">Meriam</span>
             </p>
         </footer>
     </div>
@@ -333,28 +340,34 @@
     </div>
 
     <div id="main-dashboard" class="hidden w-full max-w-md p-4 relative z-10">
-        <header class="flex flex-col mb-6 mt-4 px-2">
-            <div class="flex justify-between items-center w-full">
+        
+        <!-- NEUER HEADER START -->
+        <header class="flex flex-col mb-8 mt-2 px-2 animate-fade-in-down">
+            <div class="flex justify-between items-start mb-2">
                 <div>
-                    <div class="flex items-center"><span id="partner-status" class="online-indicator offline"></span><h1 class="text-2xl font-bold text-teal-800 tracking-tighter">MerSam OS</h1></div>
-                    <button onclick="editSystemStart()" id="uptime-display" class="text-[9px] text-pink-500 font-bold uppercase tracking-widest hover:bg-pink-50 rounded px-2 py-0.5 transition-colors text-left block">System Uptime: 0T 0h 0m</button>
-                    <p id="user-greeting" class="text-[10px] text-teal-600 font-bold uppercase mt-0.5"></p>
+                    <h1 class="text-3xl font-black text-teal-800 tracking-tighter drop-shadow-sm">MerSam OS <span class="text-pink-400 text-lg">v2.6</span></h1>
+                    <p id="user-greeting" class="text-xs text-teal-600 font-bold uppercase tracking-widest mt-1"></p>
                 </div>
-                <div class="flex gap-2 items-center">
-                    <button onclick="shareLocation()" id="btn-share-loc" class="bg-white border-2 border-teal-100 text-teal-500 hover:text-teal-600 hover:border-teal-200 w-10 h-10 rounded-xl text-lg font-black transition-all shadow-sm flex items-center justify-center" title="Standort senden">
-                        📍
-                    </button>
-                    <button id="btn-logout" class="bg-white border-2 border-pink-100 text-pink-400 hover:text-pink-500 hover:border-pink-200 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm flex items-center gap-2 h-10">
-                        <span class="text-lg leading-none">⏻</span> <span>Logout</span>
-                    </button>
-                </div>
+                <button id="btn-logout" class="bg-white/80 backdrop-blur-sm border border-pink-100 text-pink-400 hover:text-pink-600 hover:bg-pink-50 p-3 rounded-2xl transition-all shadow-sm active:scale-95" title="Abmelden">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+                </button>
             </div>
-            <!-- ZENTRIERTER ONLINE & STANDORT STATUS -->
-            <div class="mt-3 text-center w-full">
-                <p id="partner-last-seen" class="text-[9px] text-gray-400 font-medium transition-all"></p>
-                <a id="partner-location-link" href="#" target="_blank" class="hidden inline-block mt-1 text-[9px] font-bold text-white bg-teal-400 px-3 py-1 rounded-full shadow-sm hover:bg-teal-500 transition-colors animate-bounce">🗺️ Route zum Partner</a>
+
+            <!-- Status Badges Zeile -->
+            <div class="flex flex-wrap gap-2 justify-center items-center mt-2">
+                <!-- Uptime Badge -->
+                <button onclick="editSystemStart()" id="uptime-display" class="bg-white/60 backdrop-blur-md border border-teal-100 text-[10px] text-teal-600 font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-all flex items-center gap-2">
+                    <span class="animate-pulse text-teal-400 text-xs">●</span> System Uptime: Laden...
+                </button>
+                
+                <!-- Partner Status Badge -->
+                <div class="bg-white/60 backdrop-blur-md border border-pink-100 text-[10px] text-gray-500 font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
+                    <span id="partner-status" class="online-indicator offline"></span>
+                    <span id="partner-last-seen">Suche Partner...</span>
+                </div>
             </div>
         </header>
+        <!-- NEUER HEADER ENDE -->
 
         <div id="tab-home">
             <!-- SINGLE COUNTDOWN CARD -->
@@ -968,45 +981,15 @@
             const diff = now - relationshipStart;
             
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            // Simple format: System Uptime in Days
+            const years = Math.floor(days / 365);
+            const remainingDays = days % 365;
+            
+            // Simple format: X Years, Y Days (approx)
+            // Or just total days for "System Uptime" feel
             display.innerText = `System Uptime: ${days} Tage`;
         };
-        setInterval(updateUptime, 1000 * 60 * 60);
+        setInterval(updateUptime, 1000 * 60 * 60); // Update every hour is enough for days, but let's do it on load
 
-        // 7. LOCATION SHARING
-        window.shareLocation = () => {
-            const btn = document.getElementById('btn-share-loc');
-            
-            if (!navigator.geolocation) {
-                alert("Dein Browser unterstützt keine Ortung.");
-                return;
-            }
-
-            btn.classList.add('animate-spin'); // Feedback
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const u = localStorage.getItem('currentUser');
-                    
-                    // Update DB with location
-                    update(ref(db, `presence/${u}`), {
-                        lat: lat,
-                        lng: lng,
-                        locTime: Date.now()
-                    });
-                    
-                    btn.classList.remove('animate-spin');
-                    alert("📍 Standort gesendet!");
-                },
-                (error) => {
-                    btn.classList.remove('animate-spin');
-                    alert("Ortung fehlgeschlagen. Bitte GPS erlauben.");
-                    console.error(error);
-                }
-            );
-        };
 
         // AUTH & PASSWORT
         window.startAuth = async (user) => {
@@ -1059,12 +1042,10 @@
                 const data = s.val();
                 const indicator = document.getElementById('partner-status');
                 const lastSeenText = document.getElementById('partner-last-seen');
-                const locLink = document.getElementById('partner-location-link');
                 
                 if (!data || !data.onlineAt) {
                     indicator.className = "online-indicator offline";
                     lastSeenText.innerText = `${partner} war noch nie hier`;
-                    locLink.classList.add('hidden');
                     return;
                 }
 
@@ -1091,15 +1072,6 @@
 
                     lastSeenText.innerText = `${partner} zuletzt: ${displayDate} um ${timeStr}`;
                     lastSeenText.className = "text-[9px] text-gray-400 font-medium transition-all";
-                }
-
-                // Location Logic (Show link if location is shared within last 30 mins)
-                if (data.lat && data.lng && data.locTime && (now - data.locTime) < 1800000) {
-                    locLink.href = `https://www.google.com/maps/search/?api=1&query=${data.lat},${data.lng}`;
-                    locLink.innerText = `🗺️ Zu ${partner} navigieren`;
-                    locLink.classList.remove('hidden');
-                } else {
-                    locLink.classList.add('hidden');
                 }
             }); 
         };
