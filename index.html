@@ -332,7 +332,8 @@
         <header class="flex justify-between items-center mb-6 mt-4 px-2">
             <div>
                 <div class="flex items-center"><span id="partner-status" class="online-indicator offline"></span><h1 class="text-2xl font-bold text-teal-800 tracking-tighter">MerSam OS</h1></div>
-                <p id="user-greeting" class="text-[10px] text-pink-500 font-bold uppercase"></p>
+                <button onclick="editSystemStart()" id="uptime-display" class="text-[9px] text-pink-500 font-bold uppercase tracking-widest hover:bg-pink-50 rounded px-2 py-0.5 transition-colors text-left block">System Uptime: 0T 0h 0m</button>
+                <p id="user-greeting" class="text-[10px] text-teal-600 font-bold uppercase mt-0.5"></p>
             </div>
             <button id="btn-logout" class="text-xs text-gray-400 underline uppercase font-bold">Abmelden</button>
         </header>
@@ -406,6 +407,7 @@
             </div>
 
             <div class="mint-card p-6 mb-6">
+                <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">Füge eine Date-Idee hinzu ✨</h3>
                 <div class="flex gap-2 mb-3 items-center">
                     <input id="wish-input" type="text" placeholder="Was machen wir?" class="flex-1 p-4 bg-teal-50 rounded-xl outline-none text-lg">
                     <button id="btn-ai-wish" class="sparkle-btn h-14 w-14 rounded-xl shadow-lg flex items-center justify-center text-xl active:scale-95" title="Idee generieren">✨</button>
@@ -613,6 +615,7 @@
         let currentPhotoBase64 = "";
         let countdownTarget = null;
         let countdownTitle = "";
+        let relationshipStart = null; // Store for relationship start time
 
         // HEART ANIMATION
         const createHeart = () => {
@@ -758,6 +761,39 @@
             
             modal.classList.remove('hidden');
         };
+
+        // 6. UPTIME / SYSTEM START LOGIC
+        window.editSystemStart = () => {
+            const date = prompt("Seit wann seid ihr zusammen? (Format: YYYY-MM-DD)", "2020-01-01");
+            if (date) {
+                const ts = new Date(date).getTime();
+                if (!isNaN(ts)) {
+                    set(ref(db, 'systemStart'), ts);
+                } else {
+                    alert("Ungültiges Datum!");
+                }
+            }
+        };
+
+        const updateUptime = () => {
+            const display = document.getElementById('uptime-display');
+            if (!relationshipStart) {
+                display.innerText = "System Uptime: Startdatum setzen";
+                return;
+            }
+            
+            const now = Date.now();
+            const diff = now - relationshipStart;
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const years = Math.floor(days / 365);
+            const remainingDays = days % 365;
+            
+            // Simple format: X Years, Y Days (approx)
+            // Or just total days for "System Uptime" feel
+            display.innerText = `System Uptime: ${days} Tage`;
+        };
+        setInterval(updateUptime, 1000 * 60 * 60); // Update every hour is enough for days, but let's do it on load
 
 
         // AUTH & PASSWORT
@@ -919,8 +955,9 @@
         };
 
         window.deleteCountdown = () => {
-            if(confirm("Countdown wirklich entfernen?")) {
-                set(ref(db, 'countdown'), null); // Nuke it to be sure
+            if(confirm("Diesen Countdown wirklich löschen?")) {
+                // Remove the specific path
+                remove(ref(db, 'countdown/current'));
             }
         };
 
@@ -953,6 +990,12 @@
             const partner = currentUser === "Samet" ? "Meriam" : "Samet";
             document.getElementById('love-letter-title').innerText = `Post-it an ${partner} 📝`;
             document.getElementById('vs-label').innerText = `Ich vs ${partner}`;
+
+            // Sync Uptime
+            onValue(ref(db, 'systemStart'), (snap) => {
+                relationshipStart = snap.val();
+                updateUptime();
+            });
 
             // Sync Single Countdown
             onValue(ref(db, 'countdown/current'), (snap) => {
