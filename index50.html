@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MerSam OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #FCE4EC;
+            color: #2D3748;
+            padding-bottom: 80px;
+            overflow-x: hidden;
+        }
+        .pink-btn {
+            background-color: #FF80AB;
+            color: white;
+            transition: all 0.2s;
+        }
+        .pink-btn:hover {
+            background-color: #F06292;
+            transform: translateY(-1px);
+        }
+        .teal-btn {
+            background-color: #14B8A6;
+            color: white;
+            transition: all 0.2s;
+        }
+        .teal-btn:hover {
+            background-color: #0D9488;
+            transform: translateY(-1px);
+        }
+        .mint-card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            border: 1px solid rgba(178, 223, 219, 0.5);
+        }
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Hintergrund-Animation */
+        .bg-gradient-animate { 
+            background: linear-gradient(-45deg, #E0F2F1, #FCE4EC, #E0F7FA, #F8BBD0); 
+            background-size: 400% 400%; 
+            animation: gradient 12s ease infinite; 
+        }
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        /* Floating Hearts */
+        .floating-heart { 
+            position: absolute; 
+            color: rgba(255, 128, 171, 0.6); 
+            animation: float 5s infinite linear; 
+            z-index: 0; 
+            pointer-events: none; 
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+        @keyframes float { 
+            0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; } 
+            20% { opacity: 0.8; } 
+            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } 
+        }
+
+        /* Dice Animation */
+        #dice {
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-block;
+            font-size: 5.5rem;
+            padding: 1rem 0;
+        }
+        .rolling {
+            animation: shake 0.1s infinite;
+        }
+        @keyframes shake {
+            0% { transform: translate(2px, 1px) rotate(0deg); } 20% { transform: translate(-1px, -2px) rotate(-1deg); } 40% { transform: translate(-3px, 0px) rotate(1deg); } 100% { transform: translate(-1px, 2px) rotate(-1deg); } }
+        }
+        
+        /* Lock Animation */
+        .lock-active {
+            animation: lock-pulse 0.6s ease infinite;
+            font-size: 5rem;
+            display: block;
+        }
+        @keyframes lock-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); text-shadow: 0 0 20px rgba(255, 128, 171, 0.5); }
+        }
+        
+        /* Unfold Animation */
+        .unfold-anim {
+            animation: unfold 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes unfold {
+            0% { transform: scaleY(0); opacity: 0; transform-origin: top; }
+            100% { transform: scaleY(1); opacity: 1; transform-origin: top; }
+        }
+
+        .user-badge {
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-meriam { background-color: #fce4ec; color: #f06292; }
+        .badge-samet { background-color: #e0f2f1; color: #00897b; }
+        
+        .filter-select {
+            background-color: #f0fdfa;
+            border: 1px solid #99f6e4;
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            outline: none;
+        }
+        
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .online { background-color: #4ADE80; box-shadow: 0 0 10px #4ADE80; }
+        .offline { background-color: #CBD5E1; }
+        
+        .stat-card {
+            text-align: center;
+            padding: 18px 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .stat-title {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            color: #94A3B8;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            margin-bottom: 4px;
+        }
+        .stat-val {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #111827;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.5rem;
+            color: #64748B;
+            font-weight: 700;
+            margin-top: 6px;
+            text-transform: uppercase;
+        }
+        
+        .rating-btn {
+            width: 24px;
+            height: 24px;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+            background: white;
+            color: #64748B;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 448px;
+            background: white;
+            border-top: 1px solid #B2DFDB;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #94A3B8;
+        }
+        .nav-item.active {
+            color: #14B8A6;
+        }
+        
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #FF80AB; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .bucket-card { border: 2px solid #FFD700; background: linear-gradient(to bottom right, #FFFFFF, #FFFDF0); }
+
+        /* Animation for Gemini Buttons */
+        .sparkle-btn {
+            background: linear-gradient(135deg, #A855F7, #EC4899);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .sparkle-btn:hover {
+            filter: brightness(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+        }
+        .animate-spin-slow {
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* REWARD ANIMATIONS */
+        .chest-shake {
+            animation: shakeChest 1s infinite;
+        }
+        @keyframes shakeChest {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            50% { transform: rotate(10deg); }
+            75% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+        .pop-in {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-animate min-h-screen flex flex-col items-center">
+
+    <!-- GLOBAL BACKGROUND ANIMATION CONTAINER -->
+    <div id="heart-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
+
+    <!-- NEW LOGIN SCREEN -->
+    <div id="login-screen" class="w-full max-w-md px-8 flex flex-col justify-center min-h-screen relative overflow-hidden z-10">
+        
+        <div class="mint-card p-12 text-center relative z-10 bg-white/80 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl">
+            <div class="mb-10">
+                <p class="text-pink-500 font-black text-xs uppercase tracking-[0.3em] mb-3">System Booting...</p>
+                <h1 class="text-4xl font-black text-teal-800 tracking-tighter">MerSam OS</h1>
+                <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">Valentinstag '26 - Special Build</p>
+            </div>
+            
+            <div id="user-selection" class="space-y-4">
+                <p class="text-xs font-bold text-gray-500 uppercase mb-4">Profil auswählen</p>
+                <button onclick="startAuth('Meriam')" class="pink-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg active:scale-95 transition-all">Meriam</button>
+                <button onclick="startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg active:scale-95 transition-all">Samet</button>
+            </div>
+
+            <div id="password-area" class="hidden mt-6">
+                <p id="password-msg" class="text-xs font-bold text-gray-500 mb-6 uppercase">Passwort erforderlich</p>
+                <input type="password" id="pass-input" placeholder="••••" class="w-full text-center p-5 bg-teal-50 rounded-2xl mb-6 outline-none text-3xl tracking-[0.4em] font-black border-2 border-teal-100 focus:border-pink-300 transition-all">
+                <button id="btn-login-confirm" class="pink-btn w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Entsperren ✨</button>
+                <button onclick="location.reload()" class="text-[10px] text-gray-400 mt-6 underline uppercase font-bold">Abbrechen</button>
+            </div>
+        </div>
+
+        <footer class="text-center mt-12 relative z-10">
+            <p class="text-[9px] text-teal-900 font-black uppercase tracking-widest leading-loose opacity-70">
+                Coded, Assembled & Designed by <br>
+                <span class="text-pink-500 text-xs">Samet</span> für <span class="text-pink-500 text-xs">Meriam</span>
+            </p>
+        </footer>
+    </div>
+
+    <!-- MEMORY MODAL (Z-Index fix) -->
+    <div id="memory-modal" class="hidden fixed inset-0 bg-black/50 z-[150] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100">
+            <h3 class="text-xl font-black text-teal-800 mb-2">Date abschließen 📸</h3>
+            <p class="text-xs text-gray-500 mb-4 font-medium">Füge eine Erinnerung hinzu!</p>
+            
+            <div class="space-y-3">
+                <label class="block w-full p-4 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative">
+                    <span id="upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto hinzufügen</span>
+                    <input id="memory-photo-file" type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
+                </label>
+                <img id="preview-image" class="hidden w-full h-32 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
+                
+                <textarea id="memory-note" placeholder="Deine Gedanken zum Date... (optional)" class="w-full p-4 bg-teal-50 rounded-xl outline-none text-sm h-24 resize-none border border-transparent focus:border-teal-300 transition-all"></textarea>
+            </div>
+            
+            <div class="mt-6 space-y-2">
+                <button id="btn-save-memory" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern & Archivieren</button>
+                <button onclick="closeMemoryModal()" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- COUNTDOWN MODAL (High Z-Index) -->
+    <div id="countdown-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100">
+            <h3 class="text-xl font-black text-pink-600 mb-4">Countdown setzen ⏳</h3>
+            <input id="new-cd-title" type="text" placeholder="Ereignis (z.B. Urlaub 🌴)" class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm font-bold text-gray-700">
+            <input id="new-cd-date" type="datetime-local" class="w-full p-3 bg-white border border-gray-200 rounded-xl mb-4 outline-none text-sm text-center text-gray-700">
+            <button id="btn-save-countdown" type="button" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs">Starten</button>
+            <button onclick="document.getElementById('countdown-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 mt-2 hover:text-gray-600">Abbrechen</button>
+        </div>
+    </div>
+
+    <!-- REWARD MODAL -->
+    <div id="reward-modal" class="hidden fixed inset-0 bg-black/60 z-[250] flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="mint-card p-8 w-full max-w-sm relative shadow-2xl border-4 border-yellow-300 bg-gradient-to-br from-yellow-50 to-white text-center pop-in">
+            <div class="text-6xl mb-4">🎁</div>
+            <h3 class="text-2xl font-black text-yellow-600 mb-2 tracking-tight">Belohnung!</h3>
+            <p class="text-xs text-gray-500 font-bold uppercase mb-6">Ihr habt 3 Wochen in Folge geschafft!</p>
+            
+            <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-yellow-200 mb-6 shadow-inner">
+                <p id="reward-text" class="text-lg font-black text-teal-800 leading-relaxed"></p>
+            </div>
+            
+            <button onclick="document.getElementById('reward-modal').classList.add('hidden')" class="bg-yellow-400 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs hover:bg-yellow-500 transition-colors">Einlösen & Feiern 🎉</button>
+        </div>
+    </div>
+
+    <div id="main-dashboard" class="hidden w-full max-w-md p-4 relative z-10">
+        <header class="flex justify-between items-center mb-6 mt-4 px-2">
+            <div>
+                <div class="flex items-center"><span id="partner-status" class="online-indicator offline"></span><h1 class="text-2xl font-bold text-teal-800 tracking-tighter">MerSam OS</h1></div>
+                <p id="user-greeting" class="text-[10px] text-pink-500 font-bold uppercase"></p>
+            </div>
+            <button id="btn-logout" class="text-xs text-gray-400 underline uppercase font-bold">Abmelden</button>
+        </header>
+
+        <div id="tab-home">
+            <!-- SINGLE COUNTDOWN CARD -->
+            <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden">
+                <div class="absolute top-2 right-2 flex gap-2 z-20">
+                    <button onclick="editCountdown()" class="text-gray-400 hover:text-teal-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Bearbeiten">✏️</button>
+                    <button onclick="deleteCountdown()" class="text-gray-400 hover:text-red-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Löschen">🗑️</button>
+                </div>
+                <p class="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Nächstes Highlight</p>
+                <h3 id="countdown-title" class="text-center text-xl font-black text-gray-800 mb-3 tracking-tight truncate px-4"></h3>
+                
+                <div class="flex justify-center gap-4 text-center">
+                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-days" class="block text-2xl font-black text-pink-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Tage</span></div>
+                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-hours" class="block text-2xl font-black text-teal-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Std</span></div>
+                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-min" class="block text-2xl font-black text-indigo-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Min</span></div>
+                </div>
+            </div>
+
+            <!-- PLACEHOLDER FOR COUNTDOWN -->
+            <div id="countdown-placeholder" class="mb-6 text-center hidden">
+                <button onclick="openCountdownModal()" class="w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2">
+                    <span class="text-2xl opacity-50">➕</span>
+                    <span>Countdown hinzufügen</span>
+                </button>
+            </div>
+
+            <div class="mint-card p-2 mb-6 grid grid-cols-3 gap-0 divide-x divide-teal-50 shadow-sm border-b-4 border-teal-200">
+                <div class="stat-card">
+                    <p class="stat-title">Date-Serie</p>
+                    <p id="stat-streak" class="stat-val text-pink-500">0</p>
+                    <p class="stat-label">Wochen</p>
+                    <p id="streak-info" class="streak-status italic text-[7px] leading-tight mt-1"></p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-title">Ideen-Duell</p>
+                    <p id="stat-vs" class="stat-val text-teal-600">0:0</p>
+                    <p id="vs-label" class="stat-label text-[7px]">Ich vs Partner</p>
+                </div>
+                <div class="stat-card">
+                    <p class="stat-title">Erfüllt</p>
+                    <p id="stat-progress" class="stat-val text-indigo-500">0%</p>
+                    <p class="stat-label">Der Wünsche</p>
+                </div>
+            </div>
+
+            <!-- REWARD PROGRESS CARD -->
+            <div id="reward-card" class="mint-card p-4 mb-6 border-l-4 border-yellow-300 bg-gradient-to-r from-yellow-50 to-white shadow-sm flex items-center justify-between">
+                <div class="flex-1">
+                    <p class="text-[9px] font-black text-yellow-600 uppercase tracking-widest mb-1">Nächstes Level 🏆</p>
+                    <div class="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
+                        <div id="reward-progress-bar" class="bg-yellow-400 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                    </div>
+                    <p id="reward-progress-text" class="text-[9px] font-bold text-gray-400">0 / 3 Wochen Streak</p>
+                </div>
+                <div class="ml-4">
+                    <button id="btn-claim-reward" onclick="claimReward()" class="text-3xl filter grayscale opacity-50 transition-all transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed" disabled>🎁</button>
+                </div>
+            </div>
+
+            <div class="bg-yellow-100 border-l-8 border-yellow-400 p-4 mb-8 rounded-r-2xl shadow-sm relative rotate-1">
+                <p id="love-letter-title" class="text-[10px] font-black text-yellow-600 uppercase tracking-widest mb-1">Post-it</p>
+                <p id="love-letter-display" class="text-sm text-yellow-800 italic font-medium">Laden...</p>
+                <div class="flex justify-between items-center mt-3 gap-2">
+                    <button id="btn-ai-letter" class="sparkle-btn w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-md active:scale-95" title="Nachricht generieren">✨</button>
+                    <input id="love-letter-input" type="text" placeholder="Hinterlasse eine Nachricht..." class="bg-white/50 text-xs p-2 rounded-lg border-none outline-none flex-1 italic">
+                    <button id="btn-send-letter" class="bg-yellow-400 text-white p-2 rounded-lg text-xs font-bold uppercase">Senden</button>
+                </div>
+            </div>
+
+            <div class="mint-card p-6 mb-6">
+                <div class="flex gap-2 mb-3 items-center">
+                    <input id="wish-input" type="text" placeholder="Was machen wir?" class="flex-1 p-4 bg-teal-50 rounded-xl outline-none text-lg">
+                    <button id="btn-ai-wish" class="sparkle-btn h-14 w-14 rounded-xl shadow-lg flex items-center justify-center text-xl active:scale-95" title="Idee generieren">✨</button>
+                </div>
+                <input id="location-input" type="text" placeholder="📍 Wo? (Für die Karte)" class="w-full p-3 bg-white border border-teal-100 rounded-xl mb-2 outline-none text-sm">
+                <input id="info-input" type="text" placeholder="💡 Insider-Info?" class="w-full p-3 bg-white border border-teal-100 rounded-xl mb-4 outline-none text-sm italic">
+                <div class="flex gap-2 mb-6">
+                    <select id="cat-select" class="flex-1 filter-select"><option value="Sofort">⚡ Spontan?</option><option value="Planung">📅 Planung?</option></select>
+                    <select id="weather-select" class="flex-1 filter-select"><option value="Egal">☁️ Wetter?</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
+                </div>
+                <div class="flex justify-between items-center px-2 mb-6">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase">Geheim? 🤫 <label class="switch"><input type="checkbox" id="surprise-toggle"><span class="slider"></span></label></span>
+                    <span class="text-[10px] font-bold text-yellow-600 uppercase">In die Bucket List legen? <label class="switch"><input type="checkbox" id="bucket-toggle"><span class="slider"></span></label></span>
+                </div>
+                <button id="btn-add" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg">Hinzufügen</button>
+            </div>
+
+            <div class="mint-card p-8 mb-6 text-center bg-gradient-to-b from-white to-teal-50">
+                <div class="flex gap-2 mb-6 justify-center text-[10px] font-bold">
+                    <select id="filter-cat" class="flex-1 filter-select"><option value="Alle">Für alle Optionen offen?</option><option value="Sofort">⚡ Spontan</option><option value="Planung">📅 Planung</option></select>
+                    <select id="filter-weather" class="flex-1 filter-select"><option value="Alle">Wetter egal?</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
+                </div>
+                <div id="dice-container"><div id="dice">🎲</div></div>
+                <div id="lock-screen" class="hidden py-10"><div class="lock-active">🔒</div><p class="text-pink-500 font-bold text-[10px] mt-6 animate-pulse uppercase">Mystery Reveal...</p></div>
+                
+                <div id="result-box" class="mt-2 hidden">
+                    <div id="unfold-wrapper">
+                        <!-- Labels moved from top to bottom -->
+                        <p class="text-[10px] uppercase text-gray-400 mb-1 tracking-widest font-bold">Euer Schicksal:</p>
+                        <h2 id="final-choice" class="text-2xl font-bold text-pink-600 mb-1 leading-tight"></h2>
+                        <p id="final-info" class="text-sm text-gray-600 mb-4 italic"></p>
+                        <div id="map-container" class="hidden mb-6 rounded-3xl overflow-hidden border-4 border-white shadow-sm"><iframe id="map-frame" width="100%" height="180" frameborder="0" style="border:0"></iframe></div>
+                        
+                        <div id="result-info" class="mb-6 flex flex-col items-center justify-center">
+                            <span id="result-creator-badge" class="user-badge mb-2"></span>
+                            <div id="result-labels" class="flex justify-center gap-2"></div>
+                        </div>
+                        
+                        <div class="flex flex-col gap-3">
+                            <button id="btn-accept-date-only-main" class="w-full bg-teal-500 text-white py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date annehmen ✓</button>
+                            
+                            <div id="challenge-section" class="border-t border-pink-50 pt-4">
+                                <div id="challenge-btn-container"><button id="btn-show-challenge" class="text-[10px] font-bold text-pink-500 border-2 border-pink-200 px-8 py-2 rounded-full uppercase tracking-widest hover:bg-pink-50 transition-colors">✨ Bonus-Challenge? ✨</button></div>
+                                <div id="challenge-display" class="hidden mt-2 p-6 bg-gradient-to-br from-pink-50 to-white rounded-3xl border-2 border-pink-100 shadow-inner">
+                                    <p id="challenge-text" class="text-pink-700 font-bold italic mb-6 text-base leading-relaxed"></p>
+                                    <div class="flex flex-col gap-3">
+                                        <button id="btn-accept-both" class="w-full pink-btn py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date & Challenge annehmen</button>
+                                        <button id="btn-accept-date-only-sub" class="w-full text-gray-400 font-bold text-[9px] uppercase py-2">Nur Date annehmen</button>
+                                        <button id="btn-reroll-challenge" class="text-[9px] text-pink-400 font-bold uppercase mt-2 tracking-widest hover:text-pink-600 transition-colors">↻ Andere Challenge</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="btn-roll" class="mt-6 bg-teal-700 text-white px-12 py-5 rounded-full font-bold shadow-xl w-full active:scale-95 uppercase tracking-widest">WÜRFELN</button>
+            </div>
+
+            <div id="wish-list" class="space-y-4 mb-10"></div>
+            <h3 class="font-bold text-gray-400 mb-3 px-2 text-sm uppercase tracking-widest italic text-center">Meilensteine 🏆</h3>
+            <div id="archive-list" class="space-y-3 pb-20 opacity-90"></div>
+        </div>
+
+        <div id="tab-bucket" class="hidden pb-20">
+            <h2 class="text-2xl font-bold text-yellow-600 mb-2 text-center">Bucket List ✨</h2>
+            <p class="text-center text-[10px] text-gray-500 mb-6 italic px-6 leading-relaxed">
+                Unsere großen Lebensträume: Ob Bungee-Jumping, Weltreisen oder verrückte Abenteuer – hier sammeln wir alles, was wir in diesem Leben unbedingt noch gemeinsam erleben wollen! 🌍✈️🚀
+            </p>
+            <div id="bucket-list-content" class="space-y-4"></div>
+        </div>
+
+        <div id="tab-fun" class="hidden pb-20">
+            <!-- NEW DEEP TALK CARD -->
+            <div class="mint-card p-8 mb-6 text-center">
+                <h3 class="font-black text-indigo-600 mb-4 uppercase text-xs tracking-widest">🗣️ Deep Talk</h3>
+                <p class="text-[10px] text-gray-400 mb-6">Keine Lust auf Smalltalk? Lass uns tiefer gehen.</p>
+                
+                <div id="deeptalk-container" class="bg-indigo-50 p-6 rounded-2xl mb-6 hidden border border-indigo-100 shadow-inner">
+                    <p id="deeptalk-question" class="text-lg font-bold text-indigo-900 italic leading-relaxed"></p>
+                </div>
+                
+                <button id="btn-deeptalk" class="bg-indigo-500 text-white px-8 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-md hover:bg-indigo-600 transition-colors w-full">✨ Neues Thema</button>
+            </div>
+
+            <div class="mint-card p-8 mb-6 text-center">
+                <h3 class="font-bold text-teal-800 mb-4 uppercase text-xs tracking-widest font-black">🎡 Entscheidungs-Roulette</h3>
+                <p class="text-[10px] text-gray-400 mb-6">Wer kocht? Wer wählt den Film? Das Schicksal entscheidet!</p>
+                <div id="roulette-result" class="text-3xl font-black text-teal-600 mb-8 h-12 flex items-center justify-center bg-teal-50 rounded-2xl shadow-inner border border-teal-100">?</div>
+                <button id="btn-spin-roulette" class="teal-btn px-12 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-md">Spin Roulette</button>
+            </div>
+            <div class="mint-card p-6">
+                <h3 class="font-bold text-pink-600 mb-4 uppercase text-xs tracking-widest">❓ Quiz-Ecke</h3>
+                <div id="quiz-list" class="space-y-4 mb-6"></div>
+                <div class="border-t pt-4">
+                    <input id="quiz-q" type="text" placeholder="Deine Frage..." class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm">
+                    <input id="quiz-a" type="text" placeholder="Die Antwort..." class="w-full p-3 bg-pink-50 rounded-xl mb-3 outline-none text-sm">
+                    <button id="btn-add-quiz" class="pink-btn w-full py-2 rounded-xl font-bold text-xs uppercase">Hinzufügen</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav-bar hidden shadow-2xl" id="app-nav">
+        <button onclick="switchTab('home')" class="nav-item active" id="nav-home">
+            <span class="text-xl mb-1">🏠</span>
+            <span>Dashboard</span>
+        </button>
+        <button onclick="switchTab('bucket')" class="nav-item" id="nav-bucket">
+            <span class="text-xl mb-1">✨</span>
+            <span>Bucket List</span>
+        </button>
+        <button onclick="switchTab('fun')" class="nav-item" id="nav-fun">
+            <span class="text-xl mb-1">🎡</span>
+            <span>Fun Zone</span>
+        </button>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        
+        const firebaseConfig = { apiKey: "AIzaSyCKF4yb7X6XDt5PSTMwiXmn0y7j9aTVMjc", authDomain: "date-decision-maker.firebaseapp.com", databaseURL: "https://date-decision-maker-default-rtdb.europe-west1.firebasedatabase.app", projectId: "date-decision-maker", storageBucket: "date-decision-maker.firebasestorage.app", messagingSenderId: "187389563873", appId: "1:187389563873:web:4fa5fea6a44c42e18078a0", measurementId: "G-LKDJCYHYQW" };
+        const app = initializeApp(firebaseConfig); 
+        const db = getDatabase(app);
+
+        // GEMINI API INTEGRATION
+        const apiKey = ""; // API Key provided by system
+
+        async function callGemini(prompt) {
+            if (!apiKey) {
+                console.warn("API Key missing");
+                return null;
+            }
+            try {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }]
+                };
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            } catch (error) {
+                console.error("Gemini Error:", error);
+                return null;
+            }
+        }
+
+        // --- BACKUP CONTENT ARRAYS ---
+        // Used when API calls fail or no key is present (ensures variety)
+        
+        const backupWishes = [
+            "Kochen zusammen 🍝", "Picknick im Park 🌳", "Kinoabend daheim 🍿", 
+            "Spaziergang am See 🌊", "Neues Café testen ☕", "Spieleabend 🎲",
+            "Zusammen malen 🎨", "Massageabend 💆", "Sternegucken ✨",
+            "Cocktails mixen 🍹", "Alte Fotos ansehen 📸", "Zusammen backen 🍪",
+            "Sonnenuntergang schauen 🌅", "Bowlen gehen 🎳", "Frühstück im Bett 🥐"
+        ];
+
+        const backupLoveNotes = [
+            "Ich liebe dich sehr! ❤️", "Du bist mein Ein und Alles 💫", 
+            "Danke, dass es dich gibt! 🌹", "Du siehst heute toll aus! 😍",
+            "Freue mich auf dich! 🥰", "Du machst mich glücklich ☀️",
+            "Kuss an dich! 💋", "Denke gerade an dich 💭",
+            "Du bist wunderbar ✨", "Mein Lieblingsmensch ❤️"
+        ];
+
+        const allChallenges = [
+            "Handy-Verbot 📵 (30 min)", "Filmszene nachstellen 📸", "Song summen & raten 🎵", 
+            "Kompliment flüstern 🤫", "Akzent beim Bestellen 🗣️", "Gegenseitig füttern 🍇",
+            "3 Min. Augenkontakt ohne Lachen 👀", "Tanz ohne Musik 💃", 
+            "Lustiges Selfie machen 🤪", "Masseur spielen (5 min) 💆‍♂️"
+        ];
+
+        const deepTalkQuestions = [
+            "Was ist deine schönste Kindheitserinnerung?",
+            "Wofür bist du in deinem Leben am meisten dankbar?",
+            "Wenn du eine Sache an deiner Vergangenheit ändern könntest, was wäre das?",
+            "Was bedeutet für dich ein perfekter Tag?",
+            "Welche Eigenschaft bewunderst du an mir am meisten?",
+            "Wo sehen wir uns in 5 Jahren?",
+            "Was ist deine größte Angst?",
+            "Was würdest du tun, wenn Geld keine Rolle spielen würde?"
+        ];
+
+        const rewardPool = [
+            "💆 20 Min. Massage Gutschein",
+            "🥞 Partner macht Frühstück",
+            "🎬 Film aussuchen (ohne Veto)",
+            "🧹 Partner übernimmt 1x Hausarbeit",
+            "🍕 Pizza bestellen (Partner zahlt)",
+            "💋 1 freier Wunsch",
+            "🚗 Chauffeur für einen Abend",
+            "🍨 Eis essen gehen (Partner zahlt)"
+        ];
+
+        let usedIndices = []; 
+        let rolledDateId = null;
+        let currentCompletingId = null;
+        let currentPhotoBase64 = "";
+        let countdownTarget = null;
+        let countdownTitle = "";
+
+        // HEART ANIMATION
+        const createHeart = () => {
+            const heart = document.createElement('div'); heart.innerHTML = "❤"; heart.className = "floating-heart";
+            heart.style.left = Math.random() * 100 + "vw"; heart.style.fontSize = (Math.random() * 20 + 10) + "px";
+            
+            // Animation verlangsamt: Zufällig zwischen 12 und 20 Sekunden
+            const duration = Math.random() * 8 + 12;
+            heart.style.animationDuration = duration + "s";
+            
+            document.getElementById('heart-container')?.appendChild(heart); 
+            setTimeout(() => heart.remove(), duration * 1000);
+        };
+        setInterval(createHeart, 300);
+
+        // --- NEW AI FEATURES (WITH ROBUST RANDOM FALLBACK) ---
+
+        // 1. Magic Wish Generator
+        document.getElementById('btn-ai-wish').onclick = async () => {
+            const btn = document.getElementById('btn-ai-wish');
+            const input = document.getElementById('wish-input');
+            const originalText = btn.innerHTML;
+            
+            btn.innerHTML = `<div class="animate-spin-slow">✨</div>`;
+            btn.disabled = true;
+
+            const prompt = "Erstelle eine kreative, kurze Date-Idee (max 6 Wörter) für ein Paar. Auf Deutsch. Nur die Idee, kein Intro.";
+            const idea = await callGemini(prompt);
+
+            if (idea) {
+                input.value = idea.replace(/["']/g, "");
+            } else {
+                // Fallback: Pick random from list
+                input.value = backupWishes[Math.floor(Math.random() * backupWishes.length)];
+            }
+
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        };
+
+        // 2. Love Letter Helper
+        document.getElementById('btn-ai-letter').onclick = async () => {
+            const btn = document.getElementById('btn-ai-letter');
+            const input = document.getElementById('love-letter-input');
+            
+            btn.innerHTML = `⌛`;
+            btn.disabled = true;
+
+            const prompt = "Schreibe eine sehr kurze, süße, romantische Nachricht (max 8 Wörter) an den Partner. Auf Deutsch. Nur der Text.";
+            const note = await callGemini(prompt);
+
+            if (note) {
+                input.value = note.replace(/["']/g, "");
+            } else {
+                // Fallback: Pick random from list
+                input.value = backupLoveNotes[Math.floor(Math.random() * backupLoveNotes.length)];
+            }
+
+            btn.innerHTML = `✨`;
+            btn.disabled = false;
+        };
+
+        // 3. AI Challenge Generator
+        async function generateChallenge() {
+            const textEl = document.getElementById('challenge-text');
+            const prompt = "Erstelle eine lustige, kleine 5-Minuten-Challenge für ein Paar, die man sofort machen kann (z.B. 'Wer lacht verliert'). Max 1 Satz. Deutsch.";
+            
+            // Show loading state if needed, or simply wait
+            // We'll return the challenge text
+            const challenge = await callGemini(prompt);
+            
+            if (challenge) {
+                return challenge;
+            } else {
+                // Fallback: Pick random from list
+                return allChallenges[Math.floor(Math.random() * allChallenges.length)];
+            }
+        }
+
+        document.getElementById('btn-show-challenge').onclick = async () => { 
+            const textEl = document.getElementById('challenge-text');
+            const btn = document.getElementById('btn-show-challenge');
+            
+            textEl.innerText = "Frage das Orakel... ✨";
+            document.getElementById('challenge-display').classList.remove('hidden'); 
+            document.getElementById('challenge-btn-container').classList.add('hidden');
+
+            const challengeText = await generateChallenge();
+            textEl.innerText = challengeText;
+        };
+        
+        document.getElementById('btn-reroll-challenge').onclick = async () => {
+            const textEl = document.getElementById('challenge-text');
+            const btn = document.getElementById('btn-reroll-challenge');
+            const originalText = btn.innerText;
+            
+            btn.innerText = "⌛ Lade...";
+            btn.disabled = true;
+            textEl.style.opacity = '0.5';
+
+            const challengeText = await generateChallenge();
+            textEl.innerText = challengeText;
+            
+            textEl.style.opacity = '1';
+            btn.innerText = originalText;
+            btn.disabled = false;
+        };
+
+        // 4. DEEP TALK GENERATOR (NEW)
+        document.getElementById('btn-deeptalk').onclick = async () => {
+            const qEl = document.getElementById('deeptalk-question');
+            const container = document.getElementById('deeptalk-container');
+            const btn = document.getElementById('btn-deeptalk');
+            const originalText = btn.innerText;
+
+            btn.innerText = "✨ Denke nach...";
+            btn.disabled = true;
+            container.classList.remove('hidden');
+            qEl.style.opacity = '0.5';
+
+            const prompt = "Generiere eine tiefgründige, interessante Frage für ein Paar, um ein Gespräch zu starten. Auf Deutsch. Nur die Frage.";
+            const question = await callGemini(prompt);
+
+            if (question) {
+                qEl.innerText = question.replace(/["']/g, "");
+            } else {
+                qEl.innerText = deepTalkQuestions[Math.floor(Math.random() * deepTalkQuestions.length)];
+            }
+
+            qEl.style.opacity = '1';
+            btn.innerText = originalText;
+            btn.disabled = false;
+        };
+
+        // 5. REWARD SYSTEM LOGIC
+        window.claimReward = () => {
+            const modal = document.getElementById('reward-modal');
+            const textEl = document.getElementById('reward-text');
+            
+            // Pick random reward
+            const reward = rewardPool[Math.floor(Math.random() * rewardPool.length)];
+            textEl.innerText = reward;
+            
+            modal.classList.remove('hidden');
+        };
+
+
+        // AUTH & PASSWORT
+        window.startAuth = async (user) => {
+            const snap = await get(ref(db, `users/${user}`)); 
+            const userData = snap.val();
+            document.getElementById('user-selection').classList.add('hidden');
+            document.getElementById('password-area').classList.remove('hidden');
+            
+            if (!userData || !userData.password) {
+                document.getElementById('password-msg').innerText = "Wähle dein erstes Passwort:";
+                document.getElementById('btn-login-confirm').onclick = async () => {
+                    const p = document.getElementById('pass-input').value; 
+                    if(p.length < 4) return alert("Min. 4 Zeichen!");
+                    await set(ref(db, `users/${user}/password`), p); 
+                    login(user);
+                };
+            } else {
+                document.getElementById('password-msg').innerText = `${user}, gib dein Passwort ein:`;
+                document.getElementById('btn-login-confirm').onclick = () => {
+                    if(document.getElementById('pass-input').value === userData.password) login(user); 
+                    else alert("Falsches Passwort!");
+                };
+            }
+        };
+
+        const login = (u) => { 
+            localStorage.setItem('currentUser', u); 
+            checkAuth(); 
+        };
+        
+        const checkAuth = () => { 
+            const u = localStorage.getItem('currentUser'); 
+            if(u) { 
+                document.getElementById('login-screen').classList.add('hidden'); 
+                document.getElementById('main-dashboard').classList.remove('hidden'); 
+                document.getElementById('app-nav').classList.remove('hidden'); 
+                document.getElementById('user-greeting').innerText = `Hallo ${u}`; 
+                startPresence(u); 
+                syncData(u); 
+            } 
+        };
+        
+        const startPresence = (u) => { 
+            setInterval(() => set(ref(db, `presence/${u}`), Date.now()), 5000); 
+            const partner = u === "Samet" ? "Meriam" : "Samet"; 
+            onValue(ref(db, `presence/${partner}`), (s) => { 
+                const isOnline = s.val() && (Date.now() - s.val() < 12000); 
+                document.getElementById('partner-status').className = "online-indicator " + (isOnline ? "online" : "offline"); 
+            }); 
+        };
+
+        // TAB NAVIGATION
+        window.switchTab = (tab) => { 
+            ['home', 'bucket', 'fun'].forEach(t => { 
+                document.getElementById(`tab-${t}`).classList.add('hidden'); 
+                document.getElementById(`nav-${t}`).classList.remove('active'); 
+            }); 
+            document.getElementById(`tab-${tab}`).classList.remove('hidden'); 
+            document.getElementById(`nav-${tab}`).classList.add('active'); 
+        };
+
+        // STREAK HELPERS
+        const getWeekKey = (date) => { 
+            const d = new Date(date); d.setHours(0,0,0,0); 
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7)); 
+            let yearStart = new Date(d.getFullYear(), 0, 1); 
+            return d.getFullYear() + "-" + Math.ceil((((d - yearStart) / 86400000) + 1) / 7); 
+        };
+        
+        const getNextSunday = () => { 
+            let d = new Date(); 
+            d.setDate(d.getDate() + (7 - d.getDay()) % 7); 
+            return d.toLocaleDateString('de-DE'); 
+        };
+
+        window.startActiveDate = (id) => {
+            update(ref(db, `wishes/${id}`), { status: 'active' });
+            document.getElementById('result-box').classList.add('hidden');
+        };
+
+        window.handleFileUpload = (input) => {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Resize to avoid huge payloads
+                    const MAX_WIDTH = 600; 
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress
+                    currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    const preview = document.getElementById('preview-image');
+                    preview.src = currentPhotoBase64;
+                    preview.classList.remove('hidden');
+                    
+                    document.getElementById('upload-text').innerText = "✅ Foto ausgewählt";
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // COUNTDOWN LOGIC
+        window.openCountdownModal = () => {
+            document.getElementById('countdown-modal').classList.remove('hidden');
+            // If editing, fill values
+            if (countdownTarget) {
+                document.getElementById('new-cd-title').value = countdownTitle;
+                // Note: DateTime-local input needs ISO string format which is tricky to get right from timestamp simply
+            }
+        };
+        
+        window.editCountdown = () => {
+             document.getElementById('countdown-modal').classList.remove('hidden');
+             document.getElementById('new-cd-title').value = countdownTitle;
+        };
+
+        document.getElementById('btn-save-countdown').onclick = async () => {
+            try {
+                const title = document.getElementById('new-cd-title').value.trim();
+                const dateInput = document.getElementById('new-cd-date');
+                const dateStr = dateInput.value;
+                
+                if(!title || !dateStr) return alert("Bitte Titel und Datum ausfüllen!");
+                
+                const timestamp = new Date(dateStr).getTime();
+                if (isNaN(timestamp)) return alert("Ungültiges Datum!");
+
+                // Use 'set' on a FIXED path 'countdown/current' to act as a single object
+                await set(ref(db, 'countdown/current'), { title: title, target: timestamp });
+                
+                document.getElementById('countdown-modal').classList.add('hidden');
+                
+                // Clear inputs
+                document.getElementById('new-cd-title').value = "";
+                dateInput.value = "";
+            } catch (e) {
+                console.error(e);
+                alert("Fehler beim Speichern: " + e.message);
+            }
+        };
+
+        window.deleteCountdown = () => {
+            if(confirm("Countdown wirklich entfernen?")) {
+                set(ref(db, 'countdown'), null); // Nuke it to be sure
+            }
+        };
+
+        const updateCountdownUI = () => {
+            if (!countdownTarget) return;
+            const now = Date.now();
+            const diff = countdownTarget - now;
+
+            if (diff <= 0) {
+                // Event reached
+                document.getElementById('cd-days').innerText = "0";
+                document.getElementById('cd-hours').innerText = "0";
+                document.getElementById('cd-min').innerText = "0";
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            document.getElementById('cd-days').innerText = days;
+            document.getElementById('cd-hours').innerText = hours;
+            document.getElementById('cd-min').innerText = minutes;
+        };
+        
+        // Update countdown every second
+        setInterval(updateCountdownUI, 1000);
+
+        const syncData = (currentUser) => {
+            const partner = currentUser === "Samet" ? "Meriam" : "Samet";
+            document.getElementById('love-letter-title').innerText = `Post-it an ${partner} 📝`;
+            document.getElementById('vs-label').innerText = `Ich vs ${partner}`;
+
+            // Sync Single Countdown
+            onValue(ref(db, 'countdown/current'), (snap) => {
+                const item = snap.val();
+                
+                if (item && item.target > Date.now()) {
+                    countdownTarget = item.target;
+                    countdownTitle = item.title;
+                    document.getElementById('countdown-title').innerText = item.title + " ❤️";
+                    document.getElementById('countdown-placeholder').classList.add('hidden');
+                    document.getElementById('countdown-card').classList.remove('hidden');
+                    updateCountdownUI();
+                } else {
+                    document.getElementById('countdown-card').classList.add('hidden');
+                    document.getElementById('countdown-placeholder').classList.remove('hidden');
+                    countdownTarget = null;
+                    countdownTitle = "";
+                }
+            });
+
+            onValue(ref(db, 'loveLetter'), (snap) => { 
+                const d = snap.val(); 
+                if(d) document.getElementById('love-letter-display').innerText = `"${d.text}" - Von ${d.by}`; 
+            });
+            
+            onValue(ref(db, 'quiz'), (snap) => { 
+                const quizList = document.getElementById('quiz-list'); 
+                quizList.innerHTML = ""; 
+                const data = snap.val(); 
+                if(!data) return; 
+                Object.keys(data).reverse().forEach(id => { 
+                    const item = data[id]; 
+                    const div = document.createElement('div'); 
+                    div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm"; 
+                    div.innerHTML = `<div><p class="font-bold">${item.q}</p><p class="text-[10px] text-gray-400 mt-1 hidden" id="a-${id}">Antwort: ${item.a}</p></div><button onclick="document.getElementById('a-${id}').classList.toggle('hidden')" class="text-pink-500 font-bold">Lösung</button>`; 
+                    quizList.appendChild(div); 
+                }); 
+            });
+
+            onValue(ref(db, 'wishes'), (snapshot) => {
+                const wishList = document.getElementById('wish-list'); 
+                const archiveList = document.getElementById('archive-list'); 
+                const bucketList = document.getElementById('bucket-list-content');
+                wishList.innerHTML = ""; archiveList.innerHTML = ""; bucketList.innerHTML = ""; 
+                const data = snapshot.val(); if(!data) return;
+
+                let doneCount = 0, sametTotal = 0, meriamTotal = 0, total = 0, doneWeekKeys = new Set();
+                let curWeekKey = getWeekKey(new Date()); let thisWeekDone = false;
+
+                Object.keys(data).forEach(id => {
+                    const item = data[id]; total++;
+                    if(item.status === 'done') { 
+                        doneCount++; 
+                        doneWeekKeys.add(getWeekKey(item.doneAt)); 
+                        if(getWeekKey(item.doneAt) === curWeekKey) thisWeekDone = true; 
+                    }
+                    if(item.by === 'Samet') sametTotal++; else meriamTotal++;
+                });
+
+                let streak = 0; let weekIt = new Date();
+                if(!thisWeekDone) weekIt.setDate(weekIt.getDate() - 7);
+                while(doneWeekKeys.has(getWeekKey(weekIt))) { streak++; weekIt.setDate(weekIt.getDate() - 7); }
+
+                document.getElementById('stat-streak').innerText = streak;
+                document.getElementById('stat-vs').innerText = (currentUser === "Samet" ? sametTotal : meriamTotal) + " : " + (currentUser === "Samet" ? meriamTotal : sametTotal);
+                document.getElementById('stat-progress').innerText = Math.round((doneCount / total) * 100 || 0) + "%";
+                const streakInfo = document.getElementById('streak-info');
+                streakInfo.innerText = thisWeekDone ? "✅ Serie sicher" : `⏳ Nötig bis ${getNextSunday()}`;
+                streakInfo.className = "streak-status " + (thisWeekDone ? "text-teal-500 font-bold" : "text-pink-500 animate-pulse font-bold");
+
+                // --- REWARD LOGIC ---
+                const rewardBar = document.getElementById('reward-progress-bar');
+                const rewardText = document.getElementById('reward-progress-text');
+                const rewardBtn = document.getElementById('btn-claim-reward');
+                
+                const targetStreak = Math.ceil((streak + 1) / 3) * 3;
+                // If streak is a multiple of 3 and > 0, we can claim (logic simplified for demo)
+                const isClaimable = (streak > 0 && streak % 3 === 0);
+                
+                // Calculate progress relative to current 3-week block
+                const currentBlockProgress = streak % 3;
+                const progressPercent = isClaimable ? 100 : (currentBlockProgress / 3) * 100;
+
+                rewardBar.style.width = `${progressPercent}%`;
+                rewardText.innerText = isClaimable 
+                    ? "Belohnung freigeschaltet! 🎁" 
+                    : `${currentBlockProgress} / 3 Wochen bis zur Belohnung`;
+                
+                if (isClaimable) {
+                    rewardBtn.disabled = false;
+                    rewardBtn.classList.remove('grayscale', 'opacity-50');
+                    rewardBtn.classList.add('chest-shake');
+                } else {
+                    rewardBtn.disabled = true;
+                    rewardBtn.classList.add('grayscale', 'opacity-50');
+                    rewardBtn.classList.remove('chest-shake');
+                }
+
+
+                const allIds = Object.keys(data);
+                const activeIds = allIds.filter(id => data[id].status === 'active');
+                const openIds = allIds.filter(id => data[id].status === 'open' && !data[id].isBucket).reverse();
+                const doneIds = allIds.filter(id => data[id].status === 'done').reverse();
+                const bucketIds = allIds.filter(id => data[id].isBucket).reverse();
+
+                // RENDER ACTIVE WISHES FIRST
+                activeIds.forEach(id => {
+                    const item = data[id];
+                    const isSecret = item.surprise && item.by !== currentUser;
+                    const card = document.createElement('div');
+                    card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/30 shadow-md relative overflow-hidden";
+                    card.innerHTML = `
+                        <div class="absolute top-0 right-0 bg-green-400 text-white text-[9px] font-black px-2 py-1 rounded-bl-xl uppercase tracking-widest">Läuft gerade</div>
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1 pr-8">
+                                <p class="font-bold text-lg text-teal-900">${isSecret ? '🤫 Geheime Idee' : item.text}</p>
+                                ${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}
+                                <div class="flex gap-2 mt-2">
+                                    <span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-2 pt-6">
+                                <button onclick="markAsDone('${id}')" class="text-green-500 font-black text-xs bg-white px-3 py-1 rounded-full shadow-sm border border-green-200 hover:bg-green-50">BEENDEN ✓</button>
+                            </div>
+                        </div>`;
+                    wishList.appendChild(card);
+                });
+
+                // RENDER OPEN WISHES
+                openIds.forEach(id => {
+                    const item = data[id];
+                    const isSecret = item.surprise && item.by !== currentUser;
+                    const card = document.createElement('div'); 
+                    card.className = "mint-card p-4 border-l-4 " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
+                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${item.cat}</span></div></div><div class="flex gap-2"><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
+                    wishList.appendChild(card);
+                });
+
+                // RENDER BUCKET LIST
+                bucketIds.forEach(id => {
+                    const item = data[id]; const isDone = item.status === 'done';
+                    const div = document.createElement('div'); div.className = "mint-card p-4 bucket-card " + (isDone ? "opacity-50" : "");
+                    div.innerHTML = `<div class="flex justify-between items-center"><div><p class="font-black text-yellow-700">${item.text} ✨</p><p class="text-[9px] uppercase text-yellow-600 mt-1">${isDone ? 'Erreicht' : 'Bucket List'}</p></div>${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold">✓</button>` : ''}</div>`;
+                    bucketList.appendChild(div);
+                });
+
+                // RENDER ARCHIVE
+                doneIds.forEach(id => {
+                    const item = data[id];
+                    const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
+                    const card = document.createElement('div'); 
+                    card.className = "mint-card p-4 bg-white/60 border border-teal-50 shadow-inner";
+                    const labels = `<div class="flex gap-2 my-2"><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${item.cat}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${item.weather}</span></div>`;
+                    const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
+                    
+                    let ratingUI = `<div class="mt-4 border-t border-teal-50 pt-3">`;
+                    let memoryUI = "";
+                    if (item.memoryPhoto || item.memoryNote) {
+                        memoryUI = `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50">`;
+                        if (item.memoryPhoto) memoryUI += `<img src="${item.memoryPhoto}" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm" onerror="this.style.display='none'">`;
+                        if (item.memoryNote) memoryUI += `<p class="text-[10px] text-teal-800 italic">"${item.memoryNote}"</p>`;
+                        memoryUI += `</div>`;
+                    }
+
+                    if (hasMyRating) {
+                        ratingUI += `
+                            <p class="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-3 text-center">Eure Ratings</p>
+                            <div class="flex items-center justify-center gap-8">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-[10px] font-black text-pink-400 uppercase mb-1">Meriam</span>
+                                    <div class="text-lg font-black text-pink-500 bg-pink-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-pink-100">${item.ratingMeriam || '-'}</div>
+                                </div>
+                                <div class="flex flex-col items-center">
+                                    <span class="text-[10px] font-black text-teal-400 uppercase mb-1">Samet</span>
+                                    <div class="text-lg font-black text-teal-600 bg-teal-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-teal-100">${item.ratingSamet || '-'}</div>
+                                </div>
+                            </div>`;
+                    } else {
+                        ratingUI += `
+                            <p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-2 text-center animate-pulse">Rate das Date 1-10</p>
+                            <div class="flex justify-center gap-1 overflow-x-auto pb-1 px-2">
+                                ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-7 h-7 text-[10px] shadow-sm">${n}</button>`).join('')}
+                            </div>`;
+                    }
+                    
+                    ratingUI += `</div>`;
+                    card.innerHTML = `<p class="font-bold text-teal-800">${item.text} 🏆</p><p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p>${labels}${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}${memoryUI}${ratingUI}`;
+                    archiveList.appendChild(card);
+                });
+            });
+        };
+
+        // ACTIONS
+        document.getElementById('btn-send-letter').onclick = () => { 
+            const input = document.getElementById('love-letter-input'); 
+            if(!input.value.trim()) return; 
+            set(ref(db, 'loveLetter'), { text: input.value, by: localStorage.getItem('currentUser'), time: Date.now() }); 
+            input.value = ""; 
+        };
+        
+        document.getElementById('btn-spin-roulette').onclick = () => { 
+            const res = document.getElementById('roulette-result'); 
+            res.innerText = "⏳..."; 
+            setTimeout(() => { res.innerText = Math.random() > 0.5 ? "Samet 🏆" : "Meriam 🏆"; }, 1000); 
+        };
+        
+        document.getElementById('btn-add-quiz').onclick = () => { 
+            const q = document.getElementById('quiz-q'); 
+            const a = document.getElementById('quiz-a'); 
+            if(!q.value || !a.value) return; 
+            push(ref(db, 'quiz'), { q: q.value, a: a.value, by: localStorage.getItem('currentUser') }); 
+            q.value = ""; a.value = ""; 
+        };
+        
+        window.markAsDone = (id) => {
+            currentCompletingId = id;
+            document.getElementById('memory-modal').classList.remove('hidden');
+            document.getElementById('memory-photo-file').value = ""; // Reset file input
+            document.getElementById('preview-image').classList.add('hidden');
+            document.getElementById('upload-text').innerText = "📸 Foto hinzufügen";
+            currentPhotoBase64 = ""; // Reset stored base64
+            document.getElementById('memory-note').value = "";
+        };
+
+        window.closeMemoryModal = () => {
+            document.getElementById('memory-modal').classList.add('hidden');
+            currentCompletingId = null;
+        };
+
+        document.getElementById('btn-save-memory').onclick = () => {
+            if (!currentCompletingId) return;
+            const note = document.getElementById('memory-note').value.trim();
+            
+            update(ref(db, `wishes/${currentCompletingId}`), { 
+                status: 'done', 
+                doneAt: Date.now(),
+                memoryPhoto: currentPhotoBase64,
+                memoryNote: note
+            });
+            
+            closeMemoryModal();
+            // Close result box if open
+            document.getElementById('result-box').classList.add('hidden');
+        };
+
+        window.saveRating = (id, val) => { 
+            const u = localStorage.getItem('currentUser'); 
+            const field = u === 'Meriam' ? 'ratingMeriam' : 'ratingSamet'; 
+            const up = {}; up[field] = val; 
+            update(ref(db, `wishes/${id}`), up); 
+        };
+        window.deleteWish = (id) => remove(ref(db, `wishes/${id}`));
+
+        document.getElementById('btn-add').onclick = () => {
+            const input = document.getElementById('wish-input'); 
+            if(!input.value.trim()) return;
+            push(ref(db, 'wishes'), { 
+                text: input.value, 
+                location: document.getElementById('location-input').value.trim(), 
+                info: document.getElementById('info-input').value.trim(), 
+                cat: document.getElementById('cat-select').value, 
+                weather: document.getElementById('weather-select').value, 
+                surprise: document.getElementById('surprise-toggle').checked, 
+                isBucket: document.getElementById('bucket-toggle').checked, 
+                by: localStorage.getItem('currentUser'), 
+                timestamp: Date.now(), 
+                status: 'open' 
+            });
+            input.value = ""; 
+            document.getElementById('location-input').value = ""; 
+            document.getElementById('info-input').value = ""; 
+            document.getElementById('surprise-toggle').checked = false; 
+            document.getElementById('bucket-toggle').checked = false;
+        };
+
+        document.getElementById('btn-roll').onclick = () => {
+            onValue(ref(db, 'wishes'), (snap) => {
+                const data = snap.val(); 
+                if(!data) return;
+                let wishes = Object.keys(data).filter(id => data[id].status === 'open' && !data[id].isBucket);
+                const fCat = document.getElementById('filter-cat').value; 
+                if(fCat !== "Alle") wishes = wishes.filter(id => data[id].cat === fCat);
+                if(wishes.length === 0) return alert("Nichts gefunden!");
+                
+                rolledDateId = wishes[Math.floor(Math.random() * wishes.length)]; 
+                const chosen = data[rolledDateId];
+                const dice = document.getElementById('dice'); 
+                const resBox = document.getElementById('result-box'); 
+                const lock = document.getElementById('lock-screen');
+                
+                dice.classList.add('rolling'); 
+                resBox.classList.add('hidden'); 
+                lock.classList.add('hidden');
+                
+                setTimeout(() => { 
+                    dice.classList.remove('rolling'); 
+                    if(chosen.surprise) { 
+                        lock.classList.remove('hidden'); 
+                        setTimeout(() => { 
+                            lock.classList.add('hidden'); 
+                            showResult(chosen); 
+                        }, 2000); 
+                    } else showResult(chosen); 
+                }, 1200);
+            }, { onlyOnce: true });
+        };
+
+        const showResult = (chosen) => {
+            const resBox = document.getElementById('result-box'); 
+            document.getElementById('final-choice').innerText = chosen.text;
+            document.getElementById('final-info').innerText = chosen.info ? chosen.info : "";
+            
+            // Mapping für bessere Lesbarkeit - ANGEPASST
+            const catMap = { 'Sofort': '⚡ Spontan möglich', 'Planung': '📅 Muss reserviert werden' };
+            const weatherMap = { 'Egal': '☁️ Wetter egal', 'Sonne': '☀️ Sonne nötig', 'Regen': '🏠 Indoor / Regen' };
+            const catText = catMap[chosen.cat] || chosen.cat;
+            const weatherText = weatherMap[chosen.weather] || chosen.weather;
+
+            document.getElementById('result-labels').innerHTML = `<span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${catText}</span><span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${weatherText}</span>`;
+            
+            if(chosen.location) { 
+                document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(chosen.location)}&output=embed`; 
+                document.getElementById('map-container').classList.remove('hidden'); 
+            } else document.getElementById('map-container').classList.add('hidden');
+            
+            const b = document.getElementById('result-creator-badge'); 
+            b.innerText = "Idee von " + chosen.by; 
+            b.className = "user-badge " + (chosen.by === 'Meriam' ? 'badge-meriam' : 'badge-samet');
+            
+            resBox.classList.remove('hidden'); 
+            document.getElementById('unfold-wrapper').classList.add('unfold-anim');
+            document.getElementById('challenge-display').classList.add('hidden'); 
+            document.getElementById('challenge-btn-container').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-accept-date-only-main').onclick = () => { window.startActiveDate(rolledDateId); };
+        document.getElementById('btn-accept-both').onclick = () => { window.startActiveDate(rolledDateId); };
+        document.getElementById('btn-accept-date-only-sub').onclick = () => { window.startActiveDate(rolledDateId); };
+        document.getElementById('btn-logout').onclick = () => { localStorage.clear(); location.reload(); };
+        
+        checkAuth();
+    </script>
+</body>
+</html>
