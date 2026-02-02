@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MerSam OS v3.3 - Spidey Special</title>
+    <title>MerSam OS v3.7 - Spidey Swarm</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#FCE4EC">
@@ -49,19 +49,23 @@
             background: 
                 radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px),
                 linear-gradient(135deg, #0d47a1 0%, #b71c1c 100%); 
-            background-size: 20px 20px, 100% 100%; /* Netz-Effekt */
+            background-size: 20px 20px, 100% 100%; 
             color: #1a202c; 
         }
-        body.theme-spiderman .pink-btn { background-color: #d32f2f; box-shadow: 0 4px 0 #b71c1c; } /* Spidey Red + Comic Shadow */
+        body.theme-spiderman .pink-btn { background-color: #d32f2f; box-shadow: 0 4px 0 #b71c1c; } 
         body.theme-spiderman .pink-btn:active { background-color: #b71c1c; transform: translateY(4px); box-shadow: none; }
-        body.theme-spiderman .teal-btn { background-color: #1565c0; box-shadow: 0 4px 0 #0d47a1; } /* Spidey Blue + Comic Shadow */
+        body.theme-spiderman .teal-btn { background-color: #1565c0; box-shadow: 0 4px 0 #0d47a1; } 
         body.theme-spiderman .teal-btn:active { background-color: #0d47a1; transform: translateY(4px); box-shadow: none; }
         body.theme-spiderman .mint-card { border: 3px solid #ef5350; } 
         body.theme-spiderman .hanging-spider { display: block !important; }
+        
+        /* Timeline Spidey Adjustments */
+        body.theme-spiderman .timeline-line { background: white !important; width: 1px !important; opacity: 0.6; }
+        body.theme-spiderman .timeline-dot { background: #d32f2f !important; border-color: white !important; box-shadow: 0 0 10px #d32f2f !important; }
 
         @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        /* Hängende Spinne (Deko oben) */
+        /* Hängende Spinne */
         .hanging-spider {
             display: none;
             position: fixed; top: -20px; right: 20px; width: 60px; height: 100px;
@@ -70,18 +74,35 @@
         }
         @keyframes swingSpider { from { transform: rotate(-5deg) translateY(0); } to { transform: rotate(5deg) translateY(5px); } }
 
-        /* KRABBELNDE SPINNE (Random Event) */
-        .crawler-spider {
-            position: fixed; width: 50px; height: 50px; z-index: 10000; pointer-events: none;
-            display: none;
+        /* NEU: Dynamische kleine Spinnen (Swarm) */
+        .spawned-spider { position: fixed; width: 25px; height: 25px; z-index: 10000; pointer-events: none; opacity: 0.9; }
+        .spawned-spider svg { fill: #222; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3)); }
+
+        /* Schnelle "Peek" Animationen (max 1.5s) - tauchen auf und verschwinden wieder */
+        @keyframes peekTopAnim { 0% { top: -30px; opacity: 0; } 20% { top: 5px; opacity: 1; } 80% { top: 5px; opacity: 1; } 100% { top: -30px; opacity: 0; } }
+        @keyframes peekBottomAnim { 0% { bottom: -30px; opacity: 0; } 20% { bottom: 5px; opacity: 1; } 80% { bottom: 5px; opacity: 1; } 100% { bottom: -30px; opacity: 0; } }
+        @keyframes peekLeftAnim { 0% { left: -30px; opacity: 0; } 20% { left: 5px; opacity: 1; } 80% { left: 5px; opacity: 1; } 100% { left: -30px; opacity: 0; } }
+        @keyframes peekRightAnim { 0% { right: -30px; opacity: 0; } 20% { right: 5px; opacity: 1; } 80% { right: 5px; opacity: 1; } 100% { right: -30px; opacity: 0; } }
+
+        /* TIMELINE STYLES */
+        .timeline-wrapper { position: relative; padding-left: 24px; margin-bottom: 20px; }
+        .timeline-line {
+            position: absolute; left: 7px; top: 10px; bottom: -30px; width: 3px;
+            background: linear-gradient(to bottom, #F472B6, #2DD4BF);
+            border-radius: 2px;
         }
-        .crawler-spider svg { fill: #222; filter: drop-shadow(2px 5px 2px rgba(0,0,0,0.3)); }
-        
-        .crawl-anim-1 { display: block; animation: crawlDiag 4s linear forwards; }
-        @keyframes crawlDiag { 0% { top: 110vh; left: -10vw; transform: rotate(20deg); } 100% { top: -10vh; left: 110vw; transform: rotate(45deg); } }
-        
-        .crawl-anim-2 { display: block; animation: crawlDown 3s linear forwards; }
-        @keyframes crawlDown { 0% { top: -10vh; left: 50vw; transform: rotate(180deg); } 100% { top: 110vh; left: 50vw; transform: rotate(180deg); } }
+        .timeline-wrapper:last-child .timeline-line { bottom: 30px; background: linear-gradient(to bottom, #2DD4BF, transparent); }
+        .timeline-dot {
+            position: absolute; left: 0; top: 18px; width: 17px; height: 17px;
+            border-radius: 50%; background: white; border: 4px solid #F472B6;
+            z-index: 2; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+        }
+        .timeline-content { margin-left: 10px; position: relative; }
+        .timeline-content::before {
+            content: ''; position: absolute; left: -6px; top: 20px;
+            width: 10px; height: 10px; background: white;
+            transform: rotate(45deg); border-left: 1px solid rgba(178, 223, 219, 0.5); border-bottom: 1px solid rgba(178, 223, 219, 0.5);
+        }
 
         /* Buttons & Cards */
         .pink-btn { background-color: #FF80AB; color: white; transition: all 0.2s; }
@@ -91,7 +112,7 @@
         .mint-card { background: white; border-radius: 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid rgba(178, 223, 219, 0.5); }
         .hidden { display: none !important; }
         
-        /* Floating Hearts */
+        /* Floating Hearts (Nur in Original Themes) */
         .floating-heart { position: absolute; color: rgba(255, 128, 171, 0.6); animation: float 5s infinite linear; z-index: 0; pointer-events: none; }
         @keyframes float { 0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } }
 
@@ -203,14 +224,6 @@
         </svg>
     </div>
 
-    <div id="crawler" class="crawler-spider">
-        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <path d="M50 40 C 50 30 60 30 60 40 C 60 50 50 50 50 40" fill="black" />
-            <circle cx="55" cy="40" r="8" fill="black" />
-            <path d="M55 40 Q 30 20 20 30 M55 40 Q 80 20 90 30 M55 40 Q 20 40 10 50 M55 40 Q 90 40 100 50 M55 40 Q 30 60 20 50 M55 40 Q 80 60 90 50 M55 40 Q 40 70 30 80 M55 40 Q 70 70 80 80" stroke="black" stroke-width="3" fill="none" />
-        </svg>
-    </div>
-
     <div id="login-screen" class="w-full max-w-md px-8 flex flex-col justify-center min-h-screen relative overflow-hidden z-10">
         <div class="mint-card p-12 text-center relative z-10 bg-white/95 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl animate-scale-in">
             <div class="mb-10">
@@ -224,8 +237,8 @@
             
             <div id="user-selection" class="space-y-4">
                 <p class="text-xs font-bold text-gray-500 uppercase mb-4">Profil auswählen</p>
-                <button onclick="playSound('success'); startAuth('Meriam')" class="pink-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Meriam</button>
-                <button onclick="playSound('success'); startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Samet</button>
+                <button onclick="playSound('click'); startAuth('Meriam')" class="pink-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Meriam</button>
+                <button onclick="playSound('click'); startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Samet</button>
             </div>
 
             <div id="password-area" class="hidden mt-6 animate-fade-in">
@@ -361,7 +374,7 @@
         <header class="flex flex-col mb-8 mt-2 px-2 animate-fade-in-down">
             <div class="flex justify-between items-start mb-2">
                 <div>
-                    <h1 class="text-3xl font-black text-teal-800 tracking-tighter drop-shadow-sm">MerSam OS <span class="text-pink-400 text-lg">v3.3</span></h1>
+                    <h1 class="text-3xl font-black text-teal-800 tracking-tighter drop-shadow-sm">MerSam OS <span class="text-pink-400 text-lg">v3.7</span></h1>
                     <p id="user-greeting" class="text-xs text-teal-600 font-bold uppercase tracking-widest mt-1"></p>
                 </div>
                 <div class="flex gap-2">
@@ -481,10 +494,10 @@
             <h3 class="font-black text-teal-800 mb-4 px-2 text-sm uppercase tracking-widest text-center italic animate-fade-in" style="animation-delay: 0.5s;">Unsere Ideen 💡</h3>
             <div id="wish-list" class="space-y-4 mb-10"></div>
             <div class="flex items-center justify-between px-2 mb-4">
-                <h3 class="font-bold text-gray-400 text-sm uppercase tracking-widest italic text-center flex-1">Meilensteine 🏆</h3>
+                <h3 class="font-bold text-gray-400 text-sm uppercase tracking-widest italic text-center flex-1">Unsere Zeitreise 🏆</h3>
                 <button onclick="playSound('pop'); openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+</button>
             </div>
-            <div id="archive-list" class="space-y-3 pb-20 opacity-90"></div>
+            <div id="archive-list" class="space-y-0 pb-20"></div>
         </div>
 
         <div id="tab-map" class="hidden pb-20 animate-fade-in">
@@ -571,17 +584,33 @@
         document.body.className = currentTheme + " min-h-screen flex flex-col items-center select-none transition-colors duration-500";
         document.getElementById('sound-toggle').checked = soundEnabled;
 
-        // SPIDEY RANDOM EVENT
-        const spawnSpider = () => {
+        // SPIDEY RANDOM EVENT (Swarm Edition)
+        const spiderSVGStr = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 40 C 50 30 60 30 60 40 C 60 50 50 50 50 40" fill="black" /><circle cx="55" cy="40" r="8" fill="black" /><path d="M55 40 Q 30 20 20 30 M55 40 Q 80 20 90 30 M55 40 Q 20 40 10 50 M55 40 Q 90 40 100 50 M55 40 Q 30 60 20 50 M55 40 Q 80 60 90 50 M55 40 Q 40 70 30 80 M55 40 Q 70 70 80 80" stroke="black" stroke-width="3" fill="none" /></svg>`;
+        const spawnSpiderSwarm = () => {
             if (currentTheme !== 'theme-spiderman') return;
-            const el = document.getElementById('crawler');
-            el.className = "crawler-spider " + (Math.random() > 0.5 ? "crawl-anim-1" : "crawl-anim-2");
-            // Kleiner Krabbel-Sound
-            if(Math.random() > 0.7) playSound('click'); 
-            setTimeout(() => { el.className = "crawler-spider"; }, 4000);
+            if(Math.random() > 0.7 && soundEnabled) playSound('click'); // Optional sound
+            const count = Math.floor(Math.random() * 3) + 2; // 2 bis 4 Spinnen
+            for(let i=0; i<count; i++) {
+                const spider = document.createElement('div');
+                spider.className = "spawned-spider";
+                spider.innerHTML = spiderSVGStr;
+                document.body.appendChild(spider);
+                const edge = ['top', 'bottom', 'left', 'right'][Math.floor(Math.random() * 4)];
+                const duration = 1.2 + Math.random() * 0.5; // 1.2s - 1.7s duration
+                const delay = Math.random() * 0.5; // Leichte Verzögerung
+                spider.style.animation = `peek${edge.charAt(0).toUpperCase() + edge.slice(1)}Anim ${duration}s ease-in-out ${delay}s forwards`;
+                if(edge === 'top' || edge === 'bottom') {
+                    spider.style.left = (Math.random() * 90 + 5) + "vw";
+                    if(edge==='top') spider.style.transform = 'rotate(180deg)';
+                } else {
+                    spider.style.top = (Math.random() * 90 + 5) + "vh";
+                    if(edge==='left') spider.style.transform = 'rotate(90deg)'; else spider.style.transform = 'rotate(-90deg)';
+                }
+                setTimeout(() => { spider.remove(); }, 2000); // Nach 2s löschen
+            }
         };
-        // Alle 15-30 Sek checken
-        setInterval(() => { if(Math.random() > 0.4) spawnSpider(); }, 10000);
+        // Öfter triggern, da sie jetzt nur kurz zu sehen sind
+        setInterval(() => { if(Math.random() > 0.5) spawnSpiderSwarm(); }, 8000);
 
         window.openSettings = () => { document.getElementById('settings-modal').classList.remove('hidden'); };
         window.toggleSound = (el) => { soundEnabled = el.checked; localStorage.setItem('soundEnabled', soundEnabled); };
@@ -753,6 +782,9 @@
         let currentModalMode = 'archive';
 
         const createHeart = () => {
+            // SPIDEY-CHECK: Keine Herzen im Spiderman-Modus!
+            if (currentTheme === 'theme-spiderman') return;
+            
             const heart = document.createElement('div'); heart.innerHTML = "❤"; heart.className = "floating-heart";
             heart.style.left = Math.random() * 100 + "vw"; heart.style.fontSize = (Math.random() * 20 + 10) + "px";
             const duration = Math.random() * 8 + 12;
@@ -1182,17 +1214,16 @@
                 const allIds = Object.keys(data);
                 const activeIds = allIds.filter(id => data[id].status === 'active');
                 const openIds = allIds.filter(id => data[id].status === 'open' && !data[id].isBucket).reverse();
-                const doneIds = allIds.filter(id => data[id].status === 'done').reverse();
+                const doneIds = allIds.filter(id => data[id].status === 'done').sort((a, b) => data[b].doneAt - data[a].doneAt); // Timeline order
                 const bucketIds = allIds.filter(id => data[id].isBucket).reverse();
 
-                // Fülle die Galerie (Optimiert!)
+                // Fülle die Galerie
                 doneIds.forEach(id => {
                     const item = data[id];
                     if (item.memoryPhoto) {
                         const dateStr = new Date(item.doneAt).toLocaleDateString('de-DE');
                         const pol = document.createElement('div');
                         pol.className = "polaroid animate-scale-in";
-                        // WICHTIG: Hier jetzt das VIEW modal öffnen, nicht das EDIT modal
                         pol.onclick = () => openMemoryView(id); 
                         pol.innerHTML = `<img src="${item.memoryPhoto}" loading="lazy" alt="${item.text}"><p class="polaroid-caption">${dateStr} - ${item.text}</p>`;
                         galleryGrid.appendChild(pol);
@@ -1220,31 +1251,61 @@
                     bucketList.appendChild(div);
                 });
 
-                doneIds.forEach(id => {
+                // TIMELINE RENDERER (Ersetzt die alte Done-Liste)
+                doneIds.forEach((id, index) => {
                     const item = data[id]; const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
-                    const card = document.createElement('div'); card.className = "mint-card p-4 bg-white/95 border border-teal-50 shadow-inner animate-slide-up relative group";
-                    const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
-                    let ratingUI = `<div class="mt-4 border-t border-teal-50 pt-3">`;
-                    let memoryUI = "";
-                    if (item.memoryPhoto) memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50"><img src="${item.memoryPhoto}" loading="lazy" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm"></div>`;
                     
-                    if (item.comments) {
-                         const commentsArray = Object.values(item.comments); memoryUI += `<div class="mt-2 space-y-2">`;
-                         commentsArray.forEach(comment => {
-                             const isMeriam = comment.by === 'Meriam';
-                             const containerClass = isMeriam ? "bg-pink-50 border-pink-200 text-pink-800" : "bg-teal-50 border-teal-200 text-teal-800";
-                             memoryUI += `<div class="p-2 rounded-xl border ${containerClass} text-xs"><p class="font-bold opacity-70">${comment.by}</p><p class="italic">"${comment.text}"</p></div>`;
-                         });
-                         memoryUI += `</div>`;
-                    } else if (item.memoryNote) memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50"><p class="text-[10px] text-teal-800 italic">"${item.memoryNote}"</p></div>`;
-                    memoryUI += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-2 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "timeline-wrapper animate-slide-up";
+                    wrapper.style.animationDelay = (index * 0.1) + "s";
+                    
+                    let memoryHTML = "";
+                    if(item.memoryPhoto) {
+                        memoryHTML = `<img src="${item.memoryPhoto}" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2 mb-1 shadow-sm border border-gray-100" onclick="openMemoryView('${id}')">`;
+                    }
+                    
+                    // Comments Section
+                    if(item.comments) {
+                        const commentsArray = Object.values(item.comments);
+                        memoryHTML += `<div class="mt-2 space-y-2">`;
+                        commentsArray.forEach(comment => {
+                            const isMeriam = comment.by === 'Meriam';
+                            const cDate = new Date(comment.timestamp).toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
+                            const containerClass = isMeriam ? "bg-pink-50 border-pink-100 text-pink-800" : "bg-teal-50 border-teal-100 text-teal-800";
+                            memoryHTML += `<div class="p-2 rounded-xl border ${containerClass} text-xs relative"><div class="flex justify-between items-center mb-1 opacity-70"><span class="font-bold">${comment.by}</span><span class="text-[8px]">${cDate}</span></div><p class="italic">"${comment.text}"</p></div>`;
+                        });
+                        memoryHTML += `</div>`;
+                    } else if (item.memoryNote) {
+                        memoryHTML += `<p class="text-[10px] italic text-gray-600 mt-2 bg-gray-50 p-2 rounded-lg border-l-2 border-pink-200">"${item.memoryNote}"</p>`;
+                    }
+                    
+                    memoryHTML += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-1.5 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
 
-                    if (hasMyRating) ratingUI += `<div class="flex items-center justify-center gap-8"><div class="flex flex-col items-center"><span class="text-[10px] font-black text-pink-400 uppercase mb-1">Meriam</span><div class="text-lg font-black text-pink-500 bg-pink-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-pink-100">${item.ratingMeriam || '-'}</div></div><div class="flex flex-col items-center"><span class="text-[10px] font-black text-teal-400 uppercase mb-1">Samet</span><div class="text-lg font-black text-teal-600 bg-teal-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-teal-100">${item.ratingSamet || '-'}</div></div></div>`;
-                    else ratingUI += `<p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-2 text-center animate-pulse">Rate das Date 1-10</p><div class="flex justify-center gap-1 overflow-x-auto pb-1 px-2">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="playSound('pop'); saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-7 h-7 text-[10px] shadow-sm">${n}</button>`).join('')}</div>`;
-                    ratingUI += `</div>`;
+                    // Rating Section
+                    const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
+                    let ratingUI = "";
                     
-                    card.innerHTML = `<div class="absolute top-2 right-2"><button onclick="playSound('pop'); openMilestoneModal('edit', '${id}')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button></div><p class="font-bold text-teal-800 pr-6">${item.text} 🏆</p><p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p><div class="flex gap-2 my-2"><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div>${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}${item.info ? `<p class="text-[10px] text-gray-500 italic mt-1 border-l-2 border-teal-100 pl-2">💡 ${item.info}</p>` : ''}${memoryUI}${ratingUI}`;
-                    archiveList.appendChild(card);
+                    if (hasMyRating) {
+                        ratingUI = `<div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between"><span class="text-[9px] font-bold text-gray-400 uppercase">Eure Ratings:</span><div class="flex gap-2"><div class="bg-pink-50 text-pink-500 text-[9px] font-bold px-2 py-1 rounded-md border border-pink-100">M: ${item.ratingMeriam || '-'}</div><div class="bg-teal-50 text-teal-600 text-[9px] font-bold px-2 py-1 rounded-md border border-teal-100">S: ${item.ratingSamet || '-'}</div></div></div>`;
+                    } else {
+                        ratingUI = `<div class="mt-2 pt-2 border-t border-gray-100"><p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-1 text-center animate-pulse">Deine Bewertung (1-10):</p><div class="flex flex-wrap justify-center gap-1">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="playSound('pop'); saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-6 h-6 text-[9px] shadow-sm">${n}</button>`).join('')}</div></div>`;
+                    }
+
+                    wrapper.innerHTML = `
+                        <div class="timeline-line"></div>
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <div class="mint-card p-3 relative">
+                                <div class="absolute top-2 right-2"><button onclick="playSound('click'); openMilestoneModal('edit', '${id}')" class="text-gray-300 hover:text-teal-500 text-xs">✏️</button></div>
+                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${timeStr}</span>
+                                <h4 class="font-bold text-teal-800 text-sm leading-tight mt-1">${item.text}</h4>
+                                ${item.location ? `<p class="text-[10px] text-gray-500 mt-1">📍 ${item.location}</p>` : ''}
+                                ${memoryHTML}
+                                ${ratingUI}
+                            </div>
+                        </div>
+                    `;
+                    archiveList.appendChild(wrapper);
                 });
             });
         };
@@ -1307,10 +1368,17 @@
                     cube.classList.remove('is-spinning');
                     if(chosen.surprise) {
                         diceContainer.classList.add('hidden'); lockScreen.classList.remove('hidden'); lockSvg.classList.add('lock-pop-in'); lockText.innerText = "GEHEIME MISSION...";
+                        playSound('lock');
                         setTimeout(() => { lockSvg.classList.add('lock-rattle'); lockText.innerText = "ZUGRIFF GEPRÜFT..."; }, 800);
-                        setTimeout(() => { lockSvg.classList.remove('lock-rattle'); lockSvg.classList.add('lock-open'); flash.classList.add('do-flash'); lockText.innerText = "ZUGRIFF ERLAUBT!"; lockText.classList.add('text-green-500'); setTimeout(() => { playSound('success'); lockScreen.classList.add('hidden'); flash.classList.remove('do-flash'); showResult(chosen); btn.disabled = false; btn.innerText = "WÜRFELN"; lockText.classList.remove('text-green-500'); }, 1000); }, 2500);
+                        setTimeout(() => { 
+                            lockSvg.classList.remove('lock-rattle'); lockSvg.classList.add('lock-open'); flash.classList.add('do-flash'); lockText.innerText = "ZUGRIFF ERLAUBT!"; lockText.classList.add('text-green-500'); 
+                            playSound('reveal');
+                            setTimeout(() => { lockScreen.classList.add('hidden'); flash.classList.remove('do-flash'); showResult(chosen); btn.disabled = false; btn.innerText = "WÜRFELN"; lockText.classList.remove('text-green-500'); }, 1000); 
+                        }, 2500);
                     } else {
-                        diceContainer.classList.add('hidden'); showResult(chosen); document.getElementById('result-box').classList.add('magic-pop-in'); playSound('success'); btn.disabled = false; btn.innerText = "WÜRFELN";
+                        diceContainer.classList.add('hidden'); showResult(chosen); document.getElementById('result-box').classList.add('magic-pop-in'); 
+                        playSound('reveal'); 
+                        btn.disabled = false; btn.innerText = "WÜRFELN";
                     }
                 }, 1500);
             }, { onlyOnce: true });
