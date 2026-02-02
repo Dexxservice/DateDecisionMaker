@@ -729,8 +729,8 @@ async function callGemini(prompt) {
     if (!apiKey) return null;
 
     // Wir nutzen die 2026er Flaggschiff-Modelle
-    const modelPrimary = "gemini-2.5-flash";      // High-End Speed & Reasoning
-    const modelFallback = "gemini-2.5-flash-lite"; // Ultra-Low Latency Backup
+    const modelPrimary = "gemini-2.5-flash-lite"; // Stabiler Standard (höhere Limits)
+    const modelFallback = "gemini-2.5-flash";      // Leistungsstarker Fallback
 
     const tryFetch = async (modelName) => {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -751,7 +751,7 @@ async function callGemini(prompt) {
     };
 
     try {
-        // SCHRITT 1: Versuch mit Gemini 2.5 Flash
+        // SCHRITT 1: Versuch mit Gemini 2.5 Flash Lite
         let response = await tryFetch(modelPrimary);
 
         // SCHRITT 2: Automatischer Fallback, falls Quota voll oder Server busy
