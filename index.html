@@ -728,9 +728,12 @@ const apiKey = "AIzaSyAwOCM2L7YshWtlvzp9R4guzWNrTtpCXh8";
 async function callGemini(prompt) {
     if (!apiKey) return null;
 
-    // Wir nutzen die 2026er Flaggschiff-Modelle
-    const modelPrimary = "gemini-2.5-flash";      // High-End Speed & Reasoning
-    const modelFallback = "gemini-2.5-flash-lite"; // Ultra-Low Latency Backup
+    // Wir nutzen die 2026er Flaggschiff-Modelle (mit Sicherheitsnetz)
+    const modelCandidates = [
+        { name: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite" }, // Stabiler Standard (höhere Limits)
+        { name: "gemini-2.5-flash", label: "Gemini 2.5 Flash" },           // Leistungsstarker Fallback
+        { name: "gemini-1.5-flash", label: "Gemini 1.5 Flash" }            // Notfall-Fallback bei Ausfall/Quota
+    ];
 
     const tryFetch = async (modelName) => {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
@@ -750,24 +753,38 @@ async function callGemini(prompt) {
         });
     };
 
+    const backoff = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     try {
-        // SCHRITT 1: Versuch mit Gemini 2.5 Flash
-        let response = await tryFetch(modelPrimary);
+        for (let i = 0; i < modelCandidates.length; i++) {
+            const model = modelCandidates[i];
+            let response = await tryFetch(model.name);
 
-        // SCHRITT 2: Automatischer Fallback, falls Quota voll oder Server busy
-        if (!response.ok) {
-            console.warn(`MerSam AI: ${modelPrimary} nicht erreichbar (${response.status}). Wechsle zu ${modelFallback}...`);
-            response = await tryFetch(modelFallback);
+            if (!response.ok && (response.status === 429 || response.status === 503)) {
+                console.warn(`MerSam AI: ${model.label} limitiert (${response.status}). Warte und versuche erneut...`);
+                await backoff(500 * (i + 1));
+                response = await tryFetch(model.name);
+            }
+
+            if (!response.ok) {
+                let errorPayload = null;
+                try {
+                    errorPayload = await response.json();
+                } catch (e) {
+                    errorPayload = null;
+                }
+                console.warn(`MerSam AI: ${model.label} fehlgeschlagen (${response.status}).`, errorPayload || "");
+                continue;
+            }
+
+            const data = await response.json();
+            const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+            if (text) return text;
+            console.warn(`MerSam AI: ${model.label} lieferte keine Antwort.`);
         }
 
-        // Falls beide Modelle streiken (unwahrscheinlich in 2026)
-        if (!response.ok) {
-            console.error("MerSam AI Error: Beide Gemini 2.5 Endpunkte antworten nicht.");
-            return null;
-        }
-
-        const data = await response.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        console.error("MerSam AI Error: Kein Gemini-Modell hat geantwortet.");
+        return null;
 
     } catch (error) { 
         console.error("MerSam OS System-Fehler (AI-Bridge):", error);
