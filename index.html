@@ -722,28 +722,58 @@
             }
         };
 
-        const apiKey = "AIzaSyAwOCM2L7YshWtlvzp9R4guzWNrTtpCXh8"; 
+        // --- AI CONFIGURATION (MerSam OS v3.9 - 2026 Edition) ---
+const apiKey = "AIzaSyAwOCM2L7YshWtlvzp9R4guzWNrTtpCXh8"; 
 
-        async function callGemini(prompt) {
-            if (!apiKey) return null;
-            try {
-                // Try newer model logic, fallback if needed
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite-preview-02-05:generateContent?key=${apiKey}`; // Versuch auf aktuellstes Lite Modell
-                let payload = { contents: [{ parts: [{ text: prompt }] }] };
-                
-                let response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                
-                // Fallback auf Standard Flash falls Lite nicht verfügbar
-                if (!response.ok) {
-                     const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                     response = await fetch(fallbackUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                }
-                
-                if (!response.ok) return null;
-                const data = await response.json();
-                return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            } catch (error) { return null; }
+async function callGemini(prompt) {
+    if (!apiKey) return null;
+
+    // Wir nutzen die 2026er Flaggschiff-Modelle
+    const modelPrimary = "gemini-2.5-flash";      // High-End Speed & Reasoning
+    const modelFallback = "gemini-2.5-flash-lite"; // Ultra-Low Latency Backup
+
+    const tryFetch = async (modelName) => {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+        const payload = { 
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: {
+                temperature: 0.7,
+                topP: 0.95,
+                maxOutputTokens: 1024,
+            }
+        };
+        
+        return fetch(url, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
+    };
+
+    try {
+        // SCHRITT 1: Versuch mit Gemini 2.5 Flash
+        let response = await tryFetch(modelPrimary);
+
+        // SCHRITT 2: Automatischer Fallback, falls Quota voll oder Server busy
+        if (!response.ok) {
+            console.warn(`MerSam AI: ${modelPrimary} nicht erreichbar (${response.status}). Wechsle zu ${modelFallback}...`);
+            response = await tryFetch(modelFallback);
         }
+
+        // Falls beide Modelle streiken (unwahrscheinlich in 2026)
+        if (!response.ok) {
+            console.error("MerSam AI Error: Beide Gemini 2.5 Endpunkte antworten nicht.");
+            return null;
+        }
+
+        const data = await response.json();
+        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    } catch (error) { 
+        console.error("MerSam OS System-Fehler (AI-Bridge):", error);
+        return null; 
+    }
+}
 
         // --- MAP LOGIC ---
         let map;
@@ -1546,3 +1576,4 @@
     </script>
 </body>
 </html>
+
