@@ -281,6 +281,17 @@
                 <label class="switch"><input type="checkbox" id="sound-toggle" onchange="toggleSound(this)"><span class="slider"></span></label>
             </div>
 
+            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Gemini API Key</p>
+            <div class="space-y-2 mb-4">
+                <input id="gemini-key-input" type="password" placeholder="AIza..." class="w-full p-3 bg-gray-50 rounded-xl text-xs font-bold tracking-wide outline-none border border-gray-200 focus:border-teal-300 transition-all">
+                <div class="flex gap-2">
+                    <button onclick="saveGeminiKey()" class="flex-1 text-xs font-bold uppercase bg-teal-500 text-white p-2 rounded-lg shadow-sm hover:bg-teal-600 transition-colors">Speichern</button>
+                    <button onclick="clearGeminiKey()" class="flex-1 text-xs font-bold uppercase bg-gray-200 text-gray-600 p-2 rounded-lg hover:bg-gray-300 transition-colors">Löschen</button>
+                </div>
+                <p id="gemini-key-status" class="text-[10px] text-gray-400 font-bold uppercase tracking-widest"></p>
+                <p class="text-[10px] text-gray-400">Der Key wird nur lokal in deinem Browser gespeichert.</p>
+            </div>
+
             <button onclick="localStorage.clear(); location.reload()" class="w-full text-xs text-red-400 font-bold border border-red-200 p-3 rounded-xl mb-2 hover:bg-red-50">⚠️ App Daten zurücksetzen</button>
             <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="w-full bg-gray-200 text-gray-600 font-bold p-3 rounded-xl text-xs uppercase mt-2">Schließen</button>
         </div>
@@ -646,7 +657,30 @@
         };
         setInterval(() => { if(Math.random() > 0.5) spawnSpiderSwarm(); }, 8000);
 
-        window.openSettings = () => { document.getElementById('settings-modal').classList.remove('hidden'); };
+        const setGeminiKeyStatus = () => {
+            const status = document.getElementById('gemini-key-status');
+            const key = (localStorage.getItem('geminiApiKey') || "").trim();
+            status.innerText = key ? "Key gespeichert ✅" : "Kein Key gespeichert";
+        };
+
+        window.openSettings = () => { 
+            document.getElementById('settings-modal').classList.remove('hidden'); 
+            const input = document.getElementById('gemini-key-input');
+            input.value = (localStorage.getItem('geminiApiKey') || "").trim();
+            setGeminiKeyStatus();
+        };
+        window.saveGeminiKey = () => {
+            const input = document.getElementById('gemini-key-input');
+            const value = input.value.trim();
+            if (!value) return;
+            localStorage.setItem('geminiApiKey', value);
+            setGeminiKeyStatus();
+        };
+        window.clearGeminiKey = () => {
+            localStorage.removeItem('geminiApiKey');
+            document.getElementById('gemini-key-input').value = "";
+            setGeminiKeyStatus();
+        };
         window.toggleSound = (el) => { soundEnabled = el.checked; localStorage.setItem('soundEnabled', soundEnabled); };
         window.setTheme = (theme) => { 
             document.body.className = theme + " min-h-screen flex flex-col items-center select-none transition-colors duration-500"; 
@@ -723,10 +757,14 @@
         };
 
         // --- AI CONFIGURATION (MerSam OS v3.9 - 2026 Edition) ---
-const apiKey = "AIzaSyAwOCM2L7YshWtlvzp9R4guzWNrTtpCXh8"; 
+const defaultGeminiKey = "AIzaSyAwOCM2L7YshWtlvzp9R4guzWNrTtpCXh8"; 
 
 async function callGemini(prompt) {
-    if (!apiKey) return null;
+    const apiKey = (localStorage.getItem('geminiApiKey') || "").trim() || defaultGeminiKey;
+    if (!apiKey) {
+        console.warn("MerSam AI: Kein Gemini API Key gesetzt. Öffne Einstellungen und trage deinen Key ein.");
+        return null;
+    }
 
     // Wir nutzen die 2026er Flaggschiff-Modelle (mit Sicherheitsnetz)
     const modelCandidates = [
@@ -772,6 +810,12 @@ async function callGemini(prompt) {
                     errorPayload = await response.json();
                 } catch (e) {
                     errorPayload = null;
+                }
+                if (response.status === 403) {
+                    console.warn("MerSam AI: 403 Forbidden. Prüfe API-Key, Referrer-Restriktionen und ob die Gemini API aktiviert ist.");
+                }
+                if (response.status === 404) {
+                    console.warn(`MerSam AI: 404 Not Found. Modell ${model.name} ist für diesen Key/Plan nicht verfügbar.`);
                 }
                 console.warn(`MerSam AI: ${model.label} fehlgeschlagen (${response.status}).`, errorPayload || "");
                 continue;
