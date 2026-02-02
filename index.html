@@ -6,12 +6,18 @@
     <title>MerSam OS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Leaflet CSS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
     <style>
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: #FCE4EC;
             color: #2D3748;
-            padding-bottom: 80px;
+            padding-bottom: 90px; /* More padding for nav */
             overflow-x: hidden;
         }
         .pink-btn {
@@ -65,13 +71,37 @@
             100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } 
         }
 
-        /* Header Animation */
+        /* NEUE ANIMATIONEN */
         .animate-fade-in-down {
             animation: fadeInDown 0.8s ease-out forwards;
         }
         @keyframes fadeInDown {
             from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .animate-slide-up {
+            animation: slideUp 0.5s ease-out forwards;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .animate-scale-in {
+             animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         /* Dice Animation */
@@ -190,7 +220,7 @@
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
-            z-index: 100;
+            z-index: 1000; /* Increased Z-Index for Map */
         }
         .nav-item {
             display: flex;
@@ -199,6 +229,7 @@
             font-size: 10px;
             font-weight: bold;
             color: #94A3B8;
+            cursor: pointer;
         }
         .nav-item.active {
             color: #14B8A6;
@@ -247,6 +278,58 @@
             0% { transform: scale(0); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* Map Container */
+        #map {
+            height: 70vh;
+            width: 100%;
+            border-radius: 20px;
+            z-index: 1;
+        }
+        
+        /* Custom Map Marker */
+        .custom-map-marker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .custom-map-marker {
+            background-color: white;
+            border: 2px solid #FF80AB;
+            border-radius: 12px;
+            padding: 4px 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 10px;
+            color: #2D3748;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            position: relative;
+            transform: translateY(-10px);
+        }
+        
+        .custom-map-marker::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            margin-left: -6px;
+            border-width: 6px 6px 0;
+            border-style: solid;
+            border-color: #FF80AB transparent transparent transparent;
+        }
+        
+        .map-photo-pin {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid #FF80AB;
+            object-fit: cover;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            background-color: white;
+            transform: translateY(-20px);
+        }
     </style>
 </head>
 <body class="bg-gradient-animate min-h-screen flex flex-col items-center">
@@ -258,7 +341,7 @@
     <div id="login-screen" class="w-full max-w-md px-8 flex flex-col justify-center min-h-screen relative overflow-hidden z-10">
         
         <!-- Increased opacity from bg-white/80 to bg-white/95 for readability -->
-        <div class="mint-card p-12 text-center relative z-10 bg-white/95 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl">
+        <div class="mint-card p-12 text-center relative z-10 bg-white/95 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl animate-scale-in">
             <div class="mb-10">
                 <div class="flex items-center justify-center gap-3 mb-3">
                     <div class="w-4 h-4 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
@@ -274,7 +357,7 @@
                 <button onclick="startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg active:scale-95 transition-all">Samet</button>
             </div>
 
-            <div id="password-area" class="hidden mt-6">
+            <div id="password-area" class="hidden mt-6 animate-fade-in">
                 <p id="password-msg" class="text-xs font-bold text-gray-500 mb-6 uppercase">Passwort erforderlich</p>
                 <input type="password" id="pass-input" placeholder="••••" class="w-full text-center p-5 bg-teal-50 rounded-2xl mb-6 outline-none text-3xl tracking-[0.4em] font-black border-2 border-teal-100 focus:border-pink-300 transition-all">
                 <button id="btn-login-confirm" class="pink-btn w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Entsperren ✨</button>
@@ -282,7 +365,7 @@
             </div>
         </div>
 
-        <footer class="text-center mt-12 relative z-10">
+        <footer class="text-center mt-12 relative z-10 animate-fade-in" style="animation-delay: 0.5s;">
             <p class="text-[9px] text-teal-900 font-black uppercase tracking-widest leading-loose opacity-70">
                 Coded, Assembled & Designed by <br>
                 <span class="text-teal-500 text-xs">Samet</span> für <span class="text-pink-500 text-xs">Meriam</span>
@@ -291,31 +374,90 @@
     </div>
 
     <!-- MEMORY MODAL (Z-Index fix) -->
-    <div id="memory-modal" class="hidden fixed inset-0 bg-black/50 z-[150] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100">
-            <h3 class="text-xl font-black text-teal-800 mb-2">Date abschließen 📸</h3>
-            <p class="text-xs text-gray-500 mb-4 font-medium">Füge eine Erinnerung hinzu!</p>
+    <div id="memory-modal" class="hidden fixed inset-0 bg-black/50 z-[150] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 animate-scale-in">
+            <h3 class="text-xl font-black text-teal-800 mb-2">Gedanken zum Date 📸</h3>
+            <p class="text-xs text-gray-500 mb-4 font-medium">Halte den Moment fest!</p>
             
             <div class="space-y-3">
                 <label class="block w-full p-4 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative">
                     <span id="upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto hinzufügen</span>
                     <input id="memory-photo-file" type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
                 </label>
-                <img id="preview-image" class="hidden w-full h-32 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
+                <img id="preview-image" class="hidden w-full h-32 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm animate-fade-in">
                 
-                <textarea id="memory-note" placeholder="Deine Gedanken zum Date... (optional)" class="w-full p-4 bg-teal-50 rounded-xl outline-none text-sm h-24 resize-none border border-transparent focus:border-teal-300 transition-all"></textarea>
+                <textarea id="memory-note" placeholder="Schreibe einen Kommentar..." class="w-full p-4 bg-teal-50 rounded-xl outline-none text-sm h-24 resize-none border border-transparent focus:border-teal-300 transition-all"></textarea>
             </div>
             
             <div class="mt-6 space-y-2">
-                <button id="btn-save-memory" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern & Archivieren</button>
+                <button id="btn-save-memory" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern / Kommentieren</button>
                 <button onclick="closeMemoryModal()" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MILESTONE EDITOR MODAL (Used for both Archive and Bucket List) -->
+    <div id="milestone-modal" class="hidden fixed inset-0 bg-black/50 z-[160] flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 animate-scale-in my-8">
+            <h3 id="modal-title" class="text-xl font-black text-teal-800 mb-2">Eintrag bearbeiten ✏️</h3>
+            <p class="text-xs text-gray-500 mb-4 font-medium">Details anpassen oder nachtragen</p>
+            
+            <input type="hidden" id="ms-id">
+            
+            <div class="space-y-2 text-sm">
+                <input id="ms-title" type="text" placeholder="Titel / Was?" class="w-full p-3 bg-teal-50 rounded-xl outline-none">
+                <input id="ms-location" type="text" placeholder="📍 Ort" class="w-full p-3 bg-teal-50 rounded-xl outline-none" data-original-location="">
+                <input id="ms-info" type="text" placeholder="💡 Insider-Info" class="w-full p-3 bg-teal-50 rounded-xl outline-none">
+                
+                <div class="flex gap-2">
+                    <select id="ms-cat" class="flex-1 bg-teal-50 p-2 rounded-xl outline-none text-xs">
+                        <option value="Sofort">⚡ Spontan</option>
+                        <option value="Planung">📅 Planung</option>
+                    </select>
+                    <select id="ms-weather" class="flex-1 bg-teal-50 p-2 rounded-xl outline-none text-xs">
+                        <option value="Egal">☁️ Egal</option>
+                        <option value="Sonne">☀️ Sonne</option>
+                        <option value="Regen">🏠 Regen</option>
+                    </select>
+                </div>
+                
+                <!-- Fields specifically for "Done" items or Archive (Memories) -->
+                <div id="ms-memory-fields">
+                    <p class="text-[10px] font-bold text-gray-400 mt-2 uppercase">Wann war das?</p>
+                    <input id="ms-date" type="datetime-local" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-center">
+
+                    <p class="text-[10px] font-bold text-gray-400 mt-2 uppercase">Bewertungen (1-10)</p>
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="text-[9px] font-bold text-pink-400 uppercase">Meriam</label>
+                            <input id="ms-rating-m" type="number" min="1" max="10" class="w-full p-2 bg-pink-50 rounded-lg text-center outline-none border border-pink-100">
+                        </div>
+                        <div class="flex-1">
+                            <label class="text-[9px] font-bold text-teal-400 uppercase">Samet</label>
+                            <input id="ms-rating-s" type="number" min="1" max="10" class="w-full p-2 bg-teal-50 rounded-lg text-center outline-none border border-teal-100">
+                        </div>
+                    </div>
+
+                    <label class="block w-full p-3 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative mt-3">
+                        <span id="ms-upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto ändern</span>
+                        <input id="ms-photo-file" type="file" accept="image/*" class="hidden" onchange="handleMilestonePhotoUpload(this)">
+                    </label>
+                    <img id="ms-preview-image" class="hidden w-full h-24 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
+                    
+                    <textarea id="ms-note" placeholder="Notiz..." class="w-full p-3 bg-teal-50 rounded-xl outline-none h-20 resize-none mt-2"></textarea>
+                </div>
+            </div>
+            
+            <div class="mt-6 space-y-2">
+                <button onclick="saveMilestone()" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern</button>
+                <button onclick="document.getElementById('milestone-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
             </div>
         </div>
     </div>
 
     <!-- COUNTDOWN MODAL (High Z-Index) -->
     <div id="countdown-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in">
             <h3 class="text-xl font-black text-pink-600 mb-4">Countdown setzen ⏳</h3>
             <input id="new-cd-title" type="text" placeholder="Ereignis (z.B. Urlaub 🌴)" class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm font-bold text-gray-700">
             <input id="new-cd-date" type="datetime-local" class="w-full p-3 bg-white border border-gray-200 rounded-xl mb-4 outline-none text-sm text-center text-gray-700">
@@ -327,11 +469,11 @@
     <!-- REWARD MODAL -->
     <div id="reward-modal" class="hidden fixed inset-0 bg-black/60 z-[250] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="mint-card p-8 w-full max-w-sm relative shadow-2xl border-4 border-yellow-300 bg-gradient-to-br from-yellow-50 to-white text-center pop-in">
-            <div class="text-6xl mb-4">🎁</div>
+            <div class="text-6xl mb-4 animate-bounce">🎁</div>
             <h3 class="text-2xl font-black text-yellow-600 mb-2 tracking-tight">Belohnung!</h3>
             <p class="text-xs text-gray-500 font-bold uppercase mb-6">Für mehr Quality Time & Verwöhnmomente!</p>
             
-            <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-yellow-200 mb-6 shadow-inner">
+            <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-yellow-200 mb-6 shadow-inner animate-fade-in">
                 <p id="reward-text" class="text-lg font-black text-teal-800 leading-relaxed"></p>
             </div>
             
@@ -369,9 +511,9 @@
         </header>
         <!-- NEUER HEADER ENDE -->
 
-        <div id="tab-home">
+        <div id="tab-home" class="animate-fade-in">
             <!-- SINGLE COUNTDOWN CARD -->
-            <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden">
+            <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden animate-scale-in">
                 <div class="absolute top-2 right-2 flex gap-2 z-20">
                     <button onclick="editCountdown()" class="text-gray-400 hover:text-teal-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Bearbeiten">✏️</button>
                     <button onclick="deleteCountdown()" class="text-gray-400 hover:text-red-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Löschen">🗑️</button>
@@ -387,14 +529,14 @@
             </div>
 
             <!-- PLACEHOLDER FOR COUNTDOWN -->
-            <div id="countdown-placeholder" class="mb-6 text-center hidden">
+            <div id="countdown-placeholder" class="mb-6 text-center hidden animate-fade-in">
                 <button onclick="openCountdownModal()" class="w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2">
                     <span class="text-2xl opacity-50">➕</span>
                     <span>Countdown hinzufügen</span>
                 </button>
             </div>
 
-            <div class="mint-card p-2 mb-6 grid grid-cols-3 gap-0 divide-x divide-teal-50 shadow-sm border-b-4 border-teal-200">
+            <div class="mint-card p-2 mb-6 grid grid-cols-3 gap-0 divide-x divide-teal-50 shadow-sm border-b-4 border-teal-200 animate-slide-up">
                 <div class="stat-card">
                     <p class="stat-title">Date-Serie</p>
                     <p id="stat-streak" class="stat-val text-pink-500">0</p>
@@ -414,7 +556,7 @@
             </div>
 
             <!-- REWARD PROGRESS CARD -->
-            <div id="reward-card" class="mint-card p-4 mb-6 border-l-4 border-yellow-300 bg-gradient-to-r from-yellow-50 to-white shadow-sm flex items-center justify-between">
+            <div id="reward-card" class="mint-card p-4 mb-6 border-l-4 border-yellow-300 bg-gradient-to-r from-yellow-50 to-white shadow-sm flex items-center justify-between animate-slide-up" style="animation-delay: 0.1s;">
                 <div class="flex-1">
                     <p class="text-[9px] font-black text-yellow-600 uppercase tracking-widest mb-1">Nächstes Level 🏆</p>
                     <div class="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
@@ -427,7 +569,7 @@
                 </div>
             </div>
 
-            <div class="bg-yellow-100 border-l-8 border-yellow-400 p-4 mb-8 rounded-r-2xl shadow-sm relative rotate-1">
+            <div class="bg-yellow-100 border-l-8 border-yellow-400 p-4 mb-8 rounded-r-2xl shadow-sm relative rotate-1 animate-slide-up" style="animation-delay: 0.2s;">
                 <p id="love-letter-title" class="text-[10px] font-black text-yellow-600 uppercase tracking-widest mb-1">Post-it</p>
                 <p id="love-letter-display" class="text-sm text-yellow-800 italic font-medium">Laden...</p>
                 <div class="flex justify-between items-center mt-3 gap-2">
@@ -437,7 +579,7 @@
                 </div>
             </div>
 
-            <div class="mint-card p-6 mb-6">
+            <div class="mint-card p-6 mb-6 animate-slide-up" style="animation-delay: 0.3s;">
                 <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">Füge eine Date-Idee hinzu ✨</h3>
                 <div class="flex gap-2 mb-3 items-center">
                     <input id="wish-input" type="text" placeholder="Was machen wir?" class="flex-1 p-4 bg-teal-50 rounded-xl outline-none text-lg">
@@ -456,7 +598,7 @@
                 <button id="btn-add" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg">Hinzufügen</button>
             </div>
 
-            <div class="mint-card p-8 mb-6 text-center bg-gradient-to-b from-white to-teal-50">
+            <div class="mint-card p-8 mb-6 text-center bg-gradient-to-b from-white to-teal-50 animate-slide-up" style="animation-delay: 0.4s;">
                 <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">🎲 Zufallsgenerator Date Maker</h3>
                 <div class="flex gap-2 mb-6 justify-center text-[10px] font-bold">
                     <select id="filter-cat" class="flex-1 filter-select"><option value="Alle">Für alle Optionen offen?</option><option value="Sofort">⚡ Spontan</option><option value="Planung">📅 Planung</option></select>
@@ -498,24 +640,38 @@
                 <button id="btn-roll" class="mt-6 bg-teal-700 text-white px-12 py-5 rounded-full font-bold shadow-xl w-full active:scale-95 uppercase tracking-widest">WÜRFELN</button>
             </div>
 
-            <h3 class="font-black text-teal-800 mb-4 px-2 text-sm uppercase tracking-widest text-center italic">Unsere Ideen 💡</h3>
+            <h3 class="font-black text-teal-800 mb-4 px-2 text-sm uppercase tracking-widest text-center italic animate-fade-in" style="animation-delay: 0.5s;">Unsere Ideen 💡</h3>
             <div id="wish-list" class="space-y-4 mb-10"></div>
             
-            <h3 class="font-bold text-gray-400 mb-3 px-2 text-sm uppercase tracking-widest italic text-center">Meilensteine 🏆</h3>
+            <div class="flex items-center justify-between px-2 mb-4">
+                <h3 class="font-bold text-gray-400 text-sm uppercase tracking-widest italic text-center flex-1">Meilensteine 🏆</h3>
+                <button onclick="openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+</button>
+            </div>
             <div id="archive-list" class="space-y-3 pb-20 opacity-90"></div>
         </div>
 
-        <div id="tab-bucket" class="hidden pb-20">
-            <h2 class="text-2xl font-bold text-yellow-600 mb-2 text-center">Bucket List ✨</h2>
+        <!-- NEW MAP TAB -->
+        <div id="tab-map" class="hidden pb-20 animate-fade-in">
+            <h2 class="text-2xl font-bold text-teal-700 mb-4 text-center mt-2">Unsere Welt 🌍</h2>
+            <p class="text-center text-[10px] text-gray-400 mb-4">Wo wir schon überall unsere Spuren hinterlassen haben.</p>
+            <div id="map" class="shadow-xl"></div>
+        </div>
+
+        <div id="tab-bucket" class="hidden pb-20 animate-fade-in">
+            <div class="flex items-center justify-center relative mb-2">
+                <h2 class="text-2xl font-bold text-yellow-600 text-center">Bucket List ✨</h2>
+                <button onclick="openMilestoneModal('add', null, 'bucket')" class="absolute right-2 text-xs bg-yellow-100 text-yellow-600 px-3 py-1 rounded-lg font-bold hover:bg-yellow-200 transition-colors shadow-sm">+ Neu</button>
+            </div>
+            
             <p class="text-center text-[10px] text-gray-500 mb-6 italic px-6 leading-relaxed">
                 Unsere großen Lebensträume: Ob Bungee-Jumping, Weltreisen oder verrückte Abenteuer – hier sammeln wir alles, was wir in diesem Leben unbedingt noch gemeinsam erleben wollen! 🌍✈️🚀
             </p>
             <div id="bucket-list-content" class="space-y-4"></div>
         </div>
 
-        <div id="tab-fun" class="hidden pb-20">
+        <div id="tab-fun" class="hidden pb-20 animate-fade-in">
             <!-- NEW DEEP TALK CARD -->
-            <div class="mint-card p-8 mb-6 text-center">
+            <div class="mint-card p-8 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-indigo-600 mb-4 uppercase text-xs tracking-widest">🗣️ Deep Talk</h3>
                 <p class="text-[10px] text-gray-400 mb-6">Keine Lust auf Smalltalk? Lass uns tiefer gehen.</p>
                 
@@ -526,13 +682,13 @@
                 <button id="btn-deeptalk" class="bg-indigo-500 text-white px-8 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-md hover:bg-indigo-600 transition-colors w-full">✨ Neues Thema</button>
             </div>
 
-            <div class="mint-card p-8 mb-6 text-center">
+            <div class="mint-card p-8 mb-6 text-center animate-slide-up" style="animation-delay: 0.1s;">
                 <h3 class="font-bold text-teal-800 mb-4 uppercase text-xs tracking-widest font-black">🎡 Entscheidungs-Roulette</h3>
                 <p class="text-[10px] text-gray-400 mb-6">Wer kocht? Wer wählt den Film? Das Schicksal entscheidet!</p>
                 <div id="roulette-result" class="text-3xl font-black text-teal-600 mb-8 h-12 flex items-center justify-center bg-teal-50 rounded-2xl shadow-inner border border-teal-100">?</div>
                 <button id="btn-spin-roulette" class="teal-btn px-12 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-md">Spin Roulette</button>
             </div>
-            <div class="mint-card p-6">
+            <div class="mint-card p-6 animate-slide-up" style="animation-delay: 0.2s;">
                 <h3 class="font-bold text-pink-600 mb-4 uppercase text-xs tracking-widest">❓ Quiz-Ecke</h3>
                 <div id="quiz-list" class="space-y-4 mb-6"></div>
                 <div class="border-t pt-4">
@@ -547,15 +703,19 @@
     <nav class="nav-bar hidden shadow-2xl" id="app-nav">
         <button onclick="switchTab('home')" class="nav-item active" id="nav-home">
             <span class="text-xl mb-1">🏠</span>
-            <span>Dashboard</span>
+            <span>Home</span>
+        </button>
+        <button onclick="switchTab('map')" class="nav-item" id="nav-map">
+            <span class="text-xl mb-1">🌍</span>
+            <span>Karte</span>
         </button>
         <button onclick="switchTab('bucket')" class="nav-item" id="nav-bucket">
             <span class="text-xl mb-1">✨</span>
-            <span>Bucket List</span>
+            <span>Bucket</span>
         </button>
         <button onclick="switchTab('fun')" class="nav-item" id="nav-fun">
             <span class="text-xl mb-1">🎡</span>
-            <span>Fun Zone</span>
+            <span>Fun</span>
         </button>
     </nav>
 
@@ -594,6 +754,94 @@
                 return null;
             }
         }
+
+        // --- MAP LOGIC ---
+        let map;
+        let markers = [];
+
+        function initMap() {
+            if (map) return;
+            map = L.map('map').setView([51.1657, 10.4515], 6); // Default Germany center
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+        }
+
+        async function getCoordinates(location) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+                }
+            } catch (e) {
+                console.error("Geocoding error", e);
+            }
+            return null;
+        }
+
+        function loadMapMarkers() {
+            if (!map) initMap();
+            
+            // Clear existing markers
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+
+            onValue(ref(db, 'wishes'), async (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                const bounds = [];
+
+                for (const id in data) {
+                    const item = data[id];
+                    if (item.status === 'done' && item.location) {
+                        let lat = item.lat;
+                        let lon = item.lon;
+
+                        // Check if we already have coords, if not fetch and save
+                        if (!lat || !lon) {
+                            const coords = await getCoordinates(item.location);
+                            if (coords) {
+                                lat = coords.lat;
+                                lon = coords.lon;
+                                // Save back to DB to avoid re-fetching
+                                update(ref(db, `wishes/${id}`), { lat, lon });
+                            }
+                        }
+
+                        if (lat && lon) {
+                            // Create custom icon
+                            const isPhoto = item.memoryPhoto ? true : false;
+                            const customIcon = L.divIcon({
+                                className: 'custom-map-marker-container',
+                                html: isPhoto 
+                                    ? `<img src="${item.memoryPhoto}" class="map-photo-pin">`
+                                    : `<div class="custom-map-marker">${item.text}</div>`,
+                                iconSize: [40, 40],
+                                iconAnchor: [20, 40]
+                            });
+
+                            const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
+                            
+                            // On Click open modal
+                            marker.on('click', () => {
+                                openMilestoneModal('edit', id);
+                            });
+                            
+                            markers.push(marker);
+                            bounds.push([lat, lon]);
+                        }
+                    }
+                }
+                
+                if (bounds.length > 0) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }, { onlyOnce: true });
+        }
+
 
         // --- BACKUP CONTENT ARRAYS ---
         // Used when API calls fail or no key is present (ensures variety)
@@ -766,6 +1014,8 @@
         let relationshipStart = null;
         let globalDoneCount = 0;
         let globalClaimedCount = 0;
+        let currentEditingMilestoneId = null; 
+        let currentModalMode = 'archive'; // 'archive' or 'bucket'
 
         // HEART ANIMATION
         const createHeart = () => {
@@ -1078,12 +1328,30 @@
 
         // TAB NAVIGATION
         window.switchTab = (tab) => { 
-            ['home', 'bucket', 'fun'].forEach(t => { 
-                document.getElementById(`tab-${t}`).classList.add('hidden'); 
+            // Hide all tabs
+            ['home', 'bucket', 'fun', 'map'].forEach(t => { 
+                const el = document.getElementById(`tab-${t}`);
+                if (!el.classList.contains('hidden')) {
+                    // Optional: Add exit animation here if desired, but simple hidden works for snap feel
+                    el.classList.add('hidden');
+                    el.classList.remove('animate-fade-in'); // Remove animation class to reset
+                }
                 document.getElementById(`nav-${t}`).classList.remove('active'); 
             }); 
-            document.getElementById(`tab-${tab}`).classList.remove('hidden'); 
+            
+            // Show target tab
+            const targetEl = document.getElementById(`tab-${tab}`);
+            targetEl.classList.remove('hidden');
+            targetEl.classList.add('animate-fade-in'); // Add fade-in animation
+            
             document.getElementById(`nav-${tab}`).classList.add('active'); 
+
+            // If map tab, trigger map load
+            if (tab === 'map') {
+                setTimeout(() => {
+                    loadMapMarkers();
+                }, 100);
+            }
         };
 
         // STREAK HELPERS
@@ -1143,6 +1411,202 @@
             };
             reader.readAsDataURL(file);
         };
+
+        // --- NEW MILESTONE EDITOR LOGIC ---
+
+        window.handleMilestonePhotoUpload = (input) => {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; 
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > MAX_WIDTH) {
+                        height *= MAX_WIDTH / width;
+                        width = MAX_WIDTH;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Store photo globally for saving later
+                    currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    
+                    const preview = document.getElementById('ms-preview-image');
+                    preview.src = currentPhotoBase64;
+                    preview.classList.remove('hidden');
+                    
+                    document.getElementById('ms-upload-text').innerText = "✅ Foto geändert";
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        window.openMilestoneModal = async (mode, id = null, type = 'archive') => {
+            currentModalMode = type;
+            const modal = document.getElementById('milestone-modal');
+            const titleEl = document.getElementById('ms-title');
+            const locEl = document.getElementById('ms-location');
+            const infoEl = document.getElementById('ms-info');
+            const catEl = document.getElementById('ms-cat');
+            const weatherEl = document.getElementById('ms-weather');
+            const dateEl = document.getElementById('ms-date');
+            const noteEl = document.getElementById('ms-note');
+            const ratingMEl = document.getElementById('ms-rating-m');
+            const ratingSEl = document.getElementById('ms-rating-s');
+            const previewEl = document.getElementById('ms-preview-image');
+            const uploadTextEl = document.getElementById('ms-upload-text');
+            const modalTitle = document.getElementById('modal-title');
+            const memoryFields = document.getElementById('ms-memory-fields');
+            const locationInput = document.getElementById('ms-location'); // Use specific selector
+
+            // Reset Fields
+            titleEl.value = ""; locEl.value = ""; infoEl.value = ""; 
+            dateEl.value = ""; noteEl.value = ""; 
+            ratingMEl.value = ""; ratingSEl.value = "";
+            previewEl.src = ""; previewEl.classList.add('hidden');
+            uploadTextEl.innerText = "📸 Foto hinzufügen";
+            currentPhotoBase64 = "";
+            locationInput.setAttribute('data-original-location', ""); // Reset original location attribute
+
+            if (type === 'bucket') {
+                 modalTitle.innerText = mode === 'add' ? "Neuer Bucket List Traum ✨" : "Traum bearbeiten ✏️";
+                 // Hide memory fields for Bucket List adds/edits (unless it's completed, but here we assume planning phase)
+                 // Or we could check if status is 'done'. But for adding new, definitely hide.
+                 if (mode === 'add') {
+                     memoryFields.classList.add('hidden');
+                 } else {
+                     // If editing, check status first
+                     const snapshot = await get(ref(db, `wishes/${id}`));
+                     const data = snapshot.val();
+                     if (data && data.status === 'done') {
+                         memoryFields.classList.remove('hidden');
+                     } else {
+                         memoryFields.classList.add('hidden');
+                     }
+                 }
+            } else {
+                 modalTitle.innerText = mode === 'add' ? "Meilenstein nachtragen 🏆" : "Meilenstein bearbeiten ✏️";
+                 memoryFields.classList.remove('hidden');
+            }
+
+            if (mode === 'edit' && id) {
+                currentEditingMilestoneId = id;
+                const snapshot = await get(ref(db, `wishes/${id}`));
+                const data = snapshot.val();
+                if (data) {
+                    titleEl.value = data.text || "";
+                    locEl.value = data.location || "";
+                    locationInput.setAttribute('data-original-location', data.location || ""); // Store original location for comparison
+                    infoEl.value = data.info || "";
+                    catEl.value = data.cat || "Sofort";
+                    weatherEl.value = data.weather || "Egal";
+                    noteEl.value = data.memoryNote || "";
+                    ratingMEl.value = data.ratingMeriam || "";
+                    ratingSEl.value = data.ratingSamet || "";
+                    
+                    if (data.memoryPhoto) {
+                        previewEl.src = data.memoryPhoto;
+                        previewEl.classList.remove('hidden');
+                        uploadTextEl.innerText = "✅ Foto vorhanden (ändern?)";
+                        currentPhotoBase64 = data.memoryPhoto; 
+                    }
+                    
+                    if (data.doneAt) {
+                         const d = new Date(data.doneAt);
+                         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                         dateEl.value = d.toISOString().slice(0, 16);
+                    }
+                }
+            } else {
+                currentEditingMilestoneId = null; // Add Mode
+                // Set default date to now if visible
+                if (!memoryFields.classList.contains('hidden')) {
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    dateEl.value = now.toISOString().slice(0, 16);
+                }
+            }
+            
+            modal.classList.remove('hidden');
+        };
+
+        window.saveMilestone = async () => {
+            const title = document.getElementById('ms-title').value.trim();
+            if (!title) return alert("Titel fehlt!");
+
+            const user = localStorage.getItem('currentUser');
+            const location = document.getElementById('ms-location').value.trim();
+            const originalLocation = document.getElementById('ms-location').getAttribute('data-original-location');
+
+            const payload = {
+                text: title,
+                location: location,
+                info: document.getElementById('ms-info').value.trim(),
+                cat: document.getElementById('ms-cat').value,
+                weather: document.getElementById('ms-weather').value,
+            };
+
+            // Check if location changed. If so, reset coordinates to force geocoding next time map loads.
+            if (location !== originalLocation) {
+                payload.lat = null;
+                payload.lon = null;
+            }
+            
+            // Logic based on context (Archive vs Bucket)
+            if (currentModalMode === 'archive') {
+                payload.status = 'done';
+                payload.isBucket = false;
+                payload.memoryNote = document.getElementById('ms-note').value.trim();
+                payload.ratingMeriam = document.getElementById('ms-rating-m').value;
+                payload.ratingSamet = document.getElementById('ms-rating-s').value;
+                
+                const dateVal = document.getElementById('ms-date').value;
+                if (dateVal) payload.doneAt = new Date(dateVal).getTime();
+                else payload.doneAt = Date.now();
+
+                if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
+            } else {
+                // Bucket List Mode
+                
+                if (!currentEditingMilestoneId) {
+                    payload.status = 'open';
+                    payload.isBucket = true;
+                    payload.timestamp = Date.now();
+                } else {
+                    // Updating existing bucket item. 
+                    if (!document.getElementById('ms-memory-fields').classList.contains('hidden')) {
+                         // It's a done bucket item, save memory fields too
+                         payload.memoryNote = document.getElementById('ms-note').value.trim();
+                         payload.ratingMeriam = document.getElementById('ms-rating-m').value;
+                         payload.ratingSamet = document.getElementById('ms-rating-s').value;
+                         const dateVal = document.getElementById('ms-date').value;
+                         if (dateVal) payload.doneAt = new Date(dateVal).getTime();
+                         if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
+                    }
+                }
+            }
+
+            if (currentEditingMilestoneId) {
+                await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
+            } else {
+                payload.by = user; 
+                if (!payload.timestamp) payload.timestamp = Date.now();
+                await push(ref(db, 'wishes'), payload);
+            }
+
+            document.getElementById('milestone-modal').classList.add('hidden');
+        };
+
 
         // COUNTDOWN LOGIC
         window.openCountdownModal = () => {
@@ -1276,7 +1740,7 @@
                 Object.keys(data).reverse().forEach(id => { 
                     const item = data[id]; 
                     const div = document.createElement('div'); 
-                    div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm"; 
+                    div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm animate-slide-up"; 
                     div.innerHTML = `<div><p class="font-bold">${item.q}</p><p class="text-[10px] text-gray-400 mt-1 hidden" id="a-${id}">Antwort: ${item.a}</p></div><button onclick="document.getElementById('a-${id}').classList.toggle('hidden')" class="text-pink-500 font-bold">Lösung</button>`; 
                     quizList.appendChild(div); 
                 }); 
@@ -1328,7 +1792,7 @@
                     const item = data[id];
                     const isSecret = item.surprise && item.by !== currentUser;
                     const card = document.createElement('div');
-                    card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/90 shadow-md relative overflow-hidden";
+                    card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/90 shadow-md relative overflow-hidden animate-slide-up";
                     card.innerHTML = `
                         <div class="absolute top-0 right-0 bg-green-400 text-white text-[9px] font-black px-2 py-1 rounded-bl-xl uppercase tracking-widest">Läuft gerade</div>
                         <div class="flex justify-between items-start">
@@ -1351,7 +1815,7 @@
                     const item = data[id];
                     const isSecret = item.surprise && item.by !== currentUser;
                     const card = document.createElement('div'); 
-                    card.className = "mint-card p-4 border-l-4 " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
+                    card.className = "mint-card p-4 border-l-4 animate-slide-up " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
                     card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2"><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
                     wishList.appendChild(card);
                 });
@@ -1359,8 +1823,18 @@
                 // RENDER BUCKET LIST
                 bucketIds.forEach(id => {
                     const item = data[id]; const isDone = item.status === 'done';
-                    const div = document.createElement('div'); div.className = "mint-card p-4 bucket-card " + (isDone ? "opacity-50" : "");
-                    div.innerHTML = `<div class="flex justify-between items-center"><div><p class="font-black text-yellow-700">${item.text} ✨</p><p class="text-[9px] uppercase text-yellow-600 mt-1">${isDone ? 'Erreicht' : 'Bucket List'}</p></div>${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold">✓</button>` : ''}</div>`;
+                    const div = document.createElement('div'); div.className = "mint-card p-4 bucket-card animate-slide-up relative " + (isDone ? "opacity-50" : "");
+                    div.innerHTML = `
+                        <div class="absolute top-2 right-2">
+                            <button onclick="openMilestoneModal('edit', '${id}', 'bucket')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-black text-yellow-700">${item.text} ✨</p>
+                                <p class="text-[9px] uppercase text-yellow-600 mt-1">${isDone ? 'Erreicht' : 'Bucket List'}</p>
+                            </div>
+                            ${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold text-lg mr-6">✓</button>` : ''}
+                        </div>`;
                     bucketList.appendChild(div);
                 });
 
@@ -1369,17 +1843,43 @@
                     const item = data[id];
                     const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
                     const card = document.createElement('div'); 
-                    card.className = "mint-card p-4 bg-white/95 border border-teal-50 shadow-inner";
+                    card.className = "mint-card p-4 bg-white/95 border border-teal-50 shadow-inner animate-slide-up relative group";
                     const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
                     
                     let ratingUI = `<div class="mt-4 border-t border-teal-50 pt-3">`;
                     let memoryUI = "";
-                    if (item.memoryPhoto || item.memoryNote) {
-                        memoryUI = `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50">`;
-                        if (item.memoryPhoto) memoryUI += `<img src="${item.memoryPhoto}" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm" onerror="this.style.display='none'">`;
-                        if (item.memoryNote) memoryUI += `<p class="text-[10px] text-teal-800 italic">"${item.memoryNote}"</p>`;
+                    if (item.memoryPhoto) {
+                        memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50">`;
+                        memoryUI += `<img src="${item.memoryPhoto}" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm" onerror="this.style.display='none'">`;
                         memoryUI += `</div>`;
                     }
+                    
+                    // Render Comments
+                    if (item.comments) {
+                         const commentsArray = Object.values(item.comments);
+                         memoryUI += `<div class="mt-2 space-y-2">`;
+                         commentsArray.forEach(comment => {
+                             const isMeriam = comment.by === 'Meriam';
+                             const commentTime = new Date(comment.timestamp).toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
+                             const containerClass = isMeriam ? "bg-pink-50 border-pink-200 text-pink-800" : "bg-teal-50 border-teal-200 text-teal-800";
+                             const nameColor = isMeriam ? "text-pink-400" : "text-teal-400";
+                             
+                             memoryUI += `
+                                <div class="p-2 rounded-xl border ${containerClass} text-xs relative">
+                                    <p class="text-[9px] uppercase font-bold mb-1 opacity-70 ${nameColor}">Kommentar von ${comment.by} • ${commentTime}</p>
+                                    <p class="italic">"${comment.text}"</p>
+                                </div>
+                             `;
+                         });
+                         memoryUI += `</div>`;
+                    } else if (item.memoryNote) {
+                        // Legacy support for single note
+                        memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50"><p class="text-[10px] text-teal-800 italic">"${item.memoryNote}"</p></div>`;
+                    }
+                    
+                    // Add Comment Button
+                    memoryUI += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition-colors uppercase tracking-widest">📝 Kommentieren / Foto</button>`;
+
 
                     if (hasMyRating) {
                         ratingUI += `
@@ -1403,7 +1903,21 @@
                     }
                     
                     ratingUI += `</div>`;
-                    card.innerHTML = `<p class="font-bold text-teal-800">${item.text} 🏆</p><p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p><div class="flex gap-2 my-2"><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div>${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}${item.info ? `<p class="text-[10px] text-gray-500 italic mt-1 border-l-2 border-teal-100 pl-2">💡 ${item.info}</p>` : ''}${memoryUI}${ratingUI}`;
+                    card.innerHTML = `
+                        <div class="absolute top-2 right-2">
+                            <button onclick="openMilestoneModal('edit', '${id}')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button>
+                        </div>
+                        <p class="font-bold text-teal-800 pr-6">${item.text} 🏆</p>
+                        <p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p>
+                        <div class="flex gap-2 my-2">
+                            <span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span>
+                            <span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span>
+                        </div>
+                        ${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}
+                        ${item.info ? `<p class="text-[10px] text-gray-500 italic mt-1 border-l-2 border-teal-100 pl-2">💡 ${item.info}</p>` : ''}
+                        ${memoryUI}
+                        ${ratingUI}
+                    `;
                     archiveList.appendChild(card);
                 });
             });
@@ -1431,34 +1945,69 @@
             q.value = ""; a.value = ""; 
         };
         
+        // This handles "finish date" from active list
         window.markAsDone = (id) => {
             currentCompletingId = id;
+            openMemoryModalInternal();
+        };
+
+        // This handles "add comment" from archive list
+        window.openCommentModal = (id) => {
+            currentCompletingId = id;
+            openMemoryModalInternal();
+        }
+
+        const openMemoryModalInternal = () => {
             document.getElementById('memory-modal').classList.remove('hidden');
-            document.getElementById('memory-photo-file').value = ""; // Reset file input
+            document.getElementById('memory-photo-file').value = ""; 
             document.getElementById('preview-image').classList.add('hidden');
             document.getElementById('upload-text').innerText = "📸 Foto hinzufügen";
-            currentPhotoBase64 = ""; // Reset stored base64
+            currentPhotoBase64 = ""; 
             document.getElementById('memory-note').value = "";
-        };
+        }
 
         window.closeMemoryModal = () => {
             document.getElementById('memory-modal').classList.add('hidden');
             currentCompletingId = null;
         };
 
-        document.getElementById('btn-save-memory').onclick = () => {
+        document.getElementById('btn-save-memory').onclick = async () => {
             if (!currentCompletingId) return;
             const note = document.getElementById('memory-note').value.trim();
+            const user = localStorage.getItem('currentUser');
             
-            update(ref(db, `wishes/${currentCompletingId}`), { 
-                status: 'done', 
-                doneAt: Date.now(),
-                memoryPhoto: currentPhotoBase64,
-                memoryNote: note
-            });
+            // Prepare updates
+            const updates = {};
+            
+            // 1. Ensure status is done (if coming from active)
+            updates[`wishes/${currentCompletingId}/status`] = 'done';
+            
+            // 2. Set doneAt if not present (only for first completion)
+            // We will fetch the item to see if it needs doneAt
+            const snapshot = await get(ref(db, `wishes/${currentCompletingId}`));
+            const item = snapshot.val();
+            if (item && item.status !== 'done') {
+                updates[`wishes/${currentCompletingId}/doneAt`] = Date.now();
+            }
+            
+            // 3. Add Photo if present (Overwrite)
+            if (currentPhotoBase64) {
+                updates[`wishes/${currentCompletingId}/memoryPhoto`] = currentPhotoBase64;
+            }
+
+            // 4. Add Comment if present
+            if (note) {
+               const commentId = push(ref(db, `wishes/${currentCompletingId}/comments`)).key;
+               updates[`wishes/${currentCompletingId}/comments/${commentId}`] = {
+                   text: note,
+                   by: user,
+                   timestamp: Date.now()
+               };
+            }
+
+            await update(ref(db), updates);
             
             closeMemoryModal();
-            // Close result box if open
             document.getElementById('result-box').classList.add('hidden');
         };
 
