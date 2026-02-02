@@ -2,345 +2,149 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MerSam OS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MerSam OS v2.9 - App Edition</title>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FCE4EC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MerSam">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Leaflet CSS for Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
     <style>
+        /* Touch Optimierung für App-Feeling */
+        * { -webkit-tap-highlight-color: transparent; user-select: none; }
+        input, textarea { user-select: text; }
+        
         body {
             font-family: 'Quicksand', sans-serif;
             background-color: #FCE4EC;
             color: #2D3748;
-            padding-bottom: 90px; /* More padding for nav */
+            padding-bottom: 100px; /* Mehr Platz unten für iPhone Home Bar */
             overflow-x: hidden;
+            overscroll-behavior-y: none; /* Kein "Bouncen" beim Scrollen */
         }
-        .pink-btn {
-            background-color: #FF80AB;
-            color: white;
-            transition: all 0.2s;
-        }
-        .pink-btn:hover {
-            background-color: #F06292;
-            transform: translateY(-1px);
-        }
-        .teal-btn {
-            background-color: #14B8A6;
-            color: white;
-            transition: all 0.2s;
-        }
-        .teal-btn:hover {
-            background-color: #0D9488;
-            transform: translateY(-1px);
-        }
-        .mint-card {
-            background: white;
-            border-radius: 28px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
-            border: 1px solid rgba(178, 223, 219, 0.5);
-        }
-        .hidden {
-            display: none !important;
-        }
+        .pink-btn { background-color: #FF80AB; color: white; transition: all 0.2s; }
+        .pink-btn:active { background-color: #F06292; transform: scale(0.95); }
+        .teal-btn { background-color: #14B8A6; color: white; transition: all 0.2s; }
+        .teal-btn:active { background-color: #0D9488; transform: scale(0.95); }
+        .mint-card { background: white; border-radius: 28px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid rgba(178, 223, 219, 0.5); }
+        .hidden { display: none !important; }
         
-        /* Hintergrund-Animation */
-        .bg-gradient-animate { 
-            background: linear-gradient(-45deg, #E0F2F1, #FCE4EC, #E0F7FA, #F8BBD0); 
-            background-size: 400% 400%; 
-            animation: gradient 12s ease infinite; 
-        }
+        .bg-gradient-animate { background: linear-gradient(-45deg, #E0F2F1, #FCE4EC, #E0F7FA, #F8BBD0); background-size: 400% 400%; animation: gradient 12s ease infinite; }
         @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
         /* Floating Hearts */
-        .floating-heart { 
-            position: absolute; 
-            color: rgba(255, 128, 171, 0.6); 
-            animation: float 5s infinite linear; 
-            z-index: 0; 
-            pointer-events: none; 
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
-        }
-        @keyframes float { 
-            0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; } 
-            20% { opacity: 0.8; } 
-            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } 
-        }
+        .floating-heart { position: absolute; color: rgba(255, 128, 171, 0.6); animation: float 5s infinite linear; z-index: 0; pointer-events: none; text-shadow: 0 0 5px rgba(255, 255, 255, 0.5); }
+        @keyframes float { 0% { transform: translateY(110vh) scale(0.5) rotate(0deg); opacity: 0; } 20% { opacity: 0.8; } 100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; } }
 
-        /* NEUE ANIMATIONEN */
-        .animate-fade-in-down {
-            animation: fadeInDown 0.8s ease-out forwards;
-        }
-        @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        /* 3D WÜRFEL */
+        .scene { width: 80px; height: 80px; perspective: 600px; margin: 0 auto; cursor: pointer; }
+        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transform: translateZ(-40px); transition: transform 1s; }
+        .cube.is-spinning { animation: spinCube 0.8s linear infinite; }
+        @keyframes spinCube { 0% { transform: translateZ(-40px) rotateX(0deg) rotateY(0deg); } 100% { transform: translateZ(-40px) rotateX(360deg) rotateY(720deg); } }
+        .cube__face { position: absolute; width: 80px; height: 80px; border: 2px solid white; background: linear-gradient(145deg, #ffffff, #f0f0f0); box-shadow: inset 0 0 10px rgba(0,0,0,0.1); border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; backface-visibility: hidden; }
+        .face-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); width: 60%; height: 60%; gap: 2px; }
+        .dot { background-color: #EC4899; border-radius: 50%; width: 100%; height: 100%; box-shadow: inset 1px 1px 2px rgba(0,0,0,0.2); }
+        .d-center { grid-area: 2 / 2 / 3 / 3; } .d-tl { grid-area: 1 / 1 / 2 / 2; } .d-tr { grid-area: 1 / 3 / 2 / 4; } .d-ml { grid-area: 2 / 1 / 3 / 2; } .d-mr { grid-area: 2 / 3 / 3 / 4; } .d-bl { grid-area: 3 / 1 / 4 / 2; } .d-br { grid-area: 3 / 3 / 4 / 4; } 
+        .cube__face--1 { transform: rotateY(  0deg) translateZ(40px); } .cube__face--2 { transform: rotateY( 90deg) translateZ(40px); } .cube__face--3 { transform: rotateY(180deg) translateZ(40px); } .cube__face--4 { transform: rotateY(-90deg) translateZ(40px); } .cube__face--5 { transform: rotateX( 90deg) translateZ(40px); } .cube__face--6 { transform: rotateX(-90deg) translateZ(40px); }
 
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        /* Animationen */
+        .animate-fade-in-down { animation: fadeInDown 0.8s ease-out forwards; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .animate-slide-up { animation: slideUp 0.5s ease-out forwards; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scaleIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .magic-pop-in { animation: magicPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; transform-origin: center center; }
+        @keyframes magicPop { 0% { opacity: 0; transform: scale(0.1) rotate(-10deg); filter: blur(10px); } 60% { transform: scale(1.1) rotate(2deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); filter: blur(0); } }
 
-        .animate-slide-up {
-            animation: slideUp 0.5s ease-out forwards;
-        }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-scale-in {
-             animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        @keyframes scaleIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
+        /* Lock SVG */
+        .lock-svg { width: 100px; height: 120px; overflow: visible; }
+        .lock-body { fill: #EC4899; } .lock-shackle { fill: none; stroke: #9CA3AF; stroke-width: 12; stroke-linecap: round; transform-origin: 50% 35px; transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); }
+        .lock-pop-in { animation: popInLock 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes popInLock { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .lock-rattle { animation: rattle 0.1s linear infinite; }
+        @keyframes rattle { 0% { transform: rotate(0deg); } 25% { transform: rotate(2deg); } 75% { transform: rotate(-2deg); } 100% { transform: rotate(0deg); } }
+        .lock-open .lock-shackle { transform: translateY(-25px) rotate(-45deg); stroke: #10B981; } .lock-open .lock-body { fill: #10B981; transition: fill 0.3s; }
 
-        /* Dice Animation */
-        #dice {
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: inline-block;
-            font-size: 5.5rem;
-            padding: 1rem 0;
-        }
-        .rolling {
-            animation: shake 0.1s infinite;
-        }
-        @keyframes shake {
-            0% { transform: translate(2px, 1px) rotate(0deg); } 20% { transform: translate(-1px, -2px) rotate(-1deg); } 40% { transform: translate(-3px, 0px) rotate(1deg); } 100% { transform: translate(-1px, 2px) rotate(-1deg); } }
-        }
-        
-        /* Lock Animation */
-        .lock-active {
-            animation: lock-pulse 0.6s ease infinite;
-            font-size: 5rem;
-            display: block;
-        }
-        @keyframes lock-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.3); text-shadow: 0 0 20px rgba(255, 128, 171, 0.5); }
-        }
-        
-        /* Unfold Animation */
-        .unfold-anim {
-            animation: unfold 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        @keyframes unfold {
-            0% { transform: scaleY(0); opacity: 0; transform-origin: top; }
-            100% { transform: scaleY(1); opacity: 1; transform-origin: top; }
-        }
+        .flash-overlay { position: absolute; inset: 0; background: white; pointer-events: none; z-index: 50; opacity: 0; transition: opacity 1s; border-radius: 28px; }
+        .do-flash { animation: flashAnim 0.8s ease-out forwards; }
+        @keyframes flashAnim { 0% { opacity: 0; } 10% { opacity: 1; } 100% { opacity: 0; } }
+        .unfold-anim { animation: unfold 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes unfold { 0% { transform: scaleY(0); opacity: 0; transform-origin: top; } 100% { transform: scaleY(1); opacity: 1; transform-origin: top; } }
 
-        .user-badge {
-            font-size: 9px;
-            padding: 2px 8px;
-            border-radius: 99px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .badge-meriam { background-color: #fce4ec; color: #f06292; }
-        .badge-samet { background-color: #e0f2f1; color: #00897b; }
+        .user-badge { font-size: 9px; padding: 2px 8px; border-radius: 99px; font-weight: bold; text-transform: uppercase; }
+        .badge-meriam { background-color: #fce4ec; color: #f06292; } .badge-samet { background-color: #e0f2f1; color: #00897b; }
+        .filter-select { background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 0.75rem; padding: 0.5rem; font-size: 0.875rem; outline: none; }
+        .online-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; } .online { background-color: #4ADE80; box-shadow: 0 0 8px #4ADE80; } .offline { background-color: #CBD5E1; }
+        .stat-card { text-align: center; padding: 18px 5px; display: flex; flex-direction: column; justify-content: space-between; }
+        .stat-title { font-size: 0.55rem; text-transform: uppercase; color: #94A3B8; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 4px; }
+        .stat-val { font-size: 2rem; font-weight: 900; color: #111827; line-height: 1; }
+        .stat-label { font-size: 0.5rem; color: #64748B; font-weight: 700; margin-top: 6px; text-transform: uppercase; }
+        .rating-btn { width: 24px; height: 24px; font-size: 9px; font-weight: bold; border-radius: 6px; border: 1px solid #E2E8F0; background: white; color: #64748B; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
         
-        .filter-select {
-            background-color: #f0fdfa;
-            border: 1px solid #99f6e4;
-            border-radius: 0.75rem;
-            padding: 0.5rem;
-            font-size: 0.875rem;
-            outline: none;
+        .nav-bar { 
+            position: fixed; bottom: 0; width: 100%; max-width: 448px; 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            border-top: 1px solid #B2DFDB; display: flex; justify-content: space-around; 
+            padding: 12px 0 20px 0; /* Mehr Padding unten für iPhone */
+            z-index: 1000; 
         }
+        .nav-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; font-weight: bold; color: #94A3B8; cursor: pointer; transition: transform 0.1s; } 
+        .nav-item:active { transform: scale(0.9); }
+        .nav-item.active { color: #14B8A6; }
         
-        .online-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .online { background-color: #4ADE80; box-shadow: 0 0 8px #4ADE80; }
-        .offline { background-color: #CBD5E1; }
-        
-        .stat-card {
-            text-align: center;
-            padding: 18px 5px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .stat-title {
-            font-size: 0.55rem;
-            text-transform: uppercase;
-            color: #94A3B8;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            margin-bottom: 4px;
-        }
-        .stat-val {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #111827;
-            line-height: 1;
-        }
-        .stat-label {
-            font-size: 0.5rem;
-            color: #64748B;
-            font-weight: 700;
-            margin-top: 6px;
-            text-transform: uppercase;
-        }
-        
-        .rating-btn {
-            width: 24px;
-            height: 24px;
-            font-size: 9px;
-            font-weight: bold;
-            border-radius: 6px;
-            border: 1px solid #E2E8F0;
-            background: white;
-            color: #64748B;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .nav-bar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            max-width: 448px;
-            background: white;
-            border-top: 1px solid #B2DFDB;
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0;
-            z-index: 1000; /* Increased Z-Index for Map */
-        }
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-size: 10px;
-            font-weight: bold;
-            color: #94A3B8;
-            cursor: pointer;
-        }
-        .nav-item.active {
-            color: #14B8A6;
-        }
-        
-        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #FF80AB; }
-        input:checked + .slider:before { transform: translateX(20px); }
-
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; } .switch input { opacity: 0; width: 0; height: 0; } .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; } .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; } input:checked + .slider { background-color: #FF80AB; } input:checked + .slider:before { transform: translateX(20px); }
         .bucket-card { border: 2px solid #FFD700; background: linear-gradient(to bottom right, #FFFFFF, #FFFDF0); }
+        .sparkle-btn { background: linear-gradient(135deg, #A855F7, #EC4899); color: white; transition: all 0.3s ease; } .sparkle-btn:hover { filter: brightness(1.1); transform: scale(1.05); box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
+        .animate-spin-slow { animation: spin 2s linear infinite; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .chest-shake { animation: shakeChest 1s infinite; } @keyframes shakeChest { 0% { transform: rotate(0deg); } 25% { transform: rotate(-10deg); } 50% { transform: rotate(10deg); } 75% { transform: rotate(-5deg); } 100% { transform: rotate(0deg); } }
+        .pop-in { animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; } @keyframes popIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
-        /* Animation for Gemini Buttons */
-        .sparkle-btn {
-            background: linear-gradient(135deg, #A855F7, #EC4899);
-            color: white;
-            transition: all 0.3s ease;
-        }
-        .sparkle-btn:hover {
-            filter: brightness(1.1);
-            transform: scale(1.05);
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
-        }
-        .animate-spin-slow {
-            animation: spin 2s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* MAP */
+        #map { height: 70vh; width: 100%; border-radius: 32px; border: 4px solid white; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), inset 0 0 40px rgba(0,0,0,0.05); z-index: 1; background-color: #f8fafc; }
+        .custom-map-marker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .custom-map-marker-container:hover { transform: scale(1.2) translateY(-10px); z-index: 1000 !important; }
+        .custom-map-marker { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); border: 2px solid #EC4899; border-radius: 12px; padding: 6px 12px; text-align: center; font-weight: 800; font-size: 11px; color: #831843; box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); white-space: nowrap; position: relative; transform: translateY(-10px); }
+        .custom-map-marker::after { content: ''; position: absolute; bottom: -6px; left: 50%; margin-left: -6px; border-width: 6px 6px 0; border-style: solid; border-color: #EC4899 transparent transparent transparent; }
+        .map-photo-pin { width: 48px; height: 48px; border-radius: 50%; border: 3px solid white; outline: 3px solid #14B8A6; object-fit: cover; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2); background-color: white; transition: all 0.3s; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .custom-map-marker-container::before { content: ''; position: absolute; width: 10px; height: 10px; background-color: #EC4899; border-radius: 50%; bottom: -5px; opacity: 0.5; animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; }
+        @keyframes pulse-ring { 0% { transform: scale(0.33); opacity: 0.8; } 80%, 100% { transform: scale(2); opacity: 0; } }
+        .leaflet-control-zoom { border: none !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important; margin-bottom: 80px !important; }
+        .leaflet-control-zoom a { background-color: white !important; color: #EC4899 !important; border-radius: 8px !important; border: 1px solid #fce7f3 !important; }
+        .marker-cluster-small, .marker-cluster-medium, .marker-cluster-large { background-color: rgba(236, 72, 153, 0.2) !important; }
+        .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div { background-color: #EC4899 !important; color: white !important; font-family: 'Quicksand', sans-serif; font-weight: 800; border-radius: 50%; box-shadow: 0 0 10px rgba(236, 72, 153, 0.4); }
 
-        /* REWARD ANIMATIONS */
-        .chest-shake {
-            animation: shakeChest 1s infinite;
-        }
-        @keyframes shakeChest {
-            0% { transform: rotate(0deg); }
-            25% { transform: rotate(-10deg); }
-            50% { transform: rotate(10deg); }
-            75% { transform: rotate(-5deg); }
-            100% { transform: rotate(0deg); }
-        }
-        .pop-in {
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Map Container */
-        #map {
-            height: 70vh;
-            width: 100%;
-            border-radius: 20px;
-            z-index: 1;
-        }
-        
-        /* Custom Map Marker */
-        .custom-map-marker-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .custom-map-marker {
-            background-color: white;
-            border: 2px solid #FF80AB;
-            border-radius: 12px;
-            padding: 4px 8px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 10px;
-            color: #2D3748;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            white-space: nowrap;
-            position: relative;
-            transform: translateY(-10px);
-        }
-        
-        .custom-map-marker::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            margin-left: -6px;
-            border-width: 6px 6px 0;
-            border-style: solid;
-            border-color: #FF80AB transparent transparent transparent;
-        }
-        
-        .map-photo-pin {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            border: 3px solid #FF80AB;
-            object-fit: cover;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-            background-color: white;
-            transform: translateY(-20px);
-        }
+        /* GALERIE (Polaroids) */
+        .polaroid { background: white; padding: 6px 6px 20px 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 4px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; cursor: pointer; }
+        .polaroid:active { transform: scale(0.98) !important; }
+        .polaroid img { width: 100%; height: 120px; object-fit: cover; border-radius: 2px; background-color: #f0f0f0; }
+        .polaroid-caption { font-size: 8px; color: #666; text-align: center; margin-top: 6px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: cursive; }
+        .polaroid:nth-child(3n+1) { transform: rotate(2deg); }
+        .polaroid:nth-child(3n+2) { transform: rotate(-2deg); margin-top: 10px; }
+        .polaroid:nth-child(3n+3) { transform: rotate(1deg); }
     </style>
 </head>
-<body class="bg-gradient-animate min-h-screen flex flex-col items-center">
+<body class="bg-gradient-animate min-h-screen flex flex-col items-center select-none">
 
-    <!-- GLOBAL BACKGROUND ANIMATION CONTAINER -->
     <div id="heart-container" class="fixed inset-0 pointer-events-none z-0 overflow-hidden"></div>
 
-    <!-- NEW LOGIN SCREEN -->
     <div id="login-screen" class="w-full max-w-md px-8 flex flex-col justify-center min-h-screen relative overflow-hidden z-10">
-        
-        <!-- Increased opacity from bg-white/80 to bg-white/95 for readability -->
         <div class="mint-card p-12 text-center relative z-10 bg-white/95 backdrop-blur-xl border-t-8 border-pink-400 shadow-2xl animate-scale-in">
             <div class="mb-10">
                 <div class="flex items-center justify-center gap-3 mb-3">
@@ -348,23 +152,22 @@
                     <p class="text-pink-500 font-black text-xs uppercase tracking-[0.3em] animate-pulse">System Loading</p>
                 </div>
                 <h1 class="text-4xl font-black text-teal-800 tracking-tighter">MerSam OS</h1>
-                <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">Valentinstag '26 - Special Build</p>
+                <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">App Edition v2.9</p>
             </div>
             
             <div id="user-selection" class="space-y-4">
                 <p class="text-xs font-bold text-gray-500 uppercase mb-4">Profil auswählen</p>
-                <button onclick="startAuth('Meriam')" class="pink-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg active:scale-95 transition-all">Meriam</button>
-                <button onclick="startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg active:scale-95 transition-all">Samet</button>
+                <button onclick="playSound('click'); startAuth('Meriam')" class="pink-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Meriam</button>
+                <button onclick="playSound('click'); startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Samet</button>
             </div>
 
             <div id="password-area" class="hidden mt-6 animate-fade-in">
                 <p id="password-msg" class="text-xs font-bold text-gray-500 mb-6 uppercase">Passwort erforderlich</p>
                 <input type="password" id="pass-input" placeholder="••••" class="w-full text-center p-5 bg-teal-50 rounded-2xl mb-6 outline-none text-3xl tracking-[0.4em] font-black border-2 border-teal-100 focus:border-pink-300 transition-all">
-                <button id="btn-login-confirm" class="pink-btn w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Entsperren ✨</button>
-                <button onclick="location.reload()" class="text-[10px] text-gray-400 mt-6 underline uppercase font-bold">Abbrechen</button>
+                <button id="btn-login-confirm" onclick="playSound('success')" class="pink-btn w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Entsperren ✨</button>
+                <button onclick="playSound('click'); location.reload()" class="text-[10px] text-gray-400 mt-6 underline uppercase font-bold">Abbrechen</button>
             </div>
         </div>
-
         <footer class="text-center mt-12 relative z-10 animate-fade-in" style="animation-delay: 0.5s;">
             <p class="text-[9px] text-teal-900 font-black uppercase tracking-widest leading-loose opacity-70">
                 Coded, Assembled & Designed by <br>
@@ -373,217 +176,150 @@
         </footer>
     </div>
 
-    <!-- MEMORY MODAL (Z-Index fix) -->
     <div id="memory-modal" class="hidden fixed inset-0 bg-black/50 z-[150] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 animate-scale-in">
             <h3 class="text-xl font-black text-teal-800 mb-2">Gedanken zum Date 📸</h3>
             <p class="text-xs text-gray-500 mb-4 font-medium">Halte den Moment fest!</p>
-            
             <div class="space-y-3">
                 <label class="block w-full p-4 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative">
                     <span id="upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto hinzufügen</span>
                     <input id="memory-photo-file" type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
                 </label>
                 <img id="preview-image" class="hidden w-full h-32 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm animate-fade-in">
-                
                 <textarea id="memory-note" placeholder="Schreibe einen Kommentar..." class="w-full p-4 bg-teal-50 rounded-xl outline-none text-sm h-24 resize-none border border-transparent focus:border-teal-300 transition-all"></textarea>
             </div>
-            
             <div class="mt-6 space-y-2">
-                <button id="btn-save-memory" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern / Kommentieren</button>
-                <button onclick="closeMemoryModal()" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
+                <button id="btn-save-memory" onclick="playSound('success')" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern / Kommentieren</button>
+                <button onclick="playSound('click'); closeMemoryModal()" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
             </div>
         </div>
     </div>
 
-    <!-- MILESTONE EDITOR MODAL (Used for both Archive and Bucket List) -->
     <div id="milestone-modal" class="hidden fixed inset-0 bg-black/50 z-[160] flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 animate-scale-in my-8">
             <h3 id="modal-title" class="text-xl font-black text-teal-800 mb-2">Eintrag bearbeiten ✏️</h3>
-            <p class="text-xs text-gray-500 mb-4 font-medium">Details anpassen oder nachtragen</p>
-            
             <input type="hidden" id="ms-id">
-            
             <div class="space-y-2 text-sm">
                 <input id="ms-title" type="text" placeholder="Titel / Was?" class="w-full p-3 bg-teal-50 rounded-xl outline-none">
                 <input id="ms-location" type="text" placeholder="📍 Ort" class="w-full p-3 bg-teal-50 rounded-xl outline-none" data-original-location="">
                 <input id="ms-info" type="text" placeholder="💡 Insider-Info" class="w-full p-3 bg-teal-50 rounded-xl outline-none">
-                
                 <div class="flex gap-2">
-                    <select id="ms-cat" class="flex-1 bg-teal-50 p-2 rounded-xl outline-none text-xs">
-                        <option value="Sofort">⚡ Spontan</option>
-                        <option value="Planung">📅 Planung</option>
-                    </select>
-                    <select id="ms-weather" class="flex-1 bg-teal-50 p-2 rounded-xl outline-none text-xs">
-                        <option value="Egal">☁️ Egal</option>
-                        <option value="Sonne">☀️ Sonne</option>
-                        <option value="Regen">🏠 Regen</option>
-                    </select>
+                    <select id="ms-cat" class="flex-1 bg-teal-50 p-2 rounded-xl outline-none text-xs"><option value="Sofort">⚡ Spontan</option><option value="Planung">📅 Planung</option></select>
+                    <select id="ms-weather" class="flex-1 bg-teal-50 p-2 rounded-xl outline-none text-xs"><option value="Egal">☁️ Egal</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
                 </div>
-                
-                <!-- Fields specifically for "Done" items or Archive (Memories) -->
                 <div id="ms-memory-fields">
                     <p class="text-[10px] font-bold text-gray-400 mt-2 uppercase">Wann war das?</p>
                     <input id="ms-date" type="datetime-local" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-center">
-
                     <p class="text-[10px] font-bold text-gray-400 mt-2 uppercase">Bewertungen (1-10)</p>
                     <div class="flex gap-2">
-                        <div class="flex-1">
-                            <label class="text-[9px] font-bold text-pink-400 uppercase">Meriam</label>
-                            <input id="ms-rating-m" type="number" min="1" max="10" class="w-full p-2 bg-pink-50 rounded-lg text-center outline-none border border-pink-100">
-                        </div>
-                        <div class="flex-1">
-                            <label class="text-[9px] font-bold text-teal-400 uppercase">Samet</label>
-                            <input id="ms-rating-s" type="number" min="1" max="10" class="w-full p-2 bg-teal-50 rounded-lg text-center outline-none border border-teal-100">
-                        </div>
+                        <div class="flex-1"><label class="text-[9px] font-bold text-pink-400 uppercase">Meriam</label><input id="ms-rating-m" type="number" min="1" max="10" class="w-full p-2 bg-pink-50 rounded-lg text-center outline-none border border-pink-100"></div>
+                        <div class="flex-1"><label class="text-[9px] font-bold text-teal-400 uppercase">Samet</label><input id="ms-rating-s" type="number" min="1" max="10" class="w-full p-2 bg-teal-50 rounded-lg text-center outline-none border border-teal-100"></div>
                     </div>
-
                     <label class="block w-full p-3 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative mt-3">
                         <span id="ms-upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto ändern</span>
                         <input id="ms-photo-file" type="file" accept="image/*" class="hidden" onchange="handleMilestonePhotoUpload(this)">
                     </label>
                     <img id="ms-preview-image" class="hidden w-full h-24 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
-                    
                     <textarea id="ms-note" placeholder="Notiz..." class="w-full p-3 bg-teal-50 rounded-xl outline-none h-20 resize-none mt-2"></textarea>
                 </div>
             </div>
-            
             <div class="mt-6 space-y-2">
-                <button onclick="saveMilestone()" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern</button>
-                <button onclick="document.getElementById('milestone-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
+                <button onclick="saveMilestone(); playSound('success')" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern</button>
+                <button onclick="playSound('click'); document.getElementById('milestone-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
             </div>
         </div>
     </div>
 
-    <!-- COUNTDOWN MODAL (High Z-Index) -->
     <div id="countdown-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in">
             <h3 class="text-xl font-black text-pink-600 mb-4">Countdown setzen ⏳</h3>
             <input id="new-cd-title" type="text" placeholder="Ereignis (z.B. Urlaub 🌴)" class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm font-bold text-gray-700">
             <input id="new-cd-date" type="datetime-local" class="w-full p-3 bg-white border border-gray-200 rounded-xl mb-4 outline-none text-sm text-center text-gray-700">
-            <button id="btn-save-countdown" type="button" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs">Starten</button>
-            <button onclick="document.getElementById('countdown-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 mt-2 hover:text-gray-600">Abbrechen</button>
+            <button id="btn-save-countdown" onclick="playSound('success')" type="button" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs">Starten</button>
+            <button onclick="playSound('click'); document.getElementById('countdown-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 mt-2 hover:text-gray-600">Abbrechen</button>
         </div>
     </div>
 
-    <!-- REWARD MODAL -->
     <div id="reward-modal" class="hidden fixed inset-0 bg-black/60 z-[250] flex items-center justify-center p-4 backdrop-blur-md">
         <div class="mint-card p-8 w-full max-w-sm relative shadow-2xl border-4 border-yellow-300 bg-gradient-to-br from-yellow-50 to-white text-center pop-in">
             <div class="text-6xl mb-4 animate-bounce">🎁</div>
             <h3 class="text-2xl font-black text-yellow-600 mb-2 tracking-tight">Belohnung!</h3>
             <p class="text-xs text-gray-500 font-bold uppercase mb-6">Für mehr Quality Time & Verwöhnmomente!</p>
-            
             <div class="bg-white p-6 rounded-2xl border-2 border-dashed border-yellow-200 mb-6 shadow-inner animate-fade-in">
                 <p id="reward-text" class="text-lg font-black text-teal-800 leading-relaxed"></p>
             </div>
-            
-            <button onclick="document.getElementById('reward-modal').classList.add('hidden')" class="bg-yellow-400 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs hover:bg-yellow-500 transition-colors">Einlösen & Reset 🔄</button>
+            <button onclick="playSound('success'); document.getElementById('reward-modal').classList.add('hidden')" class="bg-yellow-400 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs hover:bg-yellow-500 transition-colors">Einlösen & Reset 🔄</button>
         </div>
     </div>
 
     <div id="main-dashboard" class="hidden w-full max-w-md p-4 relative z-10">
-        
-        <!-- NEUER HEADER START -->
         <header class="flex flex-col mb-8 mt-2 px-2 animate-fade-in-down">
             <div class="flex justify-between items-start mb-2">
                 <div>
-                    <h1 class="text-3xl font-black text-teal-800 tracking-tighter drop-shadow-sm">MerSam OS <span class="text-pink-400 text-lg">v2.6</span></h1>
+                    <h1 class="text-3xl font-black text-teal-800 tracking-tighter drop-shadow-sm">MerSam OS <span class="text-pink-400 text-lg">v2.9</span></h1>
                     <p id="user-greeting" class="text-xs text-teal-600 font-bold uppercase tracking-widest mt-1"></p>
                 </div>
                 <button id="btn-logout" class="bg-white/80 backdrop-blur-sm border border-pink-100 text-pink-400 hover:text-pink-600 hover:bg-pink-50 p-3 rounded-2xl transition-all shadow-sm active:scale-95" title="Abmelden">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
                 </button>
             </div>
-
-            <!-- Status Badges Zeile -->
             <div class="flex flex-wrap gap-2 justify-center items-center mt-2">
-                <!-- Uptime Badge -->
-                <button onclick="editSystemStart()" id="uptime-display" class="bg-white/60 backdrop-blur-md border border-teal-100 text-[10px] text-teal-600 font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-all flex items-center gap-2">
+                <button onclick="editSystemStart(); playSound('click')" id="uptime-display" class="bg-white/60 backdrop-blur-md border border-teal-100 text-[10px] text-teal-600 font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-all flex items-center gap-2">
                     <span class="animate-pulse text-teal-400 text-xs">●</span> System Uptime: Laden...
                 </button>
-                
-                <!-- Partner Status Badge -->
                 <div class="bg-white/60 backdrop-blur-md border border-pink-100 text-[10px] text-gray-500 font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
                     <span id="partner-status" class="online-indicator offline"></span>
                     <span id="partner-last-seen">Suche Partner...</span>
                 </div>
             </div>
         </header>
-        <!-- NEUER HEADER ENDE -->
 
         <div id="tab-home" class="animate-fade-in">
-            <!-- SINGLE COUNTDOWN CARD -->
             <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden animate-scale-in">
                 <div class="absolute top-2 right-2 flex gap-2 z-20">
-                    <button onclick="editCountdown()" class="text-gray-400 hover:text-teal-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Bearbeiten">✏️</button>
-                    <button onclick="deleteCountdown()" class="text-gray-400 hover:text-red-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Löschen">🗑️</button>
+                    <button onclick="playSound('click'); editCountdown()" class="text-gray-400 hover:text-teal-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Bearbeiten">✏️</button>
+                    <button onclick="playSound('click'); deleteCountdown()" class="text-gray-400 hover:text-red-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Löschen">🗑️</button>
                 </div>
                 <p class="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Nächstes Highlight</p>
                 <h3 id="countdown-title" class="text-center text-xl font-black text-gray-800 mb-3 tracking-tight truncate px-4"></h3>
-                
                 <div class="flex justify-center gap-4 text-center">
                     <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-days" class="block text-2xl font-black text-pink-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Tage</span></div>
                     <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-hours" class="block text-2xl font-black text-teal-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Std</span></div>
                     <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-min" class="block text-2xl font-black text-indigo-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Min</span></div>
                 </div>
             </div>
-
-            <!-- PLACEHOLDER FOR COUNTDOWN -->
             <div id="countdown-placeholder" class="mb-6 text-center hidden animate-fade-in">
-                <button onclick="openCountdownModal()" class="w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2">
-                    <span class="text-2xl opacity-50">➕</span>
-                    <span>Countdown hinzufügen</span>
+                <button onclick="playSound('click'); openCountdownModal()" class="w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2">
+                    <span class="text-2xl opacity-50">➕</span> <span>Countdown hinzufügen</span>
                 </button>
             </div>
-
             <div class="mint-card p-2 mb-6 grid grid-cols-3 gap-0 divide-x divide-teal-50 shadow-sm border-b-4 border-teal-200 animate-slide-up">
-                <div class="stat-card">
-                    <p class="stat-title">Date-Serie</p>
-                    <p id="stat-streak" class="stat-val text-pink-500">0</p>
-                    <p class="stat-label">Wochen</p>
-                    <p id="streak-info" class="streak-status italic text-[7px] leading-tight mt-1"></p>
-                </div>
-                <div class="stat-card">
-                    <p class="stat-title">Ideen-Duell</p>
-                    <p id="stat-vs" class="stat-val text-teal-600">0:0</p>
-                    <p id="vs-label" class="stat-label text-[7px]">Ich vs Partner</p>
-                </div>
-                <div class="stat-card">
-                    <p class="stat-title">Erfüllt</p>
-                    <p id="stat-progress" class="stat-val text-indigo-500">0%</p>
-                    <p class="stat-label">Der Wünsche</p>
-                </div>
+                <div class="stat-card"><p class="stat-title">Date-Serie</p><p id="stat-streak" class="stat-val text-pink-500">0</p><p class="stat-label">Wochen</p><p id="streak-info" class="streak-status italic text-[7px] leading-tight mt-1"></p></div>
+                <div class="stat-card"><p class="stat-title">Ideen-Duell</p><p id="stat-vs" class="stat-val text-teal-600">0:0</p><p id="vs-label" class="stat-label text-[7px]">Ich vs Partner</p></div>
+                <div class="stat-card"><p class="stat-title">Erfüllt</p><p id="stat-progress" class="stat-val text-indigo-500">0%</p><p class="stat-label">Der Wünsche</p></div>
             </div>
-
-            <!-- REWARD PROGRESS CARD -->
             <div id="reward-card" class="mint-card p-4 mb-6 border-l-4 border-yellow-300 bg-gradient-to-r from-yellow-50 to-white shadow-sm flex items-center justify-between animate-slide-up" style="animation-delay: 0.1s;">
                 <div class="flex-1">
                     <p class="text-[9px] font-black text-yellow-600 uppercase tracking-widest mb-1">Nächstes Level 🏆</p>
-                    <div class="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden">
-                        <div id="reward-progress-bar" class="bg-yellow-400 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
-                    </div>
+                    <div class="w-full bg-gray-100 rounded-full h-2.5 mb-1 overflow-hidden"><div id="reward-progress-bar" class="bg-yellow-400 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div></div>
                     <p id="reward-progress-text" class="text-[9px] font-bold text-gray-400">0 / 5 Dates bis zur Belohnung</p>
                 </div>
-                <div class="ml-4">
-                    <button id="btn-claim-reward" onclick="claimReward()" class="text-3xl filter grayscale opacity-50 transition-all transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed" disabled>🎁</button>
-                </div>
+                <div class="ml-4"><button id="btn-claim-reward" onclick="playSound('success'); claimReward()" class="text-3xl filter grayscale opacity-50 transition-all transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed" disabled>🎁</button></div>
             </div>
-
             <div class="bg-yellow-100 border-l-8 border-yellow-400 p-4 mb-8 rounded-r-2xl shadow-sm relative rotate-1 animate-slide-up" style="animation-delay: 0.2s;">
                 <p id="love-letter-title" class="text-[10px] font-black text-yellow-600 uppercase tracking-widest mb-1">Post-it</p>
                 <p id="love-letter-display" class="text-sm text-yellow-800 italic font-medium">Laden...</p>
                 <div class="flex justify-between items-center mt-3 gap-2">
-                    <button id="btn-ai-letter" class="sparkle-btn w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-md active:scale-95" title="Nachricht generieren">✨</button>
+                    <button id="btn-ai-letter" onclick="playSound('pop')" class="sparkle-btn w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold shadow-md active:scale-95" title="Nachricht generieren">✨</button>
                     <input id="love-letter-input" type="text" placeholder="Hinterlasse eine Nachricht..." class="bg-white/50 text-xs p-2 rounded-lg border-none outline-none flex-1 italic">
-                    <button id="btn-send-letter" class="bg-yellow-400 text-white p-2 rounded-lg text-xs font-bold uppercase">Senden</button>
+                    <button id="btn-send-letter" onclick="playSound('click')" class="bg-yellow-400 text-white p-2 rounded-lg text-xs font-bold uppercase">Senden</button>
                 </div>
             </div>
-
             <div class="mint-card p-6 mb-6 animate-slide-up" style="animation-delay: 0.3s;">
                 <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">Füge eine Date-Idee hinzu ✨</h3>
                 <div class="flex gap-2 mb-3 items-center">
                     <input id="wish-input" type="text" placeholder="Was machen wir?" class="flex-1 p-4 bg-teal-50 rounded-xl outline-none text-lg">
-                    <button id="btn-ai-wish" class="sparkle-btn h-14 w-14 rounded-xl shadow-lg flex items-center justify-center text-xl active:scale-95" title="Idee generieren">✨</button>
+                    <button id="btn-ai-wish" onclick="playSound('pop')" class="sparkle-btn h-14 w-14 rounded-xl shadow-lg flex items-center justify-center text-xl active:scale-95" title="Idee generieren">✨</button>
                 </div>
                 <input id="location-input" type="text" placeholder="📍 Wo? (Für die Karte)" class="w-full p-3 bg-white border border-teal-100 rounded-xl mb-2 outline-none text-sm">
                 <input id="info-input" type="text" placeholder="💡 Insider-Info?" class="w-full p-3 bg-white border border-teal-100 rounded-xl mb-4 outline-none text-sm italic">
@@ -595,98 +331,101 @@
                     <span class="text-[10px] font-bold text-gray-400 uppercase">Geheim? 🤫 <label class="switch"><input type="checkbox" id="surprise-toggle"><span class="slider"></span></label></span>
                     <span class="text-[10px] font-bold text-yellow-600 uppercase">In die Bucket List legen? <label class="switch"><input type="checkbox" id="bucket-toggle"><span class="slider"></span></label></span>
                 </div>
-                <button id="btn-add" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg">Hinzufügen</button>
+                <button id="btn-add" onclick="playSound('success')" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg">Hinzufügen</button>
             </div>
-
             <div class="mint-card p-8 mb-6 text-center bg-gradient-to-b from-white to-teal-50 animate-slide-up" style="animation-delay: 0.4s;">
                 <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">🎲 Zufallsgenerator Date Maker</h3>
                 <div class="flex gap-2 mb-6 justify-center text-[10px] font-bold">
                     <select id="filter-cat" class="flex-1 filter-select"><option value="Alle">Für alle Optionen offen?</option><option value="Sofort">⚡ Spontan</option><option value="Planung">📅 Planung</option></select>
                     <select id="filter-weather" class="flex-1 filter-select"><option value="Alle">Wetter egal?</option><option value="Sonne">☀️ Sonne</option><option value="Regen">🏠 Regen</option></select>
                 </div>
-                <div id="dice-container"><div id="dice">🎲</div></div>
-                <div id="lock-screen" class="hidden py-10"><div class="lock-active">🔒</div><p class="text-pink-500 font-bold text-[10px] mt-6 animate-pulse uppercase">Mystery Reveal...</p></div>
-                
+                <div class="relative overflow-hidden rounded-3xl p-4">
+                    <div id="flash-layer" class="flash-overlay"></div>
+                    <div id="dice-container" class="transition-all duration-500 py-6">
+                        <div class="scene"><div id="cube-3d" class="cube"><div class="cube__face cube__face--1"><div class="face-grid"><div class="dot d-center"></div></div></div><div class="cube__face cube__face--2"><div class="face-grid"><div class="dot d-tl"></div><div class="dot d-br"></div></div></div><div class="cube__face cube__face--3"><div class="face-grid"><div class="dot d-tl"></div><div class="dot d-center"></div><div class="dot d-br"></div></div></div><div class="cube__face cube__face--4"><div class="face-grid"><div class="dot d-tl"></div><div class="dot d-tr"></div><div class="dot d-bl"></div><div class="dot d-br"></div></div></div><div class="cube__face cube__face--5"><div class="face-grid"><div class="dot d-tl"></div><div class="dot d-tr"></div><div class="dot d-center"></div><div class="dot d-bl"></div><div class="dot d-br"></div></div></div><div class="cube__face cube__face--6"><div class="face-grid"><div class="dot d-tl"></div><div class="dot d-tr"></div><div class="dot d-ml"></div><div class="dot d-mr"></div><div class="dot d-bl"></div><div class="dot d-br"></div></div></div></div></div>
+                    </div>
+                    <div id="lock-screen" class="hidden flex flex-col items-center justify-center py-8">
+                        <svg class="lock-svg" viewBox="0 0 100 120"><path id="lock-shackle-path" class="lock-shackle" d="M25,50 V25 A25,25 0 0,1 75,25 V50" /><rect id="lock-body-rect" class="lock-body" x="15" y="50" width="70" height="60" rx="10" /><circle cx="50" cy="80" r="6" fill="white" opacity="0.5"/><rect x="48" y="80" width="4" height="15" fill="white" opacity="0.5"/></svg>
+                        <p id="lock-text" class="text-pink-500 font-black text-xs mt-6 tracking-[0.2em] uppercase">Secret Locked</p>
+                    </div>
+                </div>
                 <div id="result-box" class="mt-2 hidden">
                     <div id="unfold-wrapper">
-                        <!-- Labels moved from top to bottom -->
                         <p class="text-[10px] uppercase text-gray-400 mb-1 tracking-widest font-bold">Euer Schicksal:</p>
                         <h2 id="final-choice" class="text-2xl font-bold text-pink-600 mb-1 leading-tight"></h2>
                         <p id="final-info" class="text-sm text-gray-600 mb-4 italic"></p>
                         <div id="map-container" class="hidden mb-6 rounded-3xl overflow-hidden border-4 border-white shadow-sm"><iframe id="map-frame" width="100%" height="180" frameborder="0" style="border:0"></iframe></div>
-                        
-                        <div id="result-info" class="mb-6 flex flex-col items-center justify-center">
-                            <span id="result-creator-badge" class="user-badge mb-2"></span>
-                            <div id="result-labels" class="flex justify-center gap-2"></div>
-                        </div>
-                        
+                        <div id="result-info" class="mb-6 flex flex-col items-center justify-center"><span id="result-creator-badge" class="user-badge mb-2"></span><div id="result-labels" class="flex justify-center gap-2"></div></div>
                         <div class="flex flex-col gap-3">
-                            <button id="btn-accept-date-only-main" class="w-full bg-teal-500 text-white py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date annehmen ✓</button>
-                            
+                            <button id="btn-accept-date-only-main" onclick="playSound('success')" class="w-full bg-teal-500 text-white py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date annehmen ✓</button>
                             <div id="challenge-section" class="border-t border-pink-50 pt-4">
-                                <div id="challenge-btn-container"><button id="btn-show-challenge" class="text-[10px] font-bold text-pink-500 border-2 border-pink-200 px-8 py-2 rounded-full uppercase tracking-widest hover:bg-pink-50 transition-colors">✨ Bonus-Challenge? ✨</button></div>
+                                <div id="challenge-btn-container"><button id="btn-show-challenge" onclick="playSound('pop')" class="text-[10px] font-bold text-pink-500 border-2 border-pink-200 px-8 py-2 rounded-full uppercase tracking-widest hover:bg-pink-50 transition-colors">✨ Bonus-Challenge? ✨</button></div>
                                 <div id="challenge-display" class="hidden mt-2 p-6 bg-gradient-to-br from-pink-50 to-white rounded-3xl border-2 border-pink-100 shadow-inner">
                                     <p id="challenge-text" class="text-pink-700 font-bold italic mb-6 text-base leading-relaxed"></p>
-                                    <div class="flex flex-col gap-3">
-                                        <button id="btn-accept-both" class="w-full pink-btn py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date & Challenge annehmen</button>
-                                        <button id="btn-accept-date-only-sub" class="w-full text-gray-400 font-bold text-[9px] uppercase py-2">Nur Date annehmen</button>
-                                        <button id="btn-reroll-challenge" class="text-[9px] text-pink-400 font-bold uppercase mt-2 tracking-widest hover:text-pink-600 transition-colors">↻ Andere Challenge</button>
-                                    </div>
+                                    <div class="flex flex-col gap-3"><button id="btn-accept-both" onclick="playSound('success')" class="w-full pink-btn py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date & Challenge annehmen</button><button id="btn-accept-date-only-sub" onclick="playSound('click')" class="w-full text-gray-400 font-bold text-[9px] uppercase py-2">Nur Date annehmen</button><button id="btn-reroll-challenge" onclick="playSound('click')" class="text-[9px] text-pink-400 font-bold uppercase mt-2 tracking-widest hover:text-pink-600 transition-colors">↻ Andere Challenge</button></div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <button id="btn-roll" class="mt-6 bg-teal-700 text-white px-12 py-5 rounded-full font-bold shadow-xl w-full active:scale-95 uppercase tracking-widest">WÜRFELN</button>
+                <button id="btn-roll" onclick="playSound('click')" class="mt-6 bg-teal-700 text-white px-12 py-5 rounded-full font-bold shadow-xl w-full active:scale-95 uppercase tracking-widest">WÜRFELN</button>
             </div>
-
             <h3 class="font-black text-teal-800 mb-4 px-2 text-sm uppercase tracking-widest text-center italic animate-fade-in" style="animation-delay: 0.5s;">Unsere Ideen 💡</h3>
             <div id="wish-list" class="space-y-4 mb-10"></div>
-            
             <div class="flex items-center justify-between px-2 mb-4">
                 <h3 class="font-bold text-gray-400 text-sm uppercase tracking-widest italic text-center flex-1">Meilensteine 🏆</h3>
-                <button onclick="openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+</button>
+                <button onclick="playSound('pop'); openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+</button>
             </div>
             <div id="archive-list" class="space-y-3 pb-20 opacity-90"></div>
         </div>
 
-        <!-- NEW MAP TAB -->
         <div id="tab-map" class="hidden pb-20 animate-fade-in">
             <h2 class="text-2xl font-bold text-teal-700 mb-4 text-center mt-2">Unsere Welt 🌍</h2>
             <p class="text-center text-[10px] text-gray-400 mb-4">Wo wir schon überall unsere Spuren hinterlassen haben.</p>
             <div id="map" class="shadow-xl"></div>
         </div>
 
+        <div id="tab-gallery" class="hidden pb-20 animate-fade-in">
+            <h2 class="text-2xl font-bold text-pink-600 mb-2 text-center mt-2">Erinnerungen 📸</h2>
+            <p class="text-center text-[10px] text-gray-400 mb-6">Unsere schönsten Momente</p>
+            <div id="gallery-grid" class="grid grid-cols-2 gap-4 px-2"></div>
+        </div>
+
         <div id="tab-bucket" class="hidden pb-20 animate-fade-in">
             <div class="flex items-center justify-center relative mb-2">
                 <h2 class="text-2xl font-bold text-yellow-600 text-center">Bucket List ✨</h2>
-                <button onclick="openMilestoneModal('add', null, 'bucket')" class="absolute right-2 text-xs bg-yellow-100 text-yellow-600 px-3 py-1 rounded-lg font-bold hover:bg-yellow-200 transition-colors shadow-sm">+ Neu</button>
+                <button onclick="playSound('pop'); openMilestoneModal('add', null, 'bucket')" class="absolute right-2 text-xs bg-yellow-100 text-yellow-600 px-3 py-1 rounded-lg font-bold hover:bg-yellow-200 transition-colors shadow-sm">+ Neu</button>
             </div>
-            
-            <p class="text-center text-[10px] text-gray-500 mb-6 italic px-6 leading-relaxed">
-                Unsere großen Lebensträume: Ob Bungee-Jumping, Weltreisen oder verrückte Abenteuer – hier sammeln wir alles, was wir in diesem Leben unbedingt noch gemeinsam erleben wollen! 🌍✈️🚀
-            </p>
+            <p class="text-center text-[10px] text-gray-500 mb-6 italic px-6 leading-relaxed">Unsere großen Lebensträume: Ob Bungee-Jumping, Weltreisen oder verrückte Abenteuer – hier sammeln wir alles, was wir in diesem Leben unbedingt noch gemeinsam erleben wollen! 🌍✈️🚀</p>
             <div id="bucket-list-content" class="space-y-4"></div>
         </div>
 
         <div id="tab-fun" class="hidden pb-20 animate-fade-in">
-            <!-- NEW DEEP TALK CARD -->
             <div class="mint-card p-8 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-indigo-600 mb-4 uppercase text-xs tracking-widest">🗣️ Deep Talk</h3>
                 <p class="text-[10px] text-gray-400 mb-6">Keine Lust auf Smalltalk? Lass uns tiefer gehen.</p>
-                
                 <div id="deeptalk-container" class="bg-indigo-50 p-6 rounded-2xl mb-6 hidden border border-indigo-100 shadow-inner">
                     <p id="deeptalk-question" class="text-lg font-bold text-indigo-900 italic leading-relaxed"></p>
                 </div>
-                
-                <button id="btn-deeptalk" class="bg-indigo-500 text-white px-8 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-md hover:bg-indigo-600 transition-colors w-full">✨ Neues Thema</button>
+                <button id="btn-deeptalk" onclick="playSound('pop')" class="bg-indigo-500 text-white px-8 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-md hover:bg-indigo-600 transition-colors w-full">✨ Neues Thema</button>
             </div>
-
+            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+                <h3 class="font-black text-red-600 mb-2 uppercase text-xs tracking-widest">🎬 Netflix Diplomat</h3>
+                <p class="text-[10px] text-gray-400 mb-4">Film-Streit? Ich finde den perfekten Kompromiss!</p>
+                <div class="space-y-3 mb-4">
+                    <div class="relative"><span class="absolute left-3 top-3 text-xs">👩</span><input id="movie-pref-meriam" type="text" placeholder="Worauf hat Meriam Lust?" class="w-full pl-8 p-3 bg-red-50 rounded-xl outline-none text-xs border border-red-100 placeholder-red-300 text-red-900 font-medium"></div>
+                    <div class="relative"><span class="absolute left-3 top-3 text-xs">👨</span><input id="movie-pref-samet" type="text" placeholder="Worauf hat Samet Lust?" class="w-full pl-8 p-3 bg-gray-50 rounded-xl outline-none text-xs border border-gray-200 placeholder-gray-400 text-gray-800 font-medium"></div>
+                </div>
+                <button id="btn-movie-diplomat" onclick="playSound('click')" class="bg-red-600 text-white w-full py-3 rounded-xl font-bold uppercase text-[10px] tracking-widest shadow-md active:scale-95 transition-all hover:bg-red-700">🍿 Film finden</button>
+                <div id="movie-result" class="hidden mt-4 text-left bg-white border border-red-100 rounded-xl p-4 shadow-inner relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Die Vorschläge der Jury:</p><div id="movie-text" class="text-xs text-gray-700 leading-relaxed whitespace-pre-line"></div>
+                </div>
+            </div>
             <div class="mint-card p-8 mb-6 text-center animate-slide-up" style="animation-delay: 0.1s;">
                 <h3 class="font-bold text-teal-800 mb-4 uppercase text-xs tracking-widest font-black">🎡 Entscheidungs-Roulette</h3>
                 <p class="text-[10px] text-gray-400 mb-6">Wer kocht? Wer wählt den Film? Das Schicksal entscheidet!</p>
                 <div id="roulette-result" class="text-3xl font-black text-teal-600 mb-8 h-12 flex items-center justify-center bg-teal-50 rounded-2xl shadow-inner border border-teal-100">?</div>
-                <button id="btn-spin-roulette" class="teal-btn px-12 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-md">Spin Roulette</button>
+                <button id="btn-spin-roulette" onclick="playSound('click')" class="teal-btn px-12 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-md">Spin Roulette</button>
             </div>
             <div class="mint-card p-6 animate-slide-up" style="animation-delay: 0.2s;">
                 <h3 class="font-bold text-pink-600 mb-4 uppercase text-xs tracking-widest">❓ Quiz-Ecke</h3>
@@ -694,29 +433,18 @@
                 <div class="border-t pt-4">
                     <input id="quiz-q" type="text" placeholder="Deine Frage..." class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm">
                     <input id="quiz-a" type="text" placeholder="Die Antwort..." class="w-full p-3 bg-pink-50 rounded-xl mb-3 outline-none text-sm">
-                    <button id="btn-add-quiz" class="pink-btn w-full py-2 rounded-xl font-bold text-xs uppercase">Hinzufügen</button>
+                    <button id="btn-add-quiz" onclick="playSound('click')" class="pink-btn w-full py-2 rounded-xl font-bold text-xs uppercase">Hinzufügen</button>
                 </div>
             </div>
         </div>
     </div>
 
     <nav class="nav-bar hidden shadow-2xl" id="app-nav">
-        <button onclick="switchTab('home')" class="nav-item active" id="nav-home">
-            <span class="text-xl mb-1">🏠</span>
-            <span>Home</span>
-        </button>
-        <button onclick="switchTab('map')" class="nav-item" id="nav-map">
-            <span class="text-xl mb-1">🌍</span>
-            <span>Karte</span>
-        </button>
-        <button onclick="switchTab('bucket')" class="nav-item" id="nav-bucket">
-            <span class="text-xl mb-1">✨</span>
-            <span>Bucket</span>
-        </button>
-        <button onclick="switchTab('fun')" class="nav-item" id="nav-fun">
-            <span class="text-xl mb-1">🎡</span>
-            <span>Fun</span>
-        </button>
+        <button onclick="playSound('click'); switchTab('home')" class="nav-item active" id="nav-home"><span class="text-xl mb-1">🏠</span><span>Home</span></button>
+        <button onclick="playSound('click'); switchTab('gallery')" class="nav-item" id="nav-gallery"><span class="text-xl mb-1">📸</span><span>Galerie</span></button>
+        <button onclick="playSound('click'); switchTab('map')" class="nav-item" id="nav-map"><span class="text-xl mb-1">🌍</span><span>Karte</span></button>
+        <button onclick="playSound('click'); switchTab('bucket')" class="nav-item" id="nav-bucket"><span class="text-xl mb-1">✨</span><span>Bucket</span></button>
+        <button onclick="playSound('click'); switchTab('fun')" class="nav-item" id="nav-fun"><span class="text-xl mb-1">🎡</span><span>Fun</span></button>
     </nav>
 
     <script type="module">
@@ -727,44 +455,69 @@
         const app = initializeApp(firebaseConfig); 
         const db = getDatabase(app);
 
-        // GEMINI API INTEGRATION
-        const apiKey = ""; // API Key provided by system
+        // --- AUDIO ENGINE (Web Audio API - No Files Needed!) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        window.playSound = function(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'pop') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.linearRampToValueAtTime(600, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(600, now + 0.1);
+                osc.frequency.setValueAtTime(1000, now + 0.2);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now); osc.stop(now + 0.4);
+            }
+        };
+
+        const apiKey = "AIzaSyAwOCM2L7YshWtlvzp9R4guzWNrTtpCXh8"; 
 
         async function callGemini(prompt) {
-            if (!apiKey) {
-                console.warn("API Key missing");
-                return null;
-            }
+            if (!apiKey) return null;
             try {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{ parts: [{ text: prompt }] }]
-                };
-                
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) return null;
                 const data = await response.json();
                 return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-            } catch (error) {
-                console.error("Gemini Error:", error);
-                return null;
-            }
+            } catch (error) { return null; }
         }
 
         // --- MAP LOGIC ---
         let map;
         let markers = [];
+        let markerClusterGroup; 
 
-        function initMap() {
+        window.initMap = function() { 
             if (map) return;
-            map = L.map('map').setView([51.1657, 10.4515], 6); // Default Germany center
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
+            map = L.map('map').setView([51.1657, 10.4515], 6); 
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
             }).addTo(map);
         }
 
@@ -772,20 +525,22 @@
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`);
                 const data = await response.json();
-                if (data && data.length > 0) {
-                    return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
-                }
-            } catch (e) {
-                console.error("Geocoding error", e);
-            }
+                if (data && data.length > 0) return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+            } catch (e) { console.error("Geocoding error", e); }
             return null;
         }
 
         function loadMapMarkers() {
             if (!map) initMap();
+            if (markerClusterGroup) map.removeLayer(markerClusterGroup);
             
-            // Clear existing markers
-            markers.forEach(m => map.removeLayer(m));
+            markerClusterGroup = L.markerClusterGroup({
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                spiderfyOnMaxZoom: true,
+                animate: true
+            });
+
             markers = [];
 
             onValue(ref(db, 'wishes'), async (snapshot) => {
@@ -793,219 +548,50 @@
                 if (!data) return;
 
                 const bounds = [];
-
                 for (const id in data) {
                     const item = data[id];
                     if (item.status === 'done' && item.location) {
                         let lat = item.lat;
                         let lon = item.lon;
-
-                        // Check if we already have coords, if not fetch and save
                         if (!lat || !lon) {
                             const coords = await getCoordinates(item.location);
                             if (coords) {
-                                lat = coords.lat;
-                                lon = coords.lon;
-                                // Save back to DB to avoid re-fetching
+                                lat = coords.lat; lon = coords.lon;
                                 update(ref(db, `wishes/${id}`), { lat, lon });
                             }
                         }
-
                         if (lat && lon) {
-                            // Create custom icon
                             const isPhoto = item.memoryPhoto ? true : false;
+                            let borderColor = '#EC4899'; 
+                            if (item.by === 'Samet') borderColor = '#14B8A6'; 
+                            if (item.isBucket) borderColor = '#EAB308'; 
+
                             const customIcon = L.divIcon({
                                 className: 'custom-map-marker-container',
                                 html: isPhoto 
-                                    ? `<img src="${item.memoryPhoto}" class="map-photo-pin">`
-                                    : `<div class="custom-map-marker">${item.text}</div>`,
+                                    ? `<img src="${item.memoryPhoto}" class="map-photo-pin" style="outline-color: ${borderColor}">` 
+                                    : `<div class="custom-map-marker" style="border-color: ${borderColor}; color: ${borderColor === '#EAB308' ? '#854d0e' : '#831843'}">${item.text}</div>`,
                                 iconSize: [40, 40],
                                 iconAnchor: [20, 40]
                             });
 
-                            const marker = L.marker([lat, lon], { icon: customIcon }).addTo(map);
-                            
-                            // On Click open modal
-                            marker.on('click', () => {
-                                openMilestoneModal('edit', id);
-                            });
-                            
-                            markers.push(marker);
+                            const marker = L.marker([lat, lon], { icon: customIcon });
+                            marker.on('click', () => { playSound('pop'); openMilestoneModal('edit', id); });
+                            markerClusterGroup.addLayer(marker);
                             bounds.push([lat, lon]);
                         }
                     }
                 }
-                
-                if (bounds.length > 0) {
-                    map.fitBounds(bounds, { padding: [50, 50] });
-                }
+                map.addLayer(markerClusterGroup);
+                if (bounds.length > 0) map.fitBounds(bounds, { padding: [50, 50] });
             }, { onlyOnce: true });
         }
 
+        const backupWishes = ["Kochen zusammen 🍝", "Picknick im Park 🌳", "Kinoabend daheim 🍿", "Spaziergang am See 🌊", "Neues Café testen ☕", "Spieleabend 🎲", "Zusammen malen 🎨", "Massageabend 💆", "Sternegucken ✨"];
+        const backupLoveNotes = ["Ich liebe dich sehr! ❤️", "Du bist mein Ein und Alles 💫", "Danke, dass es dich gibt! 🌹", "Du siehst heute toll aus! 😍"];
+        const allChallenges = ["Handy-Verbot 📵 (30 min)", "Filmszene nachstellen 📸", "Song summen & raten 🎵", "Kompliment flüstern 🤫", "Akzent beim Bestellen 🗣️"];
+        const rewardPool = ["💆 20 Min. Massage", "🧖‍♀️ 10 Min. Kopfkraulen", "🦶 15 Min. Fußmassage", "🥞 Frühstück ans Bett", "🍝 Lieblingsessen wird gekocht", "🎬 Film-Wahl ohne Veto", "🍫 Lieblings-Snack sofort besorgen"];
 
-        // --- BACKUP CONTENT ARRAYS ---
-        // Used when API calls fail or no key is present (ensures variety)
-        
-        const backupWishes = [
-            "Kochen zusammen 🍝", "Picknick im Park 🌳", "Kinoabend daheim 🍿", 
-            "Spaziergang am See 🌊", "Neues Café testen ☕", "Spieleabend 🎲",
-            "Zusammen malen 🎨", "Massageabend 💆", "Sternegucken ✨",
-            "Cocktails mixen 🍹", "Alte Fotos ansehen 📸", "Zusammen backen 🍪",
-            "Sonnenuntergang schauen 🌅", "Bowlen gehen 🎳", "Frühstück im Bett 🥐"
-        ];
-
-        const backupLoveNotes = [
-            "Ich liebe dich sehr! ❤️", "Du bist mein Ein und Alles 💫", 
-            "Danke, dass es dich gibt! 🌹", "Du siehst heute toll aus! 😍",
-            "Freue mich auf dich! 🥰", "Du machst mich glücklich ☀️",
-            "Kuss an dich! 💋", "Denke gerade an dich 💭",
-            "Du bist wunderbar ✨", "Mein Lieblingsmensch ❤️"
-        ];
-
-        const allChallenges = [
-            "Handy-Verbot 📵 (30 min)", "Filmszene nachstellen 📸", "Song summen & raten 🎵", 
-            "Kompliment flüstern 🤫", "Akzent beim Bestellen 🗣️", "Gegenseitig füttern 🍇",
-            "3 Min. Augenkontakt ohne Lachen 👀", "Tanz ohne Musik 💃", 
-            "Lustiges Selfie machen 🤪", "Masseur spielen (5 min) 💆‍♂️",
-            "Blindverkostung: Füttere den Partner mit etwas und er muss es erraten. 🍓",
-            "Mache 10 Kniebeugen mit dem Partner auf dem Rücken (oder Huckepack). 🏋️‍♂️",
-            "Sprecht 5 Minuten lang nur in Reimen. 🎤",
-            "Der Partner darf dir 3 Minuten lang die Haare stylen – Ergebnis bleibt für das Date. 💇‍♀️",
-            "Macht ein 'hässliches' Selfie zusammen. 🤪",
-            "Tauscht ein Kleidungsstück. 👕",
-            "3 Minuten Augenkontakt ohne Reden. 👀",
-            "Huckepack-Rennen durch den Flur. 🏃‍♂️",
-            "Kitzelschlacht (1 Minute). 😂",
-            "Smartphone-Tausch für 5 Minuten (nur Galerie gucken!). 📱",
-            "Sprecht für 10 Minuten mit französischem Akzent. 🇫🇷",
-            "Baut eine Höhle aus Decken und Kissen. ⛺",
-            "Massiere den Nacken des Partners (5 Min). 💆‍♀️",
-            "Küsse den Partner an einer Stelle, wo er/sie es nicht erwartet. 💋",
-            "Tanzt einen langsamen Walzer ohne Musik. 💃",
-            "Wer kann länger die Luft anhalten? (Gewinner kriegt einen Kuss). ⏱️",
-            "Erzähle einen Witz. Wer zuerst lacht, verliert. 🤣",
-            "Schreibt euch gegenseitig eine geheime Nachricht auf den Rücken (mit dem Finger). ✍️",
-            "Immitiert ein berühmtes Filmpaar. 🎬",
-            "Macht ein Selfie, auf dem ihr beide schielt. 🤪",
-            "Der Partner darf dir Lippenstift auftragen (Blind). 💄",
-            "Spielt Schnick-Schnack-Schnuck. Verlierer muss strippen (ein Teil). 🎲",
-            "Flüstere dem Partner 3 Dinge ins Ohr, die du an ihm liebst. ❤️",
-            "Bestellt das Essen für den anderen (im Restaurant oder Lieferdienst). 🍕",
-            "Macht ein Foto von euren Füßen. 🦶",
-            "Singt zusammen ein Duett (Karaoke ohne Musik). 🎤",
-            "Erfindet einen geheimen Handschlag. 🤝",
-            "Zeichnet euch gegenseitig (Porträt in 2 Minuten). 🎨",
-            "Spielt 'Wahrheit oder Pflicht' (3 Runden). 🎲",
-            "Der Partner ist für 10 Minuten der 'König/in' und darf befehlen (im Rahmen). 👑",
-            "Macht Liegestütze und gebt euch bei jedem Hochkommen einen Kuss (High-Five Kuss). 💪",
-            "Versucht, synchron zu sprechen. 🗣️",
-            "Ratet, was der andere gerade denkt. 🤔",
-            "Geht raus und umarmt den nächsten Baum zusammen. 🌳",
-            "Schreibt eine Bucket-List-Idee auf einen Zettel und versteckt ihn in der Wohnung. 📝",
-            "Macht ein Video in Slow-Motion, wie ihr euch küsst. 🎥",
-            "Tauscht die Socken. 🧦",
-            "Imitiert das Lachen des anderen. 😂",
-            "Versucht, euch gegenseitig hochzuheben. 🏋️‍♀️",
-            "Macht ein Daumencatchen-Turnier (Best of 3). 👍",
-            "Sprecht nur in Fragen für 5 Minuten. ❓",
-            "Der Partner darf dir eine neue Frisur machen. 💇‍♂️",
-            "Riecht an den Füßen des anderen (Mutprobe!). 👃",
-            "Küsst euch 'kopfüber' (Spiderman-Kuss). 🕷️",
-            "Schreibt euch gegenseitig ein 'Gutschein' für später auf den Arm. 🎟️",
-            "Tanzt Macarena. 💃",
-            "Macht Planking (wer hält länger durch?). ⏱️",
-            "Versucht, einen Apfel zwischen euren Stirnen zu balancieren. 🍎",
-            "Sagt das Alphabet rückwärts auf, abwechselnd jeder einen Buchstaben. 🔡",
-            "Bewerte das Outfit des anderen wie ein Modedesigner (lustig!). 👗",
-            "Macht Schattenfiguren an der Wand. 🔦",
-            "Spielt 'Boden ist Lava'. 🔥",
-            "Umarmt euch für genau 60 Sekunden ohne Loslassen. 🤗",
-            "Macht ein 'hässliches' Gesicht-Wettbewerb. 🤪"
-        ];
-
-        const deepTalkQuestions = [
-            "Was ist eine Sache, die du mir noch nie erzählt hast, weil du Angst hattest, ich würde dich verurteilen?",
-            "Welcher Moment in deinem Leben hat dich am stärksten zu der Person gemacht, die du heute bist?",
-            "Wenn du wüsstest, dass du in einem Jahr stirbst, was würdest du heute an deinem Leben ändern?",
-            "Was bedeutet Verletzlichkeit für dich und wann fällt es dir schwer, verletzlich zu sein?",
-            "Gibt es einen Traum, den du aufgegeben hast? Warum?",
-            "Was ist deine größte Angst in Bezug auf unsere Beziehung?",
-            "Welche Eigenschaft von dir möchtest du am liebsten ändern?",
-            "Wann hast du dich zuletzt so richtig stolz auf dich selbst gefühlt?",
-            "Was bedeutet für dich wahres Glück?",
-            "Wenn du eine Botschaft an dein jüngeres Ich senden könntest, was würdest du sagen?",
-            "Welche Rolle spielt Vergebung in deinem Leben?",
-            "Was ist der schönste Kompliment, das du je bekommen hast?",
-            "Gibt es etwas, das du in deinem Leben bereust?",
-            "Was würdest du tun, wenn du absolut keine Angst vorm Scheitern hättest?",
-            "Wie definierst du Erfolg?",
-            "Was bedeutet Liebe für dich in einem Wort?",
-            "Welches Buch oder welcher Film hat dein Leben verändert?",
-            "Was ist deine liebste Erinnerung an uns beide?",
-            "Was glaubst du, ist der Sinn des Lebens?",
-            "Welche Tradition aus deiner Kindheit möchtest du unbedingt weiterführen?",
-            "Was ist das Mutigste, das du je getan hast?",
-            "Wenn du eine Superkraft haben könntest, welche wäre es und warum?",
-            "Was schätzt du an unserer Freundschaft am meisten?",
-            "Gibt es etwas, worüber du dir oft Sorgen machst, obwohl du weißt, dass es unnötig ist?",
-            "Was würdest du tun, wenn du einen Tag lang unsichtbar wärst?",
-            "Welchen Rat würdest du deinem besten Freund geben?",
-            "Was ist dein größtes Ziel für die nächsten 5 Jahre?",
-            "Was bedeutet Familie für dich?",
-            "Was ist das Verrückteste, das du je getan hast?",
-            "Gibt es etwas, das du schon immer lernen wolltest?",
-            "Was ist deine größte Stärke?",
-            "Was ist deine größte Schwäche?",
-            "Was würdest du tun, wenn du im Lotto gewinnen würdest?",
-            "Was ist dein Lieblingsort auf der Welt?",
-            "Was ist dein Lieblingsessen?",
-            "Was ist dein Lieblingslied?",
-            "Was ist dein Lieblingsbuch?",
-            "Was ist dein Lieblingsfilm?",
-            "Was ist deine Lieblingsserie?",
-            "Was ist dein Lieblingsspiel?",
-            "Was ist dein Lieblingssport?",
-            "Was ist dein Lieblingshobby?",
-            "Was ist dein Lieblingstier?",
-            "Was ist deine Lieblingsfarbe?",
-            "Was ist deine Lieblingszahl?",
-            "Was ist deine Lieblingsjahreszeit?",
-            "Was ist dein Lieblingsfeiertag?",
-            "Was ist dein Lieblingswochentag?",
-            "Was ist deine Lieblings-Tageszeit?",
-            "Was ist dein Lieblingswetter?",
-            "Was ist dein Lieblingsgetränk?",
-            "Was ist dein Lieblingsnachtisch?",
-            "Was ist deine Lieblingsblume?",
-            "Was ist dein Lieblingsduft?",
-            "Was ist dein Lieblingsgeräusch?",
-            "Was ist dein Lieblingsgefühl?",
-            "Was ist dein Lieblingszitat?",
-            "Was ist dein Lieblingswitz?",
-            "Was ist dein Lieblingswort?",
-            "Was ist dein Lieblingsbuchstabe?",
-            "Was ist dein Lieblingssymbol?",
-            "Was ist dein Lieblings-Emoji?"
-        ];
-
-        // ANGEPASSTE BELOHNUNGEN (Kein Haushalt, Fokus auf Quality Time & Büro-Couch)
-        const rewardPool = [
-            "💆 20 Min. Massage (Ganzkörper)",
-            "🧖‍♀️ 10 Min. Kopfkraulen",
-            "🦶 15 Min. Fußmassage",
-            "🤐 10 Min. 'Ja'-Sagen (Partner bestimmt)",
-            "🛁 Ein Bad einlassen & bedienen",
-            "🥞 Frühstück ans Bett",
-            "🍝 Lieblingsessen wird gekocht",
-            "🧼 Eine lästige Pflicht abgeben",
-            "🎬 Film-Wahl ohne Veto",
-            "👑 1 Tag König/in sein (kleine Wünsche erfüllen)",
-            "🍫 Lieblings-Snack sofort besorgen",
-            "🍹 Cocktail/Drink mixen & servieren",
-            "🤫 15 Min. Ruhe genießen (Partner kümmert sich um alles)"
-        ];
-
-        let usedIndices = []; 
         let rolledDateId = null;
         let currentCompletingId = null;
         let currentPhotoBase64 = "";
@@ -1015,94 +601,50 @@
         let globalDoneCount = 0;
         let globalClaimedCount = 0;
         let currentEditingMilestoneId = null; 
-        let currentModalMode = 'archive'; // 'archive' or 'bucket'
+        let currentModalMode = 'archive';
 
-        // HEART ANIMATION
         const createHeart = () => {
             const heart = document.createElement('div'); heart.innerHTML = "❤"; heart.className = "floating-heart";
             heart.style.left = Math.random() * 100 + "vw"; heart.style.fontSize = (Math.random() * 20 + 10) + "px";
-            
-            // Animation verlangsamt: Zufällig zwischen 12 und 20 Sekunden
             const duration = Math.random() * 8 + 12;
             heart.style.animationDuration = duration + "s";
-            
             document.getElementById('heart-container')?.appendChild(heart); 
             setTimeout(() => heart.remove(), duration * 1000);
         };
         setInterval(createHeart, 300);
 
-        // --- NEW AI FEATURES (WITH ROBUST RANDOM FALLBACK) ---
-
-        // 1. Magic Wish Generator
         document.getElementById('btn-ai-wish').onclick = async () => {
             const btn = document.getElementById('btn-ai-wish');
             const input = document.getElementById('wish-input');
             const originalText = btn.innerHTML;
-            
-            btn.innerHTML = `<div class="animate-spin-slow">✨</div>`;
-            btn.disabled = true;
-
+            btn.innerHTML = `<div class="animate-spin-slow">✨</div>`; btn.disabled = true;
             const prompt = "Erstelle eine kreative, kurze Date-Idee (max 6 Wörter) für ein Paar. Auf Deutsch. Nur die Idee, kein Intro.";
             const idea = await callGemini(prompt);
-
-            if (idea) {
-                input.value = idea.replace(/["']/g, "");
-            } else {
-                // Fallback: Pick random from list
-                input.value = backupWishes[Math.floor(Math.random() * backupWishes.length)];
-            }
-
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            input.value = idea ? idea.replace(/["']/g, "") : backupWishes[Math.floor(Math.random() * backupWishes.length)];
+            btn.innerHTML = originalText; btn.disabled = false;
         };
 
-        // 2. Love Letter Helper
         document.getElementById('btn-ai-letter').onclick = async () => {
             const btn = document.getElementById('btn-ai-letter');
             const input = document.getElementById('love-letter-input');
-            
-            btn.innerHTML = `⌛`;
-            btn.disabled = true;
-
+            btn.innerHTML = `⌛`; btn.disabled = true;
             const prompt = "Schreibe eine sehr kurze, süße, romantische Nachricht (max 8 Wörter) an den Partner. Auf Deutsch. Nur der Text.";
             const note = await callGemini(prompt);
-
-            if (note) {
-                input.value = note.replace(/["']/g, "");
-            } else {
-                // Fallback: Pick random from list
-                input.value = backupLoveNotes[Math.floor(Math.random() * backupLoveNotes.length)];
-            }
-
-            btn.innerHTML = `✨`;
-            btn.disabled = false;
+            input.value = note ? note.replace(/["']/g, "") : backupLoveNotes[Math.floor(Math.random() * backupLoveNotes.length)];
+            btn.innerHTML = `✨`; btn.disabled = false;
         };
 
-        // 3. AI Challenge Generator
         async function generateChallenge() {
-            const textEl = document.getElementById('challenge-text');
-            const prompt = "Erstelle eine lustige, kleine 5-Minuten-Challenge für ein Paar, die man sofort machen kann (z.B. 'Wer lacht verliert'). Max 1 Satz. Deutsch.";
-            
-            // Show loading state if needed, or simply wait
-            // We'll return the challenge text
+            const prompt = "Erstelle eine lustige, kleine 5-Minuten-Challenge für ein Paar, die man sofort machen kann. Max 1 Satz. Deutsch.";
             const challenge = await callGemini(prompt);
-            
-            if (challenge) {
-                return challenge;
-            } else {
-                // Fallback: Pick random from list
-                return allChallenges[Math.floor(Math.random() * allChallenges.length)];
-            }
+            return challenge || allChallenges[Math.floor(Math.random() * allChallenges.length)];
         }
 
         document.getElementById('btn-show-challenge').onclick = async () => { 
             const textEl = document.getElementById('challenge-text');
-            const btn = document.getElementById('btn-show-challenge');
-            
             textEl.innerText = "Frage das Orakel... ✨";
             document.getElementById('challenge-display').classList.remove('hidden'); 
             document.getElementById('challenge-btn-container').classList.add('hidden');
-
             const challengeText = await generateChallenge();
             textEl.innerText = challengeText;
         };
@@ -1111,57 +653,30 @@
             const textEl = document.getElementById('challenge-text');
             const btn = document.getElementById('btn-reroll-challenge');
             const originalText = btn.innerText;
-            
-            btn.innerText = "⌛ Lade...";
-            btn.disabled = true;
-            textEl.style.opacity = '0.5';
-
+            btn.innerText = "⌛ Lade..."; btn.disabled = true; textEl.style.opacity = '0.5';
             const challengeText = await generateChallenge();
             textEl.innerText = challengeText;
-            
-            textEl.style.opacity = '1';
-            btn.innerText = originalText;
-            btn.disabled = false;
+            textEl.style.opacity = '1'; btn.innerText = originalText; btn.disabled = false;
         };
 
-        // 4. DEEP TALK GENERATOR (NEW)
         document.getElementById('btn-deeptalk').onclick = async () => {
             const qEl = document.getElementById('deeptalk-question');
             const container = document.getElementById('deeptalk-container');
             const btn = document.getElementById('btn-deeptalk');
             const originalText = btn.innerText;
-
-            btn.innerText = "✨ Denke nach...";
-            btn.disabled = true;
-            container.classList.remove('hidden');
-            qEl.style.opacity = '0.5';
-
-            const prompt = "Generiere eine sehr tiefgründige, psychologische oder philosophische Frage für ein Paar, die zu einem langen, intensiven Gespräch anregt. Vermeide Standardfragen. Sei kreativ, emotional und spezifisch. Auf Deutsch. Gib nur die Frage zurück.";
+            btn.innerText = "✨ Suche Thema..."; btn.disabled = true; container.classList.remove('hidden'); qEl.style.opacity = '0.5';
+            const prompt = "Erstelle eine interessante Frage für ein Paar, über die man gut reden kann. 1-2 Sätze, Alltagssprache.";
             const question = await callGemini(prompt);
-
-            if (question) {
-                qEl.innerText = question.replace(/["']/g, "");
-            } else {
-                qEl.innerText = deepTalkQuestions[Math.floor(Math.random() * deepTalkQuestions.length)];
-            }
-
-            qEl.style.opacity = '1';
-            btn.innerText = originalText;
-            btn.disabled = false;
+            qEl.innerText = question ? question.replace(/["']/g, "") : "Welchen Tag aus unserer Beziehung würdest du gerne noch einmal erleben?";
+            qEl.style.opacity = '1'; btn.innerText = originalText; btn.disabled = false;
         };
 
-        // 5. REWARD SYSTEM LOGIC
         window.claimReward = () => {
             const modal = document.getElementById('reward-modal');
             const textEl = document.getElementById('reward-text');
-            
-            // Pick random reward
             const reward = rewardPool[Math.floor(Math.random() * rewardPool.length)];
             textEl.innerText = reward;
-            
-            // Update DB to mark as claimed
             set(ref(db, 'stats/claimedCount'), globalClaimedCount + 1);
-
             modal.classList.remove('hidden');
         };
 
@@ -1169,107 +684,61 @@
             const rewardBar = document.getElementById('reward-progress-bar');
             const rewardText = document.getElementById('reward-progress-text');
             const rewardBtn = document.getElementById('btn-claim-reward');
-            
             const datesPerReward = 5;
-            
-            // Logic: Is there a pending reward?
-            // e.g. done=5, claimed=0 -> yes (5 >= (0+1)*5)
-            // e.g. done=6, claimed=1 -> no (6 < (1+1)*5 -> 6 < 10)
             const targetForNextReward = (claimedCount + 1) * datesPerReward;
             const isClaimable = doneCount >= targetForNextReward;
-
-            // Calculate progress for current cycle
-            // If claimed=0, we look at doneCount (0-5)
-            // If claimed=1, we look at doneCount (5-10), so doneCount - 5
             const currentBase = claimedCount * datesPerReward;
             let currentProgress = doneCount - currentBase;
-            
-            // Cap progress for display if we are ready to claim
             if (currentProgress > datesPerReward) currentProgress = datesPerReward;
-            if (currentProgress < 0) currentProgress = 0; // Should not happen
-
             let progressPercent = (currentProgress / datesPerReward) * 100;
 
             rewardBar.style.width = `${progressPercent}%`;
-            
             if (isClaimable) {
                 rewardText.innerText = "🎉 5 Dates geschafft! Öffne mich!";
                 rewardText.classList.add('text-pink-500', 'animate-pulse');
-                rewardBtn.disabled = false;
-                rewardBtn.classList.remove('grayscale', 'opacity-50');
-                rewardBtn.classList.add('chest-shake');
+                rewardBtn.disabled = false; rewardBtn.classList.remove('grayscale', 'opacity-50'); rewardBtn.classList.add('chest-shake');
             } else {
                 rewardText.innerText = `${currentProgress} / ${datesPerReward} Dates bis zur Belohnung`;
                 rewardText.classList.remove('text-pink-500', 'animate-pulse');
-                rewardBtn.disabled = true;
-                rewardBtn.classList.add('grayscale', 'opacity-50');
-                rewardBtn.classList.remove('chest-shake');
+                rewardBtn.disabled = true; rewardBtn.classList.add('grayscale', 'opacity-50'); rewardBtn.classList.remove('chest-shake');
             }
         };
 
-        // 6. UPTIME / SYSTEM START LOGIC
         window.editSystemStart = () => {
             const date = prompt("Seit wann seid ihr zusammen? (Format: YYYY-MM-DD)", "2020-01-01");
-            if (date) {
-                const ts = new Date(date).getTime();
-                if (!isNaN(ts)) {
-                    set(ref(db, 'systemStart'), ts);
-                } else {
-                    alert("Ungültiges Datum!");
-                }
-            }
+            if (date) { const ts = new Date(date).getTime(); if (!isNaN(ts)) set(ref(db, 'systemStart'), ts); }
         };
 
         const updateUptime = () => {
             const display = document.getElementById('uptime-display');
-            if (!relationshipStart) {
-                display.innerText = "System Uptime: Startdatum setzen";
-                return;
-            }
-            
-            const now = Date.now();
-            const diff = now - relationshipStart;
-            
+            if (!relationshipStart) { display.innerText = "System Uptime: Startdatum setzen"; return; }
+            const diff = Date.now() - relationshipStart;
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const years = Math.floor(days / 365);
-            const remainingDays = days % 365;
-            
-            // Simple format: X Years, Y Days (approx)
-            // Or just total days for "System Uptime" feel
             display.innerText = `System Uptime: ${days} Tage`;
         };
-        setInterval(updateUptime, 1000 * 60 * 60); // Update every hour is enough for days, but let's do it on load
+        setInterval(updateUptime, 3600000);
 
-
-        // AUTH & PASSWORT
         window.startAuth = async (user) => {
             const snap = await get(ref(db, `users/${user}`)); 
             const userData = snap.val();
             document.getElementById('user-selection').classList.add('hidden');
             document.getElementById('password-area').classList.remove('hidden');
-            
             if (!userData || !userData.password) {
                 document.getElementById('password-msg').innerText = "Wähle dein erstes Passwort:";
                 document.getElementById('btn-login-confirm').onclick = async () => {
                     const p = document.getElementById('pass-input').value; 
                     if(p.length < 4) return alert("Min. 4 Zeichen!");
-                    await set(ref(db, `users/${user}/password`), p); 
-                    login(user);
+                    await set(ref(db, `users/${user}/password`), p); login(user);
                 };
             } else {
                 document.getElementById('password-msg').innerText = `${user}, gib dein Passwort ein:`;
                 document.getElementById('btn-login-confirm').onclick = () => {
-                    if(document.getElementById('pass-input').value === userData.password) login(user); 
-                    else alert("Falsches Passwort!");
+                    if(document.getElementById('pass-input').value === userData.password) login(user); else alert("Falsches Passwort!");
                 };
             }
         };
 
-        const login = (u) => { 
-            localStorage.setItem('currentUser', u); 
-            checkAuth(); 
-        };
-        
+        const login = (u) => { localStorage.setItem('currentUser', u); checkAuth(); };
         const checkAuth = () => { 
             const u = localStorage.getItem('currentUser'); 
             if(u) { 
@@ -1277,134 +746,67 @@
                 document.getElementById('main-dashboard').classList.remove('hidden'); 
                 document.getElementById('app-nav').classList.remove('hidden'); 
                 document.getElementById('user-greeting').innerText = `Hallo ${u}`; 
-                startPresence(u); 
-                syncData(u); 
+                startPresence(u); syncData(u); 
             } 
         };
         
         const startPresence = (u) => { 
-            // Update own presence every 5s (timestamp only)
             setInterval(() => update(ref(db, `presence/${u}`), { onlineAt: Date.now() }), 5000); 
-            
             const partner = u === "Samet" ? "Meriam" : "Samet"; 
-            
             onValue(ref(db, `presence/${partner}`), (s) => { 
                 const data = s.val();
                 const indicator = document.getElementById('partner-status');
                 const lastSeenText = document.getElementById('partner-last-seen');
-                
-                if (!data || !data.onlineAt) {
-                    indicator.className = "online-indicator offline";
-                    lastSeenText.innerText = `${partner} war noch nie hier`;
-                    return;
-                }
-
-                const now = Date.now();
-                const isOnline = (now - data.onlineAt) < 15000; 
-                
+                if (!data || !data.onlineAt) { indicator.className = "online-indicator offline"; lastSeenText.innerText = `${partner} war noch nie hier`; return; }
+                const isOnline = (Date.now() - data.onlineAt) < 15000; 
                 indicator.className = "online-indicator " + (isOnline ? "online" : "offline");
-                
-                // Online Status Text
-                if (isOnline) {
-                    lastSeenText.innerText = `${partner} online`;
-                    lastSeenText.className = "text-[9px] font-bold text-green-500 transition-all";
-                } else {
+                if (isOnline) { lastSeenText.innerText = `${partner} online`; lastSeenText.className = "text-[9px] font-bold text-green-500 transition-all"; }
+                else { 
                     const date = new Date(data.onlineAt);
-                    const dateStr = date.toLocaleDateString('de-DE');
-                    const timeStr = date.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
-                    
-                    const today = new Date().toLocaleDateString('de-DE');
-                    const yesterday = new Date(Date.now() - 86400000).toLocaleDateString('de-DE');
-                    
-                    let displayDate = dateStr;
-                    if (dateStr === today) displayDate = "Heute";
-                    else if (dateStr === yesterday) displayDate = "Gestern";
-
-                    lastSeenText.innerText = `${partner} zuletzt: ${displayDate} um ${timeStr}`;
+                    lastSeenText.innerText = `${partner} zuletzt: ${date.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'})}`; 
                     lastSeenText.className = "text-[9px] text-gray-400 font-medium transition-all";
                 }
             }); 
         };
 
-        // TAB NAVIGATION
         window.switchTab = (tab) => { 
-            // Hide all tabs
-            ['home', 'bucket', 'fun', 'map'].forEach(t => { 
+            ['home', 'bucket', 'fun', 'map', 'gallery'].forEach(t => { 
                 const el = document.getElementById(`tab-${t}`);
-                if (!el.classList.contains('hidden')) {
-                    // Optional: Add exit animation here if desired, but simple hidden works for snap feel
-                    el.classList.add('hidden');
-                    el.classList.remove('animate-fade-in'); // Remove animation class to reset
-                }
+                if (!el.classList.contains('hidden')) { el.classList.add('hidden'); el.classList.remove('animate-fade-in'); }
                 document.getElementById(`nav-${t}`).classList.remove('active'); 
             }); 
-            
-            // Show target tab
             const targetEl = document.getElementById(`tab-${tab}`);
-            targetEl.classList.remove('hidden');
-            targetEl.classList.add('animate-fade-in'); // Add fade-in animation
-            
+            targetEl.classList.remove('hidden'); targetEl.classList.add('animate-fade-in'); 
             document.getElementById(`nav-${tab}`).classList.add('active'); 
-
-            // If map tab, trigger map load
-            if (tab === 'map') {
-                setTimeout(() => {
-                    loadMapMarkers();
-                }, 100);
-            }
+            if (tab === 'map') setTimeout(() => { loadMapMarkers(); }, 100);
         };
 
-        // STREAK HELPERS
         const getWeekKey = (date) => { 
             const d = new Date(date); d.setHours(0,0,0,0); 
             d.setDate(d.getDate() + 4 - (d.getDay() || 7)); 
             let yearStart = new Date(d.getFullYear(), 0, 1); 
             return d.getFullYear() + "-" + Math.ceil((((d - yearStart) / 86400000) + 1) / 7); 
         };
-        
-        const getNextSunday = () => { 
-            let d = new Date(); 
-            d.setDate(d.getDate() + (7 - d.getDay()) % 7); 
-            return d.toLocaleDateString('de-DE'); 
-        };
+        const getNextSunday = () => { let d = new Date(); d.setDate(d.getDate() + (7 - d.getDay()) % 7); return d.toLocaleDateString('de-DE'); };
 
         window.startActiveDate = (id) => {
             update(ref(db, `wishes/${id}`), { status: 'active' });
             document.getElementById('result-box').classList.add('hidden');
+            document.getElementById('result-box').classList.remove('magic-pop-in');
         };
 
         window.handleFileUpload = (input) => {
-            const file = input.files[0];
-            if (!file) return;
-
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Resize to avoid huge payloads
-                    const MAX_WIDTH = 600; 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // Compress
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
                     currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    
-                    const preview = document.getElementById('preview-image');
-                    preview.src = currentPhotoBase64;
-                    preview.classList.remove('hidden');
-                    
+                    const preview = document.getElementById('preview-image'); preview.src = currentPhotoBase64; preview.classList.remove('hidden');
                     document.getElementById('upload-text').innerText = "✅ Foto ausgewählt";
                 };
                 img.src = e.target.result;
@@ -1412,38 +814,18 @@
             reader.readAsDataURL(file);
         };
 
-        // --- NEW MILESTONE EDITOR LOGIC ---
-
         window.handleMilestonePhotoUpload = (input) => {
-            const file = input.files[0];
-            if (!file) return;
-            
+            const file = input.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 600; 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > MAX_WIDTH) {
-                        height *= MAX_WIDTH / width;
-                        width = MAX_WIDTH;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // Store photo globally for saving later
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
                     currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    
-                    const preview = document.getElementById('ms-preview-image');
-                    preview.src = currentPhotoBase64;
-                    preview.classList.remove('hidden');
-                    
+                    const preview = document.getElementById('ms-preview-image'); preview.src = currentPhotoBase64; preview.classList.remove('hidden');
                     document.getElementById('ms-upload-text').innerText = "✅ Foto geändert";
                 };
                 img.src = e.target.result;
@@ -1454,45 +836,22 @@
         window.openMilestoneModal = async (mode, id = null, type = 'archive') => {
             currentModalMode = type;
             const modal = document.getElementById('milestone-modal');
-            const titleEl = document.getElementById('ms-title');
-            const locEl = document.getElementById('ms-location');
-            const infoEl = document.getElementById('ms-info');
-            const catEl = document.getElementById('ms-cat');
-            const weatherEl = document.getElementById('ms-weather');
-            const dateEl = document.getElementById('ms-date');
-            const noteEl = document.getElementById('ms-note');
-            const ratingMEl = document.getElementById('ms-rating-m');
-            const ratingSEl = document.getElementById('ms-rating-s');
-            const previewEl = document.getElementById('ms-preview-image');
-            const uploadTextEl = document.getElementById('ms-upload-text');
-            const modalTitle = document.getElementById('modal-title');
-            const memoryFields = document.getElementById('ms-memory-fields');
-            const locationInput = document.getElementById('ms-location'); // Use specific selector
-
-            // Reset Fields
-            titleEl.value = ""; locEl.value = ""; infoEl.value = ""; 
-            dateEl.value = ""; noteEl.value = ""; 
-            ratingMEl.value = ""; ratingSEl.value = "";
-            previewEl.src = ""; previewEl.classList.add('hidden');
-            uploadTextEl.innerText = "📸 Foto hinzufügen";
-            currentPhotoBase64 = "";
-            locationInput.setAttribute('data-original-location', ""); // Reset original location attribute
+            const titleEl = document.getElementById('ms-title'); const locEl = document.getElementById('ms-location'); const infoEl = document.getElementById('ms-info');
+            const catEl = document.getElementById('ms-cat'); const weatherEl = document.getElementById('ms-weather'); const dateEl = document.getElementById('ms-date');
+            const noteEl = document.getElementById('ms-note'); const ratingMEl = document.getElementById('ms-rating-m'); const ratingSEl = document.getElementById('ms-rating-s');
+            const previewEl = document.getElementById('ms-preview-image'); const uploadTextEl = document.getElementById('ms-upload-text');
+            const modalTitle = document.getElementById('modal-title'); const memoryFields = document.getElementById('ms-memory-fields');
+            
+            titleEl.value = ""; locEl.value = ""; infoEl.value = ""; dateEl.value = ""; noteEl.value = ""; ratingMEl.value = ""; ratingSEl.value = "";
+            previewEl.src = ""; previewEl.classList.add('hidden'); uploadTextEl.innerText = "📸 Foto hinzufügen"; currentPhotoBase64 = "";
+            locEl.setAttribute('data-original-location', "");
 
             if (type === 'bucket') {
                  modalTitle.innerText = mode === 'add' ? "Neuer Bucket List Traum ✨" : "Traum bearbeiten ✏️";
-                 // Hide memory fields for Bucket List adds/edits (unless it's completed, but here we assume planning phase)
-                 // Or we could check if status is 'done'. But for adding new, definitely hide.
-                 if (mode === 'add') {
-                     memoryFields.classList.add('hidden');
-                 } else {
-                     // If editing, check status first
-                     const snapshot = await get(ref(db, `wishes/${id}`));
-                     const data = snapshot.val();
-                     if (data && data.status === 'done') {
-                         memoryFields.classList.remove('hidden');
-                     } else {
-                         memoryFields.classList.add('hidden');
-                     }
+                 if (mode === 'add') memoryFields.classList.add('hidden');
+                 else {
+                     const snapshot = await get(ref(db, `wishes/${id}`)); const data = snapshot.val();
+                     if (data && data.status === 'done') memoryFields.classList.remove('hidden'); else memoryFields.classList.add('hidden');
                  }
             } else {
                  modalTitle.innerText = mode === 'add' ? "Meilenstein nachtragen 🏆" : "Meilenstein bearbeiten ✏️";
@@ -1504,88 +863,42 @@
                 const snapshot = await get(ref(db, `wishes/${id}`));
                 const data = snapshot.val();
                 if (data) {
-                    titleEl.value = data.text || "";
-                    locEl.value = data.location || "";
-                    locationInput.setAttribute('data-original-location', data.location || ""); // Store original location for comparison
-                    infoEl.value = data.info || "";
-                    catEl.value = data.cat || "Sofort";
-                    weatherEl.value = data.weather || "Egal";
-                    noteEl.value = data.memoryNote || "";
-                    ratingMEl.value = data.ratingMeriam || "";
-                    ratingSEl.value = data.ratingSamet || "";
-                    
-                    if (data.memoryPhoto) {
-                        previewEl.src = data.memoryPhoto;
-                        previewEl.classList.remove('hidden');
-                        uploadTextEl.innerText = "✅ Foto vorhanden (ändern?)";
-                        currentPhotoBase64 = data.memoryPhoto; 
-                    }
-                    
-                    if (data.doneAt) {
-                         const d = new Date(data.doneAt);
-                         d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-                         dateEl.value = d.toISOString().slice(0, 16);
-                    }
+                    titleEl.value = data.text || ""; locEl.value = data.location || ""; locEl.setAttribute('data-original-location', data.location || "");
+                    infoEl.value = data.info || ""; catEl.value = data.cat || "Sofort"; weatherEl.value = data.weather || "Egal";
+                    noteEl.value = data.memoryNote || ""; ratingMEl.value = data.ratingMeriam || ""; ratingSEl.value = data.ratingSamet || "";
+                    if (data.memoryPhoto) { previewEl.src = data.memoryPhoto; previewEl.classList.remove('hidden'); uploadTextEl.innerText = "✅ Foto vorhanden"; currentPhotoBase64 = data.memoryPhoto; }
+                    if (data.doneAt) { const d = new Date(data.doneAt); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); dateEl.value = d.toISOString().slice(0, 16); }
                 }
             } else {
-                currentEditingMilestoneId = null; // Add Mode
-                // Set default date to now if visible
-                if (!memoryFields.classList.contains('hidden')) {
-                    const now = new Date();
-                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                    dateEl.value = now.toISOString().slice(0, 16);
-                }
+                currentEditingMilestoneId = null;
+                if (!memoryFields.classList.contains('hidden')) { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); dateEl.value = now.toISOString().slice(0, 16); }
             }
-            
             modal.classList.remove('hidden');
         };
 
         window.saveMilestone = async () => {
             const title = document.getElementById('ms-title').value.trim();
             if (!title) return alert("Titel fehlt!");
-
             const user = localStorage.getItem('currentUser');
             const location = document.getElementById('ms-location').value.trim();
             const originalLocation = document.getElementById('ms-location').getAttribute('data-original-location');
 
-            const payload = {
-                text: title,
-                location: location,
-                info: document.getElementById('ms-info').value.trim(),
-                cat: document.getElementById('ms-cat').value,
-                weather: document.getElementById('ms-weather').value,
-            };
+            const payload = { text: title, location: location, info: document.getElementById('ms-info').value.trim(), cat: document.getElementById('ms-cat').value, weather: document.getElementById('ms-weather').value };
 
-            // Check if location changed. If so, reset coordinates to force geocoding next time map loads.
-            if (location !== originalLocation) {
-                payload.lat = null;
-                payload.lon = null;
-            }
+            if (location !== originalLocation) { payload.lat = null; payload.lon = null; }
             
-            // Logic based on context (Archive vs Bucket)
             if (currentModalMode === 'archive') {
-                payload.status = 'done';
-                payload.isBucket = false;
+                payload.status = 'done'; payload.isBucket = false;
                 payload.memoryNote = document.getElementById('ms-note').value.trim();
                 payload.ratingMeriam = document.getElementById('ms-rating-m').value;
                 payload.ratingSamet = document.getElementById('ms-rating-s').value;
-                
                 const dateVal = document.getElementById('ms-date').value;
-                if (dateVal) payload.doneAt = new Date(dateVal).getTime();
-                else payload.doneAt = Date.now();
-
+                payload.doneAt = dateVal ? new Date(dateVal).getTime() : Date.now();
                 if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
             } else {
-                // Bucket List Mode
-                
-                if (!currentEditingMilestoneId) {
-                    payload.status = 'open';
-                    payload.isBucket = true;
-                    payload.timestamp = Date.now();
-                } else {
-                    // Updating existing bucket item. 
+                if (!currentEditingMilestoneId) { payload.status = 'open'; payload.isBucket = true; payload.timestamp = Date.now(); }
+                else {
                     if (!document.getElementById('ms-memory-fields').classList.contains('hidden')) {
-                         // It's a done bucket item, save memory fields too
                          payload.memoryNote = document.getElementById('ms-note').value.trim();
                          payload.ratingMeriam = document.getElementById('ms-rating-m').value;
                          payload.ratingSamet = document.getElementById('ms-rating-s').value;
@@ -1596,150 +909,67 @@
                 }
             }
 
-            if (currentEditingMilestoneId) {
-                await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
-            } else {
-                payload.by = user; 
-                if (!payload.timestamp) payload.timestamp = Date.now();
-                await push(ref(db, 'wishes'), payload);
-            }
-
+            if (currentEditingMilestoneId) await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
+            else { payload.by = user; if (!payload.timestamp) payload.timestamp = Date.now(); await push(ref(db, 'wishes'), payload); }
             document.getElementById('milestone-modal').classList.add('hidden');
         };
 
-
-        // COUNTDOWN LOGIC
-        window.openCountdownModal = () => {
-            document.getElementById('countdown-modal').classList.remove('hidden');
-            // If editing, fill values
-            if (countdownTarget) {
-                document.getElementById('new-cd-title').value = countdownTitle;
-                // Note: DateTime-local input needs ISO string format which is tricky to get right from timestamp simply
-            }
-        };
-        
-        window.editCountdown = () => {
-             document.getElementById('countdown-modal').classList.remove('hidden');
-             document.getElementById('new-cd-title').value = countdownTitle;
-        };
+        window.openCountdownModal = () => { document.getElementById('countdown-modal').classList.remove('hidden'); if (countdownTarget) document.getElementById('new-cd-title').value = countdownTitle; };
+        window.editCountdown = () => { document.getElementById('countdown-modal').classList.remove('hidden'); document.getElementById('new-cd-title').value = countdownTitle; };
 
         document.getElementById('btn-save-countdown').onclick = async () => {
             try {
                 const title = document.getElementById('new-cd-title').value.trim();
-                const dateInput = document.getElementById('new-cd-date');
-                const dateStr = dateInput.value;
-                
-                if(!title || !dateStr) return alert("Bitte Titel und Datum ausfüllen!");
-                
+                const dateStr = document.getElementById('new-cd-date').value;
+                if(!title || !dateStr) return alert("Bitte ausfüllen!");
                 const timestamp = new Date(dateStr).getTime();
                 if (isNaN(timestamp)) return alert("Ungültiges Datum!");
-
-                // Use 'set' on a FIXED path 'countdown/current' to act as a single object
                 await set(ref(db, 'countdown/current'), { title: title, target: timestamp });
-                
                 document.getElementById('countdown-modal').classList.add('hidden');
-                
-                // Clear inputs
-                document.getElementById('new-cd-title').value = "";
-                dateInput.value = "";
-            } catch (e) {
-                console.error(e);
-                alert("Fehler beim Speichern: " + e.message);
-            }
+                document.getElementById('new-cd-title').value = ""; document.getElementById('new-cd-date').value = "";
+            } catch (e) { alert("Fehler: " + e.message); }
         };
 
-        window.deleteCountdown = () => {
-            if(confirm("Diesen Countdown wirklich löschen?")) {
-                // Remove the specific path
-                set(ref(db, 'countdown/current'), null);
-            }
-        };
+        window.deleteCountdown = () => { if(confirm("Löschen?")) set(ref(db, 'countdown/current'), null); };
 
         const updateCountdownUI = () => {
             if (!countdownTarget) return;
-            const now = Date.now();
-            const diff = countdownTarget - now;
-
-            if (diff <= 0) {
-                // Event reached
-                document.getElementById('cd-days').innerText = "0";
-                document.getElementById('cd-hours').innerText = "0";
-                document.getElementById('cd-min').innerText = "0";
-                return;
-            }
-
+            const diff = countdownTarget - Date.now();
+            if (diff <= 0) { document.getElementById('cd-days').innerText = "0"; return; }
             const days = Math.floor(diff / (1000 * 60 * 60 * 24));
             const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
             document.getElementById('cd-days').innerText = days;
             document.getElementById('cd-hours').innerText = hours;
             document.getElementById('cd-min').innerText = minutes;
         };
-        
-        // Update countdown every second
         setInterval(updateCountdownUI, 1000);
 
         const getCatLabel = (val) => val === 'Planung' ? '📅 Planung nötig' : '⚡ Spontan möglich';
-        const getWeatherLabel = (val) => {
-            if (val === 'Sonne') return '☀️ Bei Sonne schöner';
-            // UPDATE: Label text updated here
-            if (val === 'Regen') return '🏠 Indoor / Auch bei schlechten Wetter möglich';
-            return '☁️ Wetter spielt keine Rolle';
-        };
+        const getWeatherLabel = (val) => { if (val === 'Sonne') return '☀️ Bei Sonne schöner'; if (val === 'Regen') return '🏠 Indoor / Regen-Option'; return '☁️ Wetter egal'; };
 
         const syncData = (currentUser) => {
             const partner = currentUser === "Samet" ? "Meriam" : "Samet";
             document.getElementById('love-letter-title').innerText = `Post-it an ${partner} 📝`;
             document.getElementById('vs-label').innerText = `Ich vs ${partner}`;
 
-            // Sync Claimed Rewards Count
-            onValue(ref(db, 'stats/claimedCount'), (snap) => {
-                globalClaimedCount = snap.val() || 0;
-                // Re-calculate UI if we already have doneCount
-                if (globalDoneCount !== undefined) {
-                    updateRewardUI(globalDoneCount, globalClaimedCount);
-                }
-            });
-
-            // Sync Uptime
-            onValue(ref(db, 'systemStart'), (snap) => {
-                relationshipStart = snap.val();
-                updateUptime();
-            });
-
-            // Sync Single Countdown
+            onValue(ref(db, 'stats/claimedCount'), (snap) => { globalClaimedCount = snap.val() || 0; if (globalDoneCount !== undefined) updateRewardUI(globalDoneCount, globalClaimedCount); });
+            onValue(ref(db, 'systemStart'), (snap) => { relationshipStart = snap.val(); updateUptime(); });
             onValue(ref(db, 'countdown/current'), (snap) => {
                 const item = snap.val();
-                
                 if (item && item.target > Date.now()) {
-                    countdownTarget = item.target;
-                    countdownTitle = item.title;
+                    countdownTarget = item.target; countdownTitle = item.title;
                     document.getElementById('countdown-title').innerText = item.title + " ❤️";
-                    document.getElementById('countdown-placeholder').classList.add('hidden');
-                    document.getElementById('countdown-card').classList.remove('hidden');
-                    updateCountdownUI();
-                } else {
-                    document.getElementById('countdown-card').classList.add('hidden');
-                    document.getElementById('countdown-placeholder').classList.remove('hidden');
-                    countdownTarget = null;
-                    countdownTitle = "";
-                }
+                    document.getElementById('countdown-placeholder').classList.add('hidden'); document.getElementById('countdown-card').classList.remove('hidden'); updateCountdownUI();
+                } else { document.getElementById('countdown-card').classList.add('hidden'); document.getElementById('countdown-placeholder').classList.remove('hidden'); countdownTarget = null; }
             });
 
-            onValue(ref(db, 'loveLetter'), (snap) => { 
-                const d = snap.val(); 
-                if(d) document.getElementById('love-letter-display').innerText = `"${d.text}" - Von ${d.by}`; 
-            });
-            
+            onValue(ref(db, 'loveLetter'), (snap) => { const d = snap.val(); if(d) document.getElementById('love-letter-display').innerText = `"${d.text}" - Von ${d.by}`; });
             onValue(ref(db, 'quiz'), (snap) => { 
-                const quizList = document.getElementById('quiz-list'); 
-                quizList.innerHTML = ""; 
-                const data = snap.val(); 
-                if(!data) return; 
+                const quizList = document.getElementById('quiz-list'); quizList.innerHTML = ""; 
+                const data = snap.val(); if(!data) return; 
                 Object.keys(data).reverse().forEach(id => { 
-                    const item = data[id]; 
-                    const div = document.createElement('div'); 
+                    const item = data[id]; const div = document.createElement('div'); 
                     div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm animate-slide-up"; 
                     div.innerHTML = `<div><p class="font-bold">${item.q}</p><p class="text-[10px] text-gray-400 mt-1 hidden" id="a-${id}">Antwort: ${item.a}</p></div><button onclick="document.getElementById('a-${id}').classList.toggle('hidden')" class="text-pink-500 font-bold">Lösung</button>`; 
                     quizList.appendChild(div); 
@@ -1747,10 +977,9 @@
             });
 
             onValue(ref(db, 'wishes'), (snapshot) => {
-                const wishList = document.getElementById('wish-list'); 
-                const archiveList = document.getElementById('archive-list'); 
-                const bucketList = document.getElementById('bucket-list-content');
-                wishList.innerHTML = ""; archiveList.innerHTML = ""; bucketList.innerHTML = ""; 
+                const wishList = document.getElementById('wish-list'); const archiveList = document.getElementById('archive-list'); const bucketList = document.getElementById('bucket-list-content');
+                const galleryGrid = document.getElementById('gallery-grid');
+                wishList.innerHTML = ""; archiveList.innerHTML = ""; bucketList.innerHTML = ""; galleryGrid.innerHTML = "";
                 const data = snapshot.val(); if(!data) return;
 
                 let doneCount = 0, sametTotal = 0, meriamTotal = 0, total = 0, doneWeekKeys = new Set();
@@ -1758,318 +987,151 @@
 
                 Object.keys(data).forEach(id => {
                     const item = data[id]; total++;
-                    if(item.status === 'done') { 
-                        doneCount++; 
-                        doneWeekKeys.add(getWeekKey(item.doneAt)); 
-                        if(getWeekKey(item.doneAt) === curWeekKey) thisWeekDone = true; 
-                    }
+                    if(item.status === 'done') { doneCount++; doneWeekKeys.add(getWeekKey(item.doneAt)); if(getWeekKey(item.doneAt) === curWeekKey) thisWeekDone = true; }
                     if(item.by === 'Samet') sametTotal++; else meriamTotal++;
                 });
+                globalDoneCount = doneCount; updateRewardUI(globalDoneCount, globalClaimedCount);
 
-                // Update global tracking variable
-                globalDoneCount = doneCount;
-                updateRewardUI(globalDoneCount, globalClaimedCount);
-
-                let streak = 0; let weekIt = new Date();
-                if(!thisWeekDone) weekIt.setDate(weekIt.getDate() - 7);
+                let streak = 0; let weekIt = new Date(); if(!thisWeekDone) weekIt.setDate(weekIt.getDate() - 7);
                 while(doneWeekKeys.has(getWeekKey(weekIt))) { streak++; weekIt.setDate(weekIt.getDate() - 7); }
-
                 document.getElementById('stat-streak').innerText = streak;
                 document.getElementById('stat-vs').innerText = (currentUser === "Samet" ? sametTotal : meriamTotal) + " : " + (currentUser === "Samet" ? meriamTotal : sametTotal);
                 document.getElementById('stat-progress').innerText = Math.round((doneCount / total) * 100 || 0) + "%";
-                const streakInfo = document.getElementById('streak-info');
-                streakInfo.innerText = thisWeekDone ? "✅ Serie sicher" : `⏳ Nötig bis ${getNextSunday()}`;
-                streakInfo.className = "streak-status " + (thisWeekDone ? "text-teal-500 font-bold" : "text-pink-500 animate-pulse font-bold");
-
+                document.getElementById('streak-info').innerText = thisWeekDone ? "✅ Serie sicher" : `⏳ Nötig bis ${getNextSunday()}`;
+                
                 const allIds = Object.keys(data);
                 const activeIds = allIds.filter(id => data[id].status === 'active');
                 const openIds = allIds.filter(id => data[id].status === 'open' && !data[id].isBucket).reverse();
                 const doneIds = allIds.filter(id => data[id].status === 'done').reverse();
                 const bucketIds = allIds.filter(id => data[id].isBucket).reverse();
 
-                // RENDER ACTIVE WISHES FIRST
-                activeIds.forEach(id => {
+                // Fülle die Galerie (Optimiert!)
+                doneIds.forEach(id => {
                     const item = data[id];
-                    const isSecret = item.surprise && item.by !== currentUser;
-                    const card = document.createElement('div');
-                    card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/90 shadow-md relative overflow-hidden animate-slide-up";
-                    card.innerHTML = `
-                        <div class="absolute top-0 right-0 bg-green-400 text-white text-[9px] font-black px-2 py-1 rounded-bl-xl uppercase tracking-widest">Läuft gerade</div>
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1 pr-8">
-                                <p class="font-bold text-lg text-teal-900">${isSecret ? '🤫 Geheime Idee' : item.text}</p>
-                                ${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}
-                                <div class="flex gap-2 mt-2">
-                                    <span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span>
-                                </div>
-                            </div>
-                            <div class="flex gap-2 pt-6">
-                                <button onclick="markAsDone('${id}')" class="text-green-500 font-black text-xs bg-white px-3 py-1 rounded-full shadow-sm border border-green-200 hover:bg-green-50">BEENDEN ✓</button>
-                            </div>
-                        </div>`;
+                    if (item.memoryPhoto) {
+                        const dateStr = new Date(item.doneAt).toLocaleDateString('de-DE');
+                        const pol = document.createElement('div');
+                        pol.className = "polaroid animate-scale-in";
+                        pol.onclick = () => openMilestoneModal('edit', id);
+                        pol.innerHTML = `<img src="${item.memoryPhoto}" loading="lazy" alt="${item.text}"><p class="polaroid-caption">${dateStr} - ${item.text}</p>`;
+                        galleryGrid.appendChild(pol);
+                    }
+                });
+
+                activeIds.forEach(id => {
+                    const item = data[id]; const isSecret = item.surprise && item.by !== currentUser;
+                    const card = document.createElement('div'); card.className = "mint-card p-4 border-l-4 border-green-400 bg-green-50/90 shadow-md relative overflow-hidden animate-slide-up";
+                    card.innerHTML = `<div class="absolute top-0 right-0 bg-green-400 text-white text-[9px] font-black px-2 py-1 rounded-bl-xl uppercase tracking-widest">Läuft gerade</div><div class="flex justify-between items-start"><div class="flex-1 pr-8"><p class="font-bold text-lg text-teal-900">${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span></div></div><div class="flex gap-2 pt-6"><button onclick="markAsDone('${id}')" class="text-green-500 font-black text-xs bg-white px-3 py-1 rounded-full shadow-sm border border-green-200 hover:bg-green-50">BEENDEN ✓</button></div></div>`;
                     wishList.appendChild(card);
                 });
 
-                // RENDER OPEN WISHES
                 openIds.forEach(id => {
-                    const item = data[id];
-                    const isSecret = item.surprise && item.by !== currentUser;
-                    const card = document.createElement('div'); 
-                    card.className = "mint-card p-4 border-l-4 animate-slide-up " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
+                    const item = data[id]; const isSecret = item.surprise && item.by !== currentUser;
+                    const card = document.createElement('div'); card.className = "mint-card p-4 border-l-4 animate-slide-up " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
                     card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2"><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
                     wishList.appendChild(card);
                 });
 
-                // RENDER BUCKET LIST
                 bucketIds.forEach(id => {
                     const item = data[id]; const isDone = item.status === 'done';
                     const div = document.createElement('div'); div.className = "mint-card p-4 bucket-card animate-slide-up relative " + (isDone ? "opacity-50" : "");
-                    div.innerHTML = `
-                        <div class="absolute top-2 right-2">
-                            <button onclick="openMilestoneModal('edit', '${id}', 'bucket')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="font-black text-yellow-700">${item.text} ✨</p>
-                                <p class="text-[9px] uppercase text-yellow-600 mt-1">${isDone ? 'Erreicht' : 'Bucket List'}</p>
-                            </div>
-                            ${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold text-lg mr-6">✓</button>` : ''}
-                        </div>`;
+                    div.innerHTML = `<div class="absolute top-2 right-2"><button onclick="openMilestoneModal('edit', '${id}', 'bucket')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button></div><div class="flex justify-between items-center"><div><p class="font-black text-yellow-700">${item.text} ✨</p><p class="text-[9px] uppercase text-yellow-600 mt-1">${isDone ? 'Erreicht' : 'Bucket List'}</p></div>${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold text-lg mr-6">✓</button>` : ''}</div>`;
                     bucketList.appendChild(div);
                 });
 
-                // RENDER ARCHIVE
                 doneIds.forEach(id => {
-                    const item = data[id];
-                    const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
-                    const card = document.createElement('div'); 
-                    card.className = "mint-card p-4 bg-white/95 border border-teal-50 shadow-inner animate-slide-up relative group";
+                    const item = data[id]; const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
+                    const card = document.createElement('div'); card.className = "mint-card p-4 bg-white/95 border border-teal-50 shadow-inner animate-slide-up relative group";
                     const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
-                    
                     let ratingUI = `<div class="mt-4 border-t border-teal-50 pt-3">`;
                     let memoryUI = "";
-                    if (item.memoryPhoto) {
-                        memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50">`;
-                        memoryUI += `<img src="${item.memoryPhoto}" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm" onerror="this.style.display='none'">`;
-                        memoryUI += `</div>`;
-                    }
+                    if (item.memoryPhoto) memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50"><img src="${item.memoryPhoto}" loading="lazy" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm"></div>`;
                     
-                    // Render Comments
                     if (item.comments) {
-                         const commentsArray = Object.values(item.comments);
-                         memoryUI += `<div class="mt-2 space-y-2">`;
+                         const commentsArray = Object.values(item.comments); memoryUI += `<div class="mt-2 space-y-2">`;
                          commentsArray.forEach(comment => {
                              const isMeriam = comment.by === 'Meriam';
-                             const commentTime = new Date(comment.timestamp).toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'});
                              const containerClass = isMeriam ? "bg-pink-50 border-pink-200 text-pink-800" : "bg-teal-50 border-teal-200 text-teal-800";
-                             const nameColor = isMeriam ? "text-pink-400" : "text-teal-400";
-                             
-                             memoryUI += `
-                                <div class="p-2 rounded-xl border ${containerClass} text-xs relative">
-                                    <p class="text-[9px] uppercase font-bold mb-1 opacity-70 ${nameColor}">Kommentar von ${comment.by} • ${commentTime}</p>
-                                    <p class="italic">"${comment.text}"</p>
-                                </div>
-                             `;
+                             memoryUI += `<div class="p-2 rounded-xl border ${containerClass} text-xs"><p class="font-bold opacity-70">${comment.by}</p><p class="italic">"${comment.text}"</p></div>`;
                          });
                          memoryUI += `</div>`;
-                    } else if (item.memoryNote) {
-                        // Legacy support for single note
-                        memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50"><p class="text-[10px] text-teal-800 italic">"${item.memoryNote}"</p></div>`;
-                    }
-                    
-                    // Add Comment Button
-                    memoryUI += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-2 hover:bg-gray-50 transition-colors uppercase tracking-widest">📝 Kommentieren / Foto</button>`;
+                    } else if (item.memoryNote) memoryUI += `<div class="mt-3 bg-teal-50/50 p-3 rounded-xl border border-teal-100/50"><p class="text-[10px] text-teal-800 italic">"${item.memoryNote}"</p></div>`;
+                    memoryUI += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-2 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
 
-
-                    if (hasMyRating) {
-                        ratingUI += `
-                            <p class="text-[8px] font-black text-gray-300 uppercase tracking-widest mb-3 text-center">Eure Ratings</p>
-                            <div class="flex items-center justify-center gap-8">
-                                <div class="flex flex-col items-center">
-                                    <span class="text-[10px] font-black text-pink-400 uppercase mb-1">Meriam</span>
-                                    <div class="text-lg font-black text-pink-500 bg-pink-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-pink-100">${item.ratingMeriam || '-'}</div>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <span class="text-[10px] font-black text-teal-400 uppercase mb-1">Samet</span>
-                                    <div class="text-lg font-black text-teal-600 bg-teal-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-teal-100">${item.ratingSamet || '-'}</div>
-                                </div>
-                            </div>`;
-                    } else {
-                        ratingUI += `
-                            <p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-2 text-center animate-pulse">Rate das Date 1-10</p>
-                            <div class="flex justify-center gap-1 overflow-x-auto pb-1 px-2">
-                                ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-7 h-7 text-[10px] shadow-sm">${n}</button>`).join('')}
-                            </div>`;
-                    }
-                    
+                    if (hasMyRating) ratingUI += `<div class="flex items-center justify-center gap-8"><div class="flex flex-col items-center"><span class="text-[10px] font-black text-pink-400 uppercase mb-1">Meriam</span><div class="text-lg font-black text-pink-500 bg-pink-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-pink-100">${item.ratingMeriam || '-'}</div></div><div class="flex flex-col items-center"><span class="text-[10px] font-black text-teal-400 uppercase mb-1">Samet</span><div class="text-lg font-black text-teal-600 bg-teal-50 w-10 h-10 flex items-center justify-center rounded-2xl shadow-sm border border-teal-100">${item.ratingSamet || '-'}</div></div></div>`;
+                    else ratingUI += `<p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-2 text-center animate-pulse">Rate das Date 1-10</p><div class="flex justify-center gap-1 overflow-x-auto pb-1 px-2">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="playSound('click'); saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-7 h-7 text-[10px] shadow-sm">${n}</button>`).join('')}</div>`;
                     ratingUI += `</div>`;
-                    card.innerHTML = `
-                        <div class="absolute top-2 right-2">
-                            <button onclick="openMilestoneModal('edit', '${id}')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button>
-                        </div>
-                        <p class="font-bold text-teal-800 pr-6">${item.text} 🏆</p>
-                        <p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p>
-                        <div class="flex gap-2 my-2">
-                            <span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span>
-                            <span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span>
-                        </div>
-                        ${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}
-                        ${item.info ? `<p class="text-[10px] text-gray-500 italic mt-1 border-l-2 border-teal-100 pl-2">💡 ${item.info}</p>` : ''}
-                        ${memoryUI}
-                        ${ratingUI}
-                    `;
+                    
+                    card.innerHTML = `<div class="absolute top-2 right-2"><button onclick="playSound('click'); openMilestoneModal('edit', '${id}')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button></div><p class="font-bold text-teal-800 pr-6">${item.text} 🏆</p><p class="text-[8px] uppercase text-gray-400 mt-1">${timeStr} • Von ${item.by}</p><div class="flex gap-2 my-2"><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div>${item.location ? `<p class="text-[10px] mt-1 italic">📍 ${item.location}</p>` : ''}${item.info ? `<p class="text-[10px] text-gray-500 italic mt-1 border-l-2 border-teal-100 pl-2">💡 ${item.info}</p>` : ''}${memoryUI}${ratingUI}`;
                     archiveList.appendChild(card);
                 });
             });
         };
 
-        // ACTIONS
-        document.getElementById('btn-send-letter').onclick = () => { 
-            const input = document.getElementById('love-letter-input'); 
-            if(!input.value.trim()) return; 
-            set(ref(db, 'loveLetter'), { text: input.value, by: localStorage.getItem('currentUser'), time: Date.now() }); 
-            input.value = ""; 
-        };
+        document.getElementById('btn-send-letter').onclick = () => { const input = document.getElementById('love-letter-input'); if(!input.value.trim()) return; set(ref(db, 'loveLetter'), { text: input.value, by: localStorage.getItem('currentUser'), time: Date.now() }); input.value = ""; };
+        document.getElementById('btn-spin-roulette').onclick = () => { const res = document.getElementById('roulette-result'); res.innerText = "⏳..."; setTimeout(() => { res.innerText = Math.random() > 0.5 ? "Samet 🏆" : "Meriam 🏆"; }, 1000); };
+        document.getElementById('btn-add-quiz').onclick = () => { const q = document.getElementById('quiz-q'); const a = document.getElementById('quiz-a'); if(!q.value || !a.value) return; push(ref(db, 'quiz'), { q: q.value, a: a.value, by: localStorage.getItem('currentUser') }); q.value = ""; a.value = ""; };
         
-        document.getElementById('btn-spin-roulette').onclick = () => { 
-            const res = document.getElementById('roulette-result'); 
-            res.innerText = "⏳..."; 
-            setTimeout(() => { res.innerText = Math.random() > 0.5 ? "Samet 🏆" : "Meriam 🏆"; }, 1000); 
-        };
-        
-        document.getElementById('btn-add-quiz').onclick = () => { 
-            const q = document.getElementById('quiz-q'); 
-            const a = document.getElementById('quiz-a'); 
-            if(!q.value || !a.value) return; 
-            push(ref(db, 'quiz'), { q: q.value, a: a.value, by: localStorage.getItem('currentUser') }); 
-            q.value = ""; a.value = ""; 
-        };
-        
-        // This handles "finish date" from active list
-        window.markAsDone = (id) => {
-            currentCompletingId = id;
-            openMemoryModalInternal();
-        };
-
-        // This handles "add comment" from archive list
-        window.openCommentModal = (id) => {
-            currentCompletingId = id;
-            openMemoryModalInternal();
-        }
-
-        const openMemoryModalInternal = () => {
-            document.getElementById('memory-modal').classList.remove('hidden');
-            document.getElementById('memory-photo-file').value = ""; 
-            document.getElementById('preview-image').classList.add('hidden');
-            document.getElementById('upload-text').innerText = "📸 Foto hinzufügen";
-            currentPhotoBase64 = ""; 
-            document.getElementById('memory-note').value = "";
-        }
-
-        window.closeMemoryModal = () => {
-            document.getElementById('memory-modal').classList.add('hidden');
-            currentCompletingId = null;
-        };
+        window.markAsDone = (id) => { currentCompletingId = id; openMemoryModalInternal(); };
+        window.openCommentModal = (id) => { currentCompletingId = id; openMemoryModalInternal(); }
+        const openMemoryModalInternal = () => { document.getElementById('memory-modal').classList.remove('hidden'); document.getElementById('memory-photo-file').value = ""; document.getElementById('preview-image').classList.add('hidden'); document.getElementById('upload-text').innerText = "📸 Foto hinzufügen"; currentPhotoBase64 = ""; document.getElementById('memory-note').value = ""; }
+        window.closeMemoryModal = () => { document.getElementById('memory-modal').classList.add('hidden'); currentCompletingId = null; };
 
         document.getElementById('btn-save-memory').onclick = async () => {
             if (!currentCompletingId) return;
             const note = document.getElementById('memory-note').value.trim();
             const user = localStorage.getItem('currentUser');
-            
-            // Prepare updates
             const updates = {};
-            
-            // 1. Ensure status is done (if coming from active)
             updates[`wishes/${currentCompletingId}/status`] = 'done';
-            
-            // 2. Set doneAt if not present (only for first completion)
-            // We will fetch the item to see if it needs doneAt
-            const snapshot = await get(ref(db, `wishes/${currentCompletingId}`));
-            const item = snapshot.val();
-            if (item && item.status !== 'done') {
-                updates[`wishes/${currentCompletingId}/doneAt`] = Date.now();
-            }
-            
-            // 3. Add Photo if present (Overwrite)
-            if (currentPhotoBase64) {
-                updates[`wishes/${currentCompletingId}/memoryPhoto`] = currentPhotoBase64;
-            }
-
-            // 4. Add Comment if present
-            if (note) {
-               const commentId = push(ref(db, `wishes/${currentCompletingId}/comments`)).key;
-               updates[`wishes/${currentCompletingId}/comments/${commentId}`] = {
-                   text: note,
-                   by: user,
-                   timestamp: Date.now()
-               };
-            }
-
-            await update(ref(db), updates);
-            
-            closeMemoryModal();
-            document.getElementById('result-box').classList.add('hidden');
+            const snapshot = await get(ref(db, `wishes/${currentCompletingId}`)); const item = snapshot.val();
+            if (item && item.status !== 'done') updates[`wishes/${currentCompletingId}/doneAt`] = Date.now();
+            if (currentPhotoBase64) updates[`wishes/${currentCompletingId}/memoryPhoto`] = currentPhotoBase64;
+            if (note) { const commentId = push(ref(db, `wishes/${currentCompletingId}/comments`)).key; updates[`wishes/${currentCompletingId}/comments/${commentId}`] = { text: note, by: user, timestamp: Date.now() }; }
+            await update(ref(db), updates); closeMemoryModal(); document.getElementById('result-box').classList.add('hidden');
         };
 
-        window.saveRating = (id, val) => { 
-            const u = localStorage.getItem('currentUser'); 
-            const field = u === 'Meriam' ? 'ratingMeriam' : 'ratingSamet'; 
-            const up = {}; up[field] = val; 
-            update(ref(db, `wishes/${id}`), up); 
-        };
+        window.saveRating = (id, val) => { const u = localStorage.getItem('currentUser'); const field = u === 'Meriam' ? 'ratingMeriam' : 'ratingSamet'; const up = {}; up[field] = val; update(ref(db, `wishes/${id}`), up); };
         window.deleteWish = (id) => remove(ref(db, `wishes/${id}`));
 
         document.getElementById('btn-add').onclick = () => {
-            const input = document.getElementById('wish-input'); 
-            if(!input.value.trim()) return;
-            push(ref(db, 'wishes'), { 
-                text: input.value, 
-                location: document.getElementById('location-input').value.trim(), 
-                info: document.getElementById('info-input').value.trim(), 
-                cat: document.getElementById('cat-select').value, 
-                weather: document.getElementById('weather-select').value, 
-                surprise: document.getElementById('surprise-toggle').checked, 
-                isBucket: document.getElementById('bucket-toggle').checked, 
-                by: localStorage.getItem('currentUser'), 
-                timestamp: Date.now(), 
-                status: 'open' 
-            });
-            input.value = ""; 
-            document.getElementById('location-input').value = ""; 
-            document.getElementById('info-input').value = ""; 
-            document.getElementById('surprise-toggle').checked = false; 
-            document.getElementById('bucket-toggle').checked = false;
+            const input = document.getElementById('wish-input'); if(!input.value.trim()) return;
+            push(ref(db, 'wishes'), { text: input.value, location: document.getElementById('location-input').value.trim(), info: document.getElementById('info-input').value.trim(), cat: document.getElementById('cat-select').value, weather: document.getElementById('weather-select').value, surprise: document.getElementById('surprise-toggle').checked, isBucket: document.getElementById('bucket-toggle').checked, by: localStorage.getItem('currentUser'), timestamp: Date.now(), status: 'open' });
+            input.value = ""; document.getElementById('location-input').value = ""; document.getElementById('info-input').value = ""; document.getElementById('surprise-toggle').checked = false; document.getElementById('bucket-toggle').checked = false;
         };
 
         document.getElementById('btn-roll').onclick = () => {
+            const btn = document.getElementById('btn-roll');
+            const diceContainer = document.getElementById('dice-container');
+            const cube = document.getElementById('cube-3d');
+            const lockScreen = document.getElementById('lock-screen');
+            const resBox = document.getElementById('result-box');
+            const flash = document.getElementById('flash-layer');
+            const lockText = document.getElementById('lock-text');
+            const lockSvg = document.querySelector('.lock-svg');
+
+            resBox.classList.add('hidden'); resBox.classList.remove('magic-pop-in');
+            lockScreen.classList.add('hidden'); diceContainer.classList.remove('hidden'); diceContainer.style.opacity = "1";
+            lockSvg.classList.remove('lock-open', 'lock-rattle', 'lock-pop-in');
+
             onValue(ref(db, 'wishes'), (snap) => {
-                const data = snap.val(); 
-                if(!data) return;
+                const data = snap.val(); if(!data) return;
                 let wishes = Object.keys(data).filter(id => data[id].status === 'open' && !data[id].isBucket);
-                const fCat = document.getElementById('filter-cat').value; 
-                if(fCat !== "Alle") wishes = wishes.filter(id => data[id].cat === fCat);
-                if(wishes.length === 0) return alert("Nichts gefunden!");
-                
-                rolledDateId = wishes[Math.floor(Math.random() * wishes.length)]; 
-                const chosen = data[rolledDateId];
-                const dice = document.getElementById('dice'); 
-                const resBox = document.getElementById('result-box'); 
-                const lock = document.getElementById('lock-screen');
-                
-                dice.classList.add('rolling'); 
-                resBox.classList.add('hidden'); 
-                lock.classList.add('hidden');
-                
-                setTimeout(() => { 
-                    dice.classList.remove('rolling'); 
-                    if(chosen.surprise) { 
-                        lock.classList.remove('hidden'); 
-                        setTimeout(() => { 
-                            lock.classList.add('hidden'); 
-                            showResult(chosen); 
-                        }, 2000); 
-                    } else showResult(chosen); 
-                }, 1200);
+                const fCat = document.getElementById('filter-cat').value; if(fCat !== "Alle") wishes = wishes.filter(id => data[id].cat === fCat);
+                if(wishes.length === 0) return alert("Nichts gefunden!"); 
+                rolledDateId = wishes[Math.floor(Math.random() * wishes.length)]; const chosen = data[rolledDateId];
+
+                cube.classList.add('is-spinning'); btn.disabled = true; btn.innerHTML = "🎲 WÜRFELT...";
+
+                setTimeout(() => {
+                    cube.classList.remove('is-spinning');
+                    if(chosen.surprise) {
+                        diceContainer.classList.add('hidden'); lockScreen.classList.remove('hidden'); lockSvg.classList.add('lock-pop-in'); lockText.innerText = "GEHEIME MISSION...";
+                        setTimeout(() => { lockSvg.classList.add('lock-rattle'); lockText.innerText = "ZUGRIFF GEPRÜFT..."; }, 800);
+                        setTimeout(() => { lockSvg.classList.remove('lock-rattle'); lockSvg.classList.add('lock-open'); flash.classList.add('do-flash'); lockText.innerText = "ZUGRIFF ERLAUBT!"; lockText.classList.add('text-green-500'); setTimeout(() => { playSound('success'); lockScreen.classList.add('hidden'); flash.classList.remove('do-flash'); showResult(chosen); btn.disabled = false; btn.innerText = "WÜRFELN"; lockText.classList.remove('text-green-500'); }, 1000); }, 2500);
+                    } else {
+                        diceContainer.classList.add('hidden'); showResult(chosen); document.getElementById('result-box').classList.add('magic-pop-in'); playSound('success'); btn.disabled = false; btn.innerText = "WÜRFELN";
+                    }
+                }, 1500);
             }, { onlyOnce: true });
         };
 
@@ -2077,34 +1139,36 @@
             const resBox = document.getElementById('result-box'); 
             document.getElementById('final-choice').innerText = chosen.text;
             document.getElementById('final-info').innerText = chosen.info ? chosen.info : "";
-            
-            // Mapping für bessere Lesbarkeit - ANGEPASST
             const catMap = { 'Sofort': '⚡ Spontan möglich', 'Planung': '📅 Planung nötig' };
             const weatherMap = { 'Egal': '☁️ Wetter spielt keine Rolle', 'Sonne': '☀️ Bei Sonne schöner', 'Regen': '🏠 Indoor / Auch bei schlechten Wetter möglich' };
-            const catText = catMap[chosen.cat] || chosen.cat;
-            const weatherText = weatherMap[chosen.weather] || chosen.weather;
-
-            document.getElementById('result-labels').innerHTML = `<span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${catText}</span><span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${weatherText}</span>`;
+            document.getElementById('result-labels').innerHTML = `<span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${catMap[chosen.cat] || chosen.cat}</span><span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${weatherMap[chosen.weather] || chosen.weather}</span>`;
             
-            if(chosen.location) { 
-                document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(chosen.location)}&output=embed`; 
-                document.getElementById('map-container').classList.remove('hidden'); 
-            } else document.getElementById('map-container').classList.add('hidden');
+            if(chosen.location) { document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(chosen.location)}&output=embed`; document.getElementById('map-container').classList.remove('hidden'); } 
+            else document.getElementById('map-container').classList.add('hidden');
             
-            const b = document.getElementById('result-creator-badge'); 
-            b.innerText = "Idee von " + chosen.by; 
-            b.className = "user-badge " + (chosen.by === 'Meriam' ? 'badge-meriam' : 'badge-samet');
-            
-            resBox.classList.remove('hidden'); 
-            document.getElementById('unfold-wrapper').classList.add('unfold-anim');
-            document.getElementById('challenge-display').classList.add('hidden'); 
-            document.getElementById('challenge-btn-container').classList.remove('hidden');
+            const b = document.getElementById('result-creator-badge'); b.innerText = "Idee von " + chosen.by; b.className = "user-badge " + (chosen.by === 'Meriam' ? 'badge-meriam' : 'badge-samet');
+            resBox.classList.remove('hidden'); document.getElementById('unfold-wrapper').classList.add('unfold-anim');
+            document.getElementById('challenge-display').classList.add('hidden'); document.getElementById('challenge-btn-container').classList.remove('hidden');
         };
 
         document.getElementById('btn-accept-date-only-main').onclick = () => { window.startActiveDate(rolledDateId); };
         document.getElementById('btn-accept-both').onclick = () => { window.startActiveDate(rolledDateId); };
         document.getElementById('btn-accept-date-only-sub').onclick = () => { window.startActiveDate(rolledDateId); };
         document.getElementById('btn-logout').onclick = () => { localStorage.clear(); location.reload(); };
+        
+        document.getElementById('btn-movie-diplomat').onclick = async () => {
+            const prefM = document.getElementById('movie-pref-meriam').value.trim();
+            const prefS = document.getElementById('movie-pref-samet').value.trim();
+            const btn = document.getElementById('btn-movie-diplomat');
+            const resBox = document.getElementById('movie-result');
+            const resText = document.getElementById('movie-text');
+            if (!prefM || !prefS) return alert("Bitte gebt beide eine Richtung an! 🍿");
+            const originalText = btn.innerText; btn.innerText = "🔍 Scanne Datenbank..."; btn.disabled = true; resBox.classList.remove('hidden'); resText.style.opacity = '0.5'; resText.innerText = "Analysiere Genres...\nSuche Kompromiss...";
+            const prompt = `Agiere als Film-Experte für ein Paar. Sie will: "${prefM}". Er will: "${prefS}". Finde exakt 3 existierende Filme, die den perfekten Kompromiss bilden. Format pro Zeile: "Titel (Jahr) - Kurze Begründung". Wähle nur gute Filme (IMDb 7.0+). Antworte auf Deutsch.`;
+            const suggestion = await callGemini(prompt);
+            resText.innerText = suggestion ? suggestion : "Keine Verbindung zu Hollywood. Probier's nochmal!";
+            resText.style.opacity = '1'; btn.innerText = originalText; btn.disabled = false;
+        };
         
         checkAuth();
     </script>
