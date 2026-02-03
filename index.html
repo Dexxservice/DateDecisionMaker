@@ -606,10 +606,14 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
         
         const firebaseConfig = { apiKey: "AIzaSyCKF4yb7X6XDt5PSTMwiXmn0y7j9aTVMjc", authDomain: "date-decision-maker.firebaseapp.com", databaseURL: "https://date-decision-maker-default-rtdb.europe-west1.firebasedatabase.app", projectId: "date-decision-maker", storageBucket: "date-decision-maker.firebasestorage.app", messagingSenderId: "187389563873", appId: "1:187389563873:web:4fa5fea6a44c42e18078a0", measurementId: "G-LKDJCYHYQW" };
         const app = initializeApp(firebaseConfig); 
         const db = getDatabase(app);
+        const storage = getStorage(app);
+
 
         // --- SOUND & SETTINGS ENGINE ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1079,7 +1083,18 @@ async function callAI(prompt) {
                 img.src = e.target.result;
             };
             reader.readAsDataURL(file);
-        }
+        };
+async function uploadPhotoForWish(wishId, dataUrl) {
+  if (!dataUrl) return "";
+  if (!dataUrl.startsWith("data:")) return dataUrl;
+
+  const path = `wishes/${wishId}/memory.jpg`;
+  const storageReference = sRef(storage, path);
+
+  await uploadString(storageReference, dataUrl, "data_url");
+  const url = await getDownloadURL(storageReference);
+  return url;
+}
 
         // --- NEW VIEW MODAL LOGIC (Nur Ansehen) ---
         window.openMemoryView = async (id) => {
@@ -1437,7 +1452,11 @@ async function callAI(prompt) {
             updates[`wishes/${currentCompletingId}/status`] = 'done';
             const snapshot = await get(ref(db, `wishes/${currentCompletingId}`)); const item = snapshot.val();
             if (item && item.status !== 'done') updates[`wishes/${currentCompletingId}/doneAt`] = Date.now();
-            if (currentPhotoBase64) updates[`wishes/${currentCompletingId}/memoryPhoto`] = currentPhotoBase64;
+          if (currentPhotoBase64) {
+  const url = await uploadPhotoForWish(currentCompletingId, currentPhotoBase64);
+  updates[`wishes/${currentCompletingId}/memoryPhoto`] = url;
+}
+
             if (note) { const commentId = push(ref(db, `wishes/${currentCompletingId}/comments`)).key; updates[`wishes/${currentCompletingId}/comments/${commentId}`] = { text: note, by: user, timestamp: Date.now() }; }
             await update(ref(db), updates); closeMemoryModal(); document.getElementById('result-box').classList.add('hidden');
         };
