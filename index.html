@@ -610,7 +610,7 @@
 
         
         const firebaseConfig = { apiKey: "AIzaSyCKF4yb7X6XDt5PSTMwiXmn0y7j9aTVMjc", authDomain: "date-decision-maker.firebaseapp.com", databaseURL: "https://date-decision-maker-default-rtdb.europe-west1.firebasedatabase.app", projectId: "date-decision-maker", storageBucket: "date-decision-maker.firebasestorage.app", messagingSenderId: "187389563873", appId: "1:187389563873:web:4fa5fea6a44c42e18078a0", measurementId: "G-LKDJCYHYQW" };
-        const app = initializeApp(firebaseConfig); 
+        const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const storage = getStorage(app);
 
@@ -1446,6 +1446,11 @@ async function uploadPhotoForWish(wishId, dataUrl) {
 
         document.getElementById('btn-save-memory').onclick = async () => {
             if (!currentCompletingId) return;
+            const saveBtn = document.getElementById('btn-save-memory');
+            saveBtn.disabled = true;
+            const oldText = saveBtn.innerText;
+            saveBtn.innerText = "⏳ Lädt hoch...";
+
             const note = document.getElementById('memory-note').value.trim();
             const user = localStorage.getItem('currentUser');
             const updates = {};
@@ -1459,6 +1464,9 @@ async function uploadPhotoForWish(wishId, dataUrl) {
 
             if (note) { const commentId = push(ref(db, `wishes/${currentCompletingId}/comments`)).key; updates[`wishes/${currentCompletingId}/comments/${commentId}`] = { text: note, by: user, timestamp: Date.now() }; }
             await update(ref(db), updates); closeMemoryModal(); document.getElementById('result-box').classList.add('hidden');
+            saveBtn.disabled = false;
+            saveBtn.innerText = oldText;
+
         };
 
         window.saveRating = (id, val) => { const u = localStorage.getItem('currentUser'); const field = u === 'Meriam' ? 'ratingMeriam' : 'ratingSamet'; const up = {}; up[field] = val; update(ref(db, `wishes/${id}`), up); };
