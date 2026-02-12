@@ -253,27 +253,38 @@
             .ui-enter, .ui-enter.ui-enter-active, .ui-exit-active{ transition: none !important; transform: none !important; }
             .input-pop{ animation: none !important; }
         }
-        /* PIN: Zahlen-Keypad + trotzdem maskiert */
-            #pass-input{
-            -webkit-text-security: disc; /* iOS/Safari: wie Passwortpunkte */
-            }
-        /* Mobile: kein unnötiger Leerraum + kein Scroll */
-html, body{
-  height: 100%;
-  overflow: hidden; /* verhindert das "hoch/runter rutschen" */
-}
 
-@supports (height: 100dvh){
-  body{ min-height: 100dvh; }
-  #login-screen{ min-height: 100dvh; height: 100dvh; }
-}
 
-/* nur auf kleinen Screens: weniger Bottom-Padding */
-@media (max-width: 480px){
-  #login-screen{
-    padding-bottom: 1.25rem !important; /* statt pb-10 */
-  }
+/* --- PIN styles (C24-like) --- */
+.pin-dot{
+  width: 14px; height: 14px; border-radius: 999px;
+  border: 2px solid rgba(20,184,166,0.35);
+  background: rgba(255,255,255,0.6);
+  box-shadow: inset 0 0 0 1px rgba(236,72,153,0.08);
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
 }
+.pin-dot.filled{
+  background: rgba(20,184,166,0.95);
+  border-color: rgba(20,184,166,0.95);
+  transform: scale(1.08);
+}
+.pin-key{
+  width: 64px; height: 64px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(148,163,184,0.25);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+  font-weight: 900;
+  font-size: 1.35rem;
+  color: #0f172a;
+  display: grid;
+  place-items: center;
+  transition: transform .08s ease, filter .12s ease;
+}
+.pin-key:active{ transform: scale(0.96); filter: brightness(0.97); }
+.pin-key-icon{ font-size: 1rem; color: #64748b; }
+        .pin-spacer{ width: 64px; height: 64px; }
+
 </style>
 </head>
 <body class="theme-original min-h-screen flex flex-col items-center select-none transition-colors duration-500">
@@ -301,26 +312,51 @@ html, body{
                 <p class="text-[10px] text-gray-400 font-bold uppercase mt-2">Valentinstag '26 - Special Build</p>
             </div>
             
-            <div id="auth-stage" class="relative mt-10 min-h-[260px]">
-            <div id="user-selection" class="space-y-4 absolute inset-0">
+            <div id="auth-stage" class="mt-10">
+            <div id="user-selection" class="space-y-4">
                 <p class="text-xs font-bold text-gray-500 uppercase mb-4">Profil auswählen</p>
                 <button onclick="playSound('click'); startAuth('Meriam')" class="pink-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Meriam</button>
                 <button onclick="playSound('click'); startAuth('Samet')" class="teal-btn w-full py-6 rounded-3xl font-black text-xl shadow-lg transition-all">Samet</button>
             </div>
 
-            <div id="password-area" class="hidden absolute inset-0 animate-fade-in">
-                <p id="password-msg" class="text-xs font-bold text-gray-500 mb-6 uppercase">Passwort erforderlich</p>
-                <input
-                        type="text"
-                        id="pass-input"
-                        inputmode="numeric"
-                        pattern="[0-9]*"
-                        autocomplete="one-time-code"
-                        placeholder="••••"
-                        class="w-full text-center p-5 bg-teal-50 rounded-2xl mb-6 outline-none text-3xl tracking-[0.4em] font-black border-2 border-teal-100 focus:border-pink-300 transition-all">
-                <button id="btn-login-confirm" onclick="playSound('success')" class="pink-btn w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Entsperren ✨</button>
-                <button onclick="playSound('click'); location.reload()" class="text-[10px] text-gray-400 mt-6 underline uppercase font-bold">Abbrechen</button>
-            </div>
+            <div id="pin-area" class="hidden animate-fade-in">
+  <p id="pin-msg" class="text-xs font-bold text-gray-500 mb-6 uppercase">PIN erforderlich</p>
+
+  <div class="flex justify-center gap-4 mb-8" aria-label="PIN Eingabe">
+    <span class="pin-dot" data-pin-dot="0"></span>
+    <span class="pin-dot" data-pin-dot="1"></span>
+    <span class="pin-dot" data-pin-dot="2"></span>
+    <span class="pin-dot" data-pin-dot="3"></span>
+  </div>
+
+  <div class="grid grid-cols-3 gap-4 justify-items-center">
+    <button class="pin-key" onclick="pinPress('1')">1</button>
+    <button class="pin-key" onclick="pinPress('2')">2</button>
+    <button class="pin-key" onclick="pinPress('3')">3</button>
+
+    <button class="pin-key" onclick="pinPress('4')">4</button>
+    <button class="pin-key" onclick="pinPress('5')">5</button>
+    <button class="pin-key" onclick="pinPress('6')">6</button>
+
+    <button class="pin-key" onclick="pinPress('7')">7</button>
+    <button class="pin-key" onclick="pinPress('8')">8</button>
+    <button class="pin-key" onclick="pinPress('9')">9</button>
+    <div class="pin-spacer" aria-hidden="true"></div>
+
+<button class="pin-key" onclick="pinPress('0')">0</button>
+
+    <button class="pin-key pin-key-icon" onclick="pinBackspace()" aria-label="Löschen">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 6H9.5a2 2 0 0 0-1.6.8L4 12l3.9 5.2a2 2 0 0 0 1.6.8H20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M15 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M9 9l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <button onclick="pinForgot()" class="mt-8 text-[10px] text-gray-400 underline uppercase font-bold">PIN vergessen?</button>
+  <button onclick="playSound('click'); location.reload()" class="text-[10px] text-gray-400 mt-4 underline uppercase font-bold">Abbrechen</button>
+</div>
             </div>
         </div>
         <footer class="text-center mt-12 relative z-10">
@@ -731,39 +767,7 @@ html, body{
             };
             el.addEventListener('transitionend', done);
         };
-
-        // Stabilize auth card height so it doesn't "grow" when switching Profil -> Passwort
-        const setupAuthStageHeight = () => {
-            const stage = document.getElementById('auth-stage');
-            const userSel = document.getElementById('user-selection');
-            const passArea = document.getElementById('password-area');
-            if (!stage || !userSel || !passArea) return;
-
-            // measure user-selection
-            const userH = userSel.offsetHeight;
-
-            // measure password-area without affecting layout/animations
-            const wasHidden = passArea.classList.contains('hidden');
-            const prevVisibility = passArea.style.visibility;
-            const prevPointer = passArea.style.pointerEvents;
-
-            if (wasHidden) passArea.classList.remove('hidden');
-            passArea.style.visibility = 'hidden';
-            passArea.style.pointerEvents = 'none';
-
-            const passH = passArea.offsetHeight;
-
-            // restore
-            passArea.style.visibility = prevVisibility;
-            passArea.style.pointerEvents = prevPointer;
-            if (wasHidden) passArea.classList.add('hidden');
-
-            const target = Math.max(userH, passH);
-            stage.style.height = target + 'px';
-        };
         // run after layout settles (prevents auth-stage height = 0 on first paint)
-        requestAnimationFrame(() => { setupAuthStageHeight(); requestAnimationFrame(setupAuthStageHeight); });
-        window.addEventListener('load', setupAuthStageHeight);
 
 
         const pulseInput = (el) => {
@@ -1325,29 +1329,112 @@ const clean = question ? question.replace(/["']/g, "").trim() : "Welche kleine S
         };
         setInterval(updateUptime, 3600000);
 
-        window.startAuth = async (user) => {
-            const snap = await get(ref(db, `users/${user}`)); 
-            const userData = snap.val();
-            // Smooth: Profil-Auswahl raus, Passwort rein
-            smoothHide(document.getElementById('user-selection'));
-            // Passwort erst minimal verzögert rein, damit nichts „hochspringt“
-            setTimeout(() => smoothPopIn(document.getElementById('password-area')), 110);
-            // Kleiner Focus-Delay für smoother Transition
-            setTimeout(() => { document.getElementById('pass-input')?.focus(); }, 230);
-            if (!userData || !userData.password) {
-                document.getElementById('password-msg').innerText = "Wähle dein erstes Passwort:";
-                document.getElementById('btn-login-confirm').onclick = async () => {
-                    const p = document.getElementById('pass-input').value; 
-                    if(p.length < 4) return alert("Min. 4 Zeichen!");
-                    await set(ref(db, `users/${user}/password`), p); login(user);
-                };
-            } else {
-                document.getElementById('password-msg').innerText = `${user}, gib dein Passwort ein:`;
-                document.getElementById('btn-login-confirm').onclick = () => {
-                    if(document.getElementById('pass-input').value === userData.password) login(user); else alert("Falsches Passwort!");
-                };
-            }
-        };
+        // --- PIN AUTH (4-stellig) ---
+const PIN_LEN = 4;
+let activeAuthUser = null;
+let expectedPin = null;
+let pinBuffer = "";
+let pinSetupMode = false;
+let pinSetupFirst = null;
+
+const setPinDots = () => {
+  const dots = document.querySelectorAll('[data-pin-dot]');
+  dots.forEach((d, i) => d.classList.toggle('filled', i < pinBuffer.length));
+};
+
+const resetPin = () => { pinBuffer = ""; setPinDots(); };
+
+window.pinPress = (digit) => {
+  playSound('click');
+  if (!activeAuthUser) return;
+  if (pinBuffer.length >= PIN_LEN) return;
+
+  pinBuffer += String(digit);
+  setPinDots();
+
+  if (pinBuffer.length === PIN_LEN) {
+    setTimeout(() => verifyPin(), 120);
+  }
+};
+
+window.pinBackspace = () => {
+  playSound('click');
+  pinBuffer = pinBuffer.slice(0, -1);
+  setPinDots();
+};
+
+window.pinForgot = () => {
+  playSound('click');
+  alert('PIN vergessen?\n\nOptionen:\n- Admin kann PIN in Firebase unter users/<Name>/pin ändern\n- oder PIN-Feld löschen, dann wird beim nächsten Login eine neue PIN gesetzt.');
+};
+
+const verifyPin = async () => {
+  // Setup: 2x eingeben
+  if (pinSetupMode) {
+    if (pinSetupFirst == null) {
+      pinSetupFirst = pinBuffer;
+      resetPin();
+      document.getElementById('pin-msg').innerText = 'PIN nochmal eingeben:';
+      return;
+    }
+
+    if (pinBuffer !== pinSetupFirst) {
+      resetPin();
+      pinSetupFirst = null;
+      alert('PINs stimmen nicht überein. Nochmal!');
+      document.getElementById('pin-msg').innerText = 'Wähle deine erste PIN:';
+      return;
+    }
+
+    // speichern
+    await set(ref(db, `users/${activeAuthUser}/pin`), pinBuffer);
+    pinSetupMode = false;
+    pinSetupFirst = null;
+    login(activeAuthUser);
+    return;
+  }
+
+  // Verify
+  if (pinBuffer === expectedPin) {
+    login(activeAuthUser);
+  } else {
+    const area = document.getElementById('pin-area');
+    area.classList.add('lock-rattle');
+    setTimeout(() => area.classList.remove('lock-rattle'), 220);
+    alert('Falsche PIN!');
+    resetPin();
+  }
+};
+
+// ERSETZT Passwort-Auth: Profil -> PIN Screen
+window.startAuth = async (user) => {
+  const snap = await get(ref(db, `users/${user}`));
+  const userData = snap.val() || {};
+
+  activeAuthUser = user;
+  expectedPin = userData.pin || null;
+
+  // Greeting wie im Screenshot (falls vorhanden)
+  const title = document.getElementById('auth-title') || document.getElementById('login-title') || null;
+  if (title) title.innerText = `Guten Tag,\n${userData.displayName || user}`;
+
+  smoothHide(document.getElementById('user-selection'));
+  setTimeout(() => smoothPopIn(document.getElementById('pin-area')), 110);
+
+  resetPin();
+
+  if (!expectedPin) {
+    pinSetupMode = true;
+    pinSetupFirst = null;
+    document.getElementById('pin-msg').innerText = 'Wähle deine erste PIN:';
+  } else {
+    pinSetupMode = false;
+    pinSetupFirst = null;
+    document.getElementById('pin-msg').innerText = `${user}, gib deine PIN ein:`;
+  }
+};
+
+
 
         const login = (u) => { sessionStorage.setItem('currentUser', u); sessionStorage.setItem('lastActive', String(Date.now())); 
 
@@ -1357,13 +1444,10 @@ const clean = question ? question.replace(/["']/g, "").trim() : "Welche kleine S
             passEl.classList.add('soft-typing');
             let typingTimer = null;
             passEl.addEventListener('input', () => {
-    // nur Zahlen erlauben (keine Buchstaben, keine Leerzeichen)
-    passEl.value = passEl.value.replace(/\D/g, '');
-
-    passEl.classList.add('is-typing');
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(() => passEl.classList.remove('is-typing'), 250);
-});
+                passEl.classList.add('is-typing');
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(() => passEl.classList.remove('is-typing'), 260);
+            });
         }
 
 checkAuth(); };
