@@ -253,6 +253,27 @@
             .ui-enter, .ui-enter.ui-enter-active, .ui-exit-active{ transition: none !important; transform: none !important; }
             .input-pop{ animation: none !important; }
         }
+        /* PIN: Zahlen-Keypad + trotzdem maskiert */
+            #pass-input{
+            -webkit-text-security: disc; /* iOS/Safari: wie Passwortpunkte */
+            }
+        /* Mobile: kein unnötiger Leerraum + kein Scroll */
+html, body{
+  height: 100%;
+  overflow: hidden; /* verhindert das "hoch/runter rutschen" */
+}
+
+@supports (height: 100dvh){
+  body{ min-height: 100dvh; }
+  #login-screen{ min-height: 100dvh; height: 100dvh; }
+}
+
+/* nur auf kleinen Screens: weniger Bottom-Padding */
+@media (max-width: 480px){
+  #login-screen{
+    padding-bottom: 1.25rem !important; /* statt pb-10 */
+  }
+}
 </style>
 </head>
 <body class="theme-original min-h-screen flex flex-col items-center select-none transition-colors duration-500">
@@ -289,7 +310,14 @@
 
             <div id="password-area" class="hidden absolute inset-0 animate-fade-in">
                 <p id="password-msg" class="text-xs font-bold text-gray-500 mb-6 uppercase">Passwort erforderlich</p>
-                <input type="password" id="pass-input" placeholder="••••" class="w-full text-center p-5 bg-teal-50 rounded-2xl mb-6 outline-none text-3xl tracking-[0.4em] font-black border-2 border-teal-100 focus:border-pink-300 transition-all">
+                <input
+                        type="text"
+                        id="pass-input"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        autocomplete="one-time-code"
+                        placeholder="••••"
+                        class="w-full text-center p-5 bg-teal-50 rounded-2xl mb-6 outline-none text-3xl tracking-[0.4em] font-black border-2 border-teal-100 focus:border-pink-300 transition-all">
                 <button id="btn-login-confirm" onclick="playSound('success')" class="pink-btn w-full py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl">Entsperren ✨</button>
                 <button onclick="playSound('click'); location.reload()" class="text-[10px] text-gray-400 mt-6 underline uppercase font-bold">Abbrechen</button>
             </div>
@@ -1329,10 +1357,13 @@ const clean = question ? question.replace(/["']/g, "").trim() : "Welche kleine S
             passEl.classList.add('soft-typing');
             let typingTimer = null;
             passEl.addEventListener('input', () => {
-                passEl.classList.add('is-typing');
-                clearTimeout(typingTimer);
-                typingTimer = setTimeout(() => passEl.classList.remove('is-typing'), 260);
-            });
+    // nur Zahlen erlauben (keine Buchstaben, keine Leerzeichen)
+    passEl.value = passEl.value.replace(/\D/g, '');
+
+    passEl.classList.add('is-typing');
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => passEl.classList.remove('is-typing'), 250);
+});
         }
 
 checkAuth(); };
