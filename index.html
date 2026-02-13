@@ -285,16 +285,7 @@
 .pin-key-icon{ font-size: 1rem; color: #64748b; }
         .pin-spacer{ width: 64px; height: 64px; }
 
-
-        /* Multi-Image Thumbnails + Viewer */
-        #preview-thumbs::-webkit-scrollbar, #ms-preview-thumbs::-webkit-scrollbar { height: 6px; }
-        #preview-thumbs::-webkit-scrollbar-thumb, #ms-preview-thumbs::-webkit-scrollbar-thumb { background: rgba(148,163,184,.4); border-radius: 999px; }
-        .thumb-chip { width: 54px; height: 54px; border-radius: 14px; object-fit: cover; border: 2px solid rgba(20,184,166,.25); box-shadow: 0 10px 25px rgba(0,0,0,.06); cursor: pointer; flex: 0 0 auto; }
-        .thumb-chip.active { border-color: rgba(236,72,153,.9); }
-        .view-dot { width: 8px; height: 8px; border-radius: 999px; background: rgba(148,163,184,.45); }
-        .view-dot.active { background: rgba(20,184,166,.95); }
-
-    </style>
+</style>
 </head>
 <body class="theme-original min-h-screen flex flex-col items-center select-none transition-colors duration-500">
 
@@ -405,16 +396,6 @@
             <button onclick="document.getElementById('view-memory-modal').classList.add('hidden')" class="absolute -top-10 right-0 text-white text-3xl font-bold">×</button>
             <div class="bg-white p-2 rounded-2xl shadow-2xl rotate-1">
                 <img id="view-img" class="w-full rounded-xl object-cover max-h-[60vh] bg-gray-100">
-                <div class="flex items-center justify-between px-2 pt-2">
-                    <button id="view-prev" class="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 text-xs font-black" onclick="viewPrev()">←</button>
-                    <div id="view-dots" class="flex gap-2 items-center justify-center"></div>
-                    <button id="view-next" class="px-3 py-2 rounded-xl bg-white/90 border border-gray-200 text-xs font-black" onclick="viewNext()">→</button>
-                </div>
-                <div class="flex gap-2 px-2 pt-2">
-                    <button class="flex-1 px-3 py-3 rounded-2xl bg-teal-500 text-white text-xs font-black uppercase" onclick="editFromView()">Bearbeiten</button>
-                    <button class="flex-1 px-3 py-3 rounded-2xl bg-pink-500 text-white text-xs font-black uppercase" onclick="deleteCurrentPhotoFromView()">Bild löschen</button>
-                </div>
-
                 <div class="p-6 text-center">
                     <h3 id="view-title" class="font-black text-2xl text-gray-800 mb-1 font-['Caveat']"></h3>
                     <p id="view-date" class="text-[10px] uppercase font-bold text-gray-400 mb-4"></p>
@@ -431,10 +412,9 @@
             <div class="space-y-3">
                 <label class="block w-full p-4 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative">
                     <span id="upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto hinzufügen</span>
-                    <input id="memory-photo-file" type="file" accept="image/*" multiple class="hidden" onchange="handleFileUpload(this)">
+                    <input id="memory-photo-file" type="file" accept="image/*" class="hidden" onchange="handleFileUpload(this)">
                 </label>
                 <img id="preview-image" class="hidden w-full h-32 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm animate-fade-in">
-                <div id="preview-thumbs" class="hidden mt-2 flex gap-2 overflow-x-auto pb-1"></div>
                 <textarea id="memory-note" placeholder="Schreibe einen Kommentar..." class="w-full p-4 bg-teal-50 rounded-xl outline-none text-sm h-24 resize-none border border-transparent focus:border-teal-300 transition-all"></textarea>
             </div>
             <div class="mt-6 space-y-2">
@@ -466,10 +446,9 @@
                     </div>
                     <label class="block w-full p-3 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative mt-3">
                         <span id="ms-upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Foto ändern</span>
-                        <input id="ms-photo-file" type="file" accept="image/*" multiple class="hidden" onchange="handleMilestonePhotoUpload(this)">
+                        <input id="ms-photo-file" type="file" accept="image/*" class="hidden" onchange="handleMilestonePhotoUpload(this)">
                     </label>
                     <img id="ms-preview-image" class="hidden w-full h-24 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
-                    <div id="ms-preview-thumbs" class="hidden mt-2 flex gap-2 overflow-x-auto pb-1"></div>
                     <textarea id="ms-note" placeholder="Notiz..." class="w-full p-3 bg-teal-50 rounded-xl outline-none h-20 resize-none mt-2"></textarea>
                 </div>
             </div>
@@ -729,16 +708,10 @@
         <button onclick="switchTab('fun')" class="nav-item" id="nav-fun"><span class="text-xl mb-1">🎡</span><span>Fun</span></button>
     </nav>
 
-    
-<script>
-  // Safe sound helper (prevents ReferenceError if sound system isn't loaded)
-  function playSound(){ /* no-op */ }
-</script>
-
-<script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getStorage, ref as sRef, uploadBytes, uploadString, deleteObject, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         
         const firebaseConfig = { apiKey: "AIzaSyCKF4yb7X6XDt5PSTMwiXmn0y7j9aTVMjc", authDomain: "date-decision-maker.firebaseapp.com", databaseURL: "https://date-decision-maker-default-rtdb.europe-west1.firebasedatabase.app", projectId: "date-decision-maker", storageBucket: "date-decision-maker.firebasestorage.app", messagingSenderId: "187389563873", appId: "1:187389563873:web:4fa5fea6a44c42e18078a0", measurementId: "G-LKDJCYHYQW" };
@@ -747,39 +720,7 @@
         const storage = getStorage(app);
 
 
-        
-        // --- PHOTO HELPERS (Storage URLs + optional path metadata) ---
-        // Supports legacy data:
-        // - memoryPhoto: string URL
-        // - memoryPhotos: array of string URLs
-        // New format:
-        // - memoryPhotos: [{ url: string, path: string }]
-        const normalizePhotoArray = (data) => {
-            if (!data) return [];
-            const arr = Array.isArray(data.memoryPhotos) ? data.memoryPhotos : (data.memoryPhoto ? [data.memoryPhoto] : []);
-            return arr.map(p => {
-                if (!p) return null;
-                if (typeof p === 'string') return { url: p, path: null };
-                if (typeof p === 'object' && p.url) return { url: p.url, path: p.path || null };
-                return null;
-            }).filter(Boolean);
-        };
-
-        const makeSafeName = (name) => (name || 'photo').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
-        const buildPhotoPath = (wishId, fileName) => `wishes/${wishId}/photos/${Date.now()}_${Math.random().toString(16).slice(2)}_${makeSafeName(fileName)}`;
-
-        const uploadFilesToStorage = async (wishId, files) => {
-            const uploaded = [];
-            for (const f of files) {
-                const path = buildPhotoPath(wishId, f.name);
-                const sr = sRef(storage, path);
-                await uploadBytes(sr, f);
-                const url = await getDownloadURL(sr);
-                uploaded.push({ url, path });
-            }
-            return uploaded;
-        };
-// --- SOUND & SETTINGS ENGINE ---
+        // --- SOUND & SETTINGS ENGINE ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let soundEnabled = localStorage.getItem('soundEnabled') !== 'false'; 
         let currentTheme = localStorage.getItem('theme') || 'theme-original';
@@ -1175,11 +1116,7 @@ async function callAI(prompt) {
 
         let rolledDateId = null;
         let currentCompletingId = null;
-        let currentPhotoUrl = "";
-        currentPhotoUrl = currentPhotoUrl || "";
-        let currentPhotoUrlList = [];
-        let milestonePhotoList = [];
-
+        let currentPhotoBase64 = "";
         let countdownTarget = null;
         let countdownTitle = "";
         let relationshipStart = null;
@@ -1611,47 +1548,45 @@ checkAuth(); };
             document.getElementById('result-box').classList.remove('magic-pop-in');
         };
 
-                window.handleFileUpload = async (input) => {
-            const files = Array.from(input.files || []);
-            if (!files.length) return;
-            playSound('click');
-
-            const compressToDataUrl = (file) => new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const MAX_WIDTH = 900;
-                        let width = img.width, height = img.height;
-                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                        canvas.width = width; canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.72));
-                    };
-                    img.src = e.target.result;
+        window.handleFileUpload = (input) => {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                    currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    const preview = document.getElementById('preview-image'); preview.src = currentPhotoBase64; preview.classList.remove('hidden');
+                    document.getElementById('upload-text').innerText = "✅ Foto ausgewählt";
                 };
-                reader.readAsDataURL(file);
-            });
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
 
-            const dataUrls = [];
-            for (const f of files) dataUrls.push(await compressToDataUrl(f));
-
-            currentPhotoUrlList = dataUrls.slice(0);
-            currentPhotoUrl = currentPhotoUrlList[0] || "";
-
-            const preview = document.getElementById('preview-image');
-            const thumbs = document.getElementById('preview-thumbs');
-
-            if (currentPhotoUrlList && currentPhotoUrlList.length) {
-                updates[`wishes/${currentCompletingId}/memoryPhotos`] = currentPhotoUrlList.slice(0);
-                updates[`wishes/${currentCompletingId}/memoryPhoto`] = currentPhotoUrlList[0];
-            } else if (currentPhotoUrl) {
-                updates[`wishes/${currentCompletingId}/memoryPhotos`] = [currentPhotoUrl];
-                updates[`wishes/${currentCompletingId}/memoryPhoto`] = currentPhotoUrl;
-            }
-;
+        window.handleMilestonePhotoUpload = (input) => {
+            const file = input.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 600; let width = img.width; let height = img.height;
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                    currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    const preview = document.getElementById('ms-preview-image'); preview.src = currentPhotoBase64; preview.classList.remove('hidden');
+                    document.getElementById('ms-upload-text').innerText = "✅ Foto geändert";
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+            async function uploadPhotoForWish(wishId, dataUrl) {
+  if (!dataUrl) return { fullUrl: "", thumbUrl: "" };
 
   if (typeof dataUrl === "string" && !dataUrl.startsWith("data:")) {
     return { fullUrl: dataUrl, thumbUrl: "" };
@@ -1692,103 +1627,6 @@ checkAuth(); };
             }
 
         // --- NEW VIEW MODAL LOGIC (Nur Ansehen) ---
-                let viewPhotos = [];
-        let viewPhotoMeta = [];
-        let viewIndex = 0;
-        let viewCurrentWishId = null;
-
-        const rebuildViewDots = () => {
-            const dotsEl = document.getElementById('view-dots');
-            dotsEl.innerHTML = '';
-            viewPhotos.forEach((_, i) => {
-                const d = document.createElement('div');
-                d.className = 'view-dot' + (i === viewIndex ? ' active' : '');
-                dotsEl.appendChild(d);
-            });
-            document.getElementById('view-prev').style.opacity = viewPhotos.length > 1 ? '1' : '0.4';
-            document.getElementById('view-next').style.opacity = viewPhotos.length > 1 ? '1' : '0.4';
-        };
-
-        const setViewImage = () => {
-            const imgEl = document.getElementById('view-img');
-            imgEl.src = viewPhotos[viewIndex] || '';
-            rebuildViewDots();
-        };
-
-        window.viewPrev = () => {
-            if (viewPhotos.length <= 1) return;
-            playSound('click');
-            viewIndex = (viewIndex - 1 + viewPhotos.length) % viewPhotos.length;
-            setViewImage();
-        };
-        window.viewNext = () => {
-            if (viewPhotos.length <= 1) return;
-            playSound('click');
-            viewIndex = (viewIndex + 1) % viewPhotos.length;
-            setViewImage();
-        };
-
-        window.editFromView = async () => {
-            if (!viewCurrentWishId) return;
-            document.getElementById('view-memory-modal').classList.add('hidden');
-
-            // determine type (bucket vs archive) so modal shows correct fields
-            try {
-                const snap = await get(ref(db, `wishes/${viewCurrentWishId}`));
-                const data = snap.val();
-                const type = (data && data.isBucket) ? 'bucket' : 'archive';
-                await openMilestoneModal('edit', viewCurrentWishId, type);
-            } catch (e) {
-                await openMilestoneModal('edit', viewCurrentWishId);
-            }
-        };
-
-        window.deleteCurrentPhotoFromView = async () => {
-            if (!viewCurrentWishId) return;
-            if (!confirm('Dieses Bild wirklich löschen?')) return;
-
-            const snap = await get(ref(db, `wishes/${viewCurrentWishId}`));
-            const data = snap.val();
-            if (!data) return;
-
-            let metas = normalizePhotoArray(data);
-            if (!metas.length) return;
-
-            const current = metas[viewIndex];
-            // Delete file from Firebase Storage if we know its path
-            try {
-                if (current && current.path) {
-                    await deleteObject(sRef(storage, current.path));
-                }
-            } catch (e) {
-                console.warn('Storage delete failed (maybe missing permission or legacy item):', e);
-            }
-
-            metas.splice(viewIndex, 1);
-
-            const payload = {};
-            if (metas.length) {
-                payload.memoryPhotos = metas;
-                payload.memoryPhoto = metas[0].url;
-            } else {
-                payload.memoryPhotos = null;
-                payload.memoryPhoto = null;
-            }
-
-            await update(ref(db, `wishes/${viewCurrentWishId}`), payload);
-
-            // refresh view
-            viewPhotoMeta = metas;
-            viewPhotos = metas.map(p => p.url);
-            viewIndex = Math.min(viewIndex, Math.max(viewPhotos.length - 1, 0));
-            if (!viewPhotos.length) {
-                document.getElementById('view-memory-modal').classList.add('hidden');
-                return;
-            }
-            setViewImage();
-        };
-
-
         window.openMemoryView = async (id) => {
             const modal = document.getElementById('view-memory-modal');
             const imgEl = document.getElementById('view-img');
@@ -1801,36 +1639,18 @@ checkAuth(); };
             modal.classList.remove('hidden');
             playSound('photo');
 
-            viewCurrentWishId = id;
             const snapshot = await get(ref(db, `wishes/${id}`));
             const data = snapshot.val();
-
-            if (!data) { modal.classList.add('hidden'); return; }
-
-            const photos = (data.memoryPhotos && Array.isArray(data.memoryPhotos) && data.memoryPhotos.length) ? data.memoryPhotos : (data.memoryPhoto ? [data.memoryPhoto] : []);
-            if (!photos.length) { modal.classList.add('hidden'); return; }
-
-            viewPhotos = photos.slice(0);
-            viewIndex = 0;
-
-            titleEl.innerText = data.text || "";
-            noteEl.innerText = data.memoryNote || "Keine Notiz dazu.";
-            const d = new Date(data.doneAt || Date.now());
-            dateEl.innerText = d.toLocaleDateString('de-DE') + (data.location ? " • " + data.location : "");
-
-            setViewImage();
-
-            // swipe
-            const el = document.querySelector('#view-img');
-            let sx = null;
-            el.ontouchstart = (e) => { sx = e.touches[0].clientX; };
-            el.ontouchend = (e) => {
-                if (sx == null) return;
-                const dx = e.changedTouches[0].clientX - sx;
-                sx = null;
-                if (Math.abs(dx) < 35) return;
-                if (dx < 0) viewNext(); else viewPrev();
-            };
+            
+            if (data && data.memoryPhoto) {
+                imgEl.src = data.memoryPhoto;
+                titleEl.innerText = data.text;
+                noteEl.innerText = data.memoryNote || "Keine Notiz dazu.";
+                const d = new Date(data.doneAt);
+                dateEl.innerText = d.toLocaleDateString('de-DE') + " • " + data.location;
+            } else {
+                modal.classList.add('hidden'); // Sollte nicht passieren
+            }
         };
 
         window.openMilestoneModal = async (mode, id = null, type = 'archive') => {
@@ -1843,8 +1663,7 @@ checkAuth(); };
             const modalTitle = document.getElementById('modal-title'); const memoryFields = document.getElementById('ms-memory-fields');
             
             titleEl.value = ""; locEl.value = ""; infoEl.value = ""; dateEl.value = ""; noteEl.value = ""; ratingMEl.value = ""; ratingSEl.value = "";
-            previewEl.src = ""; previewEl.classList.add('hidden'); const msThumbsEl = document.getElementById('ms-preview-thumbs');
-            if (msThumbsEl){ msThumbsEl.classList.add('hidden'); msThumbsEl.innerHTML=''; } uploadTextEl.innerText = "📸 Fotos hinzufügen"; currentPhotoUrl = ""; milestonePhotoList = []; pendingMilestoneFiles = [];
+            previewEl.src = ""; previewEl.classList.add('hidden'); uploadTextEl.innerText = "📸 Foto hinzufügen"; currentPhotoBase64 = "";
             locEl.setAttribute('data-original-location', "");
 
             if (type === 'bucket') {
@@ -1867,37 +1686,7 @@ checkAuth(); };
                     titleEl.value = data.text || ""; locEl.value = data.location || ""; locEl.setAttribute('data-original-location', data.location || "");
                     infoEl.value = data.info || ""; catEl.value = data.cat || "Sofort"; weatherEl.value = data.weather || "Egal";
                     noteEl.value = data.memoryNote || ""; ratingMEl.value = data.ratingMeriam || ""; ratingSEl.value = data.ratingSamet || "";
-                    if (data.memoryPhotos && Array.isArray(data.memoryPhotos) && data.memoryPhotos.length) {
-                        milestonePhotoList = normalizePhotoArray(data);
-                    } else if (data.memoryPhoto) {
-                        milestonePhotoList = [{ url: data.memoryPhoto, path: null }];
-                    } else {
-                        milestonePhotoList = [];
-                    }
-
-                    if (milestonePhotoList.length) {
-                        currentPhotoUrl = milestonePhotoList[0].url;
-                        previewEl.src = currentPhotoUrl;
-                        previewEl.classList.remove('hidden');
-                        uploadTextEl.innerText = `✅ ${milestonePhotoList.length} Foto${milestonePhotoList.length===1?'':'s'} vorhanden`;
-                        const thumbs = document.getElementById('ms-preview-thumbs');
-            if(!thumbs){ console.warn('ms-preview-thumbs missing'); return; }
-                        thumbs.innerHTML='';
-                        milestonePhotoList.forEach((p,i)=>{
-                            const im=document.createElement('img');
-                            im.src=p.url;
-                            im.className='thumb-chip'+(i===0?' active':'');
-                            im.onclick=()=>{
-                                playSound('click');
-                                currentPhotoUrl=p.url;
-                                previewEl.src=p.url;
-                                Array.from(thumbs.children).forEach(c=>c.classList.remove('active'));
-                                im.classList.add('active');
-                            };
-                            thumbs.appendChild(im);
-                        });
-                        thumbs.classList.toggle('hidden', milestonePhotoList.length<=1);
-                    }
+                    if (data.memoryPhoto) { previewEl.src = data.memoryPhoto; previewEl.classList.remove('hidden'); uploadTextEl.innerText = "✅ Foto vorhanden"; currentPhotoBase64 = data.memoryPhoto; }
                     if (data.doneAt) { const d = new Date(data.doneAt); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); dateEl.value = d.toISOString().slice(0, 16); }
                 }
             } else {
@@ -1907,60 +1696,7 @@ checkAuth(); };
             modal.classList.remove('hidden');
         };
 
-        
-        // Multi photo select (keine Base64 Speicherung!) – Dateien werden beim Speichern nach Firebase Storage hochgeladen
-        let pendingMilestoneFiles = [];
-        // uses existing milestonePhotoList/currentPhotoUrl declared above
-        milestonePhotoList = milestonePhotoList || [];
-        currentPhotoUrl = currentPhotoUrl || "";
-
-        window.handleMilestonePhotoUpload = (input) => {
-            const files = Array.from(input.files || []);
-            if (!files.length) return;
-
-            // Add to pending list
-            pendingMilestoneFiles = pendingMilestoneFiles.concat(files);
-
-            const previewEl = document.getElementById('ms-preview-image');
-            const uploadTextEl = document.getElementById('ms-upload-text');
-            const thumbs = document.getElementById('ms-preview-thumbs');
-            if(!thumbs){ console.warn('ms-preview-thumbs missing'); return; }
-
-            // Show previews using object URLs
-            const previews = files.map(f => ({ url: URL.createObjectURL(f), path: null, _local: true }));
-            // We keep existing milestonePhotoList (already uploaded) and append local previews visually,
-            // but only uploaded ones go into DB after save.
-            const visualList = milestonePhotoList.concat(previews);
-
-            if (visualList.length) {
-                previewEl.src = visualList[0].url;
-                previewEl.classList.remove('hidden');
-                currentPhotoUrl = visualList[0].url;
-                uploadTextEl.innerText = `✅ ${visualList.length} Foto${visualList.length===1?'':'s'} ausgewählt`;
-            } else {
-                uploadTextEl.innerText = "📸 Fotos hinzufügen";
-            }
-
-            thumbs.innerHTML = '';
-            visualList.forEach((p,i)=>{
-                const im=document.createElement('img');
-                im.src=p.url;
-                im.className='thumb-chip'+(i===0?' active':'');
-                im.onclick=()=>{
-                    playSound('click');
-                    currentPhotoUrl=p.url;
-                    previewEl.src=p.url;
-                    Array.from(thumbs.children).forEach(c=>c.classList.remove('active'));
-                    im.classList.add('active');
-                };
-                thumbs.appendChild(im);
-            });
-            thumbs.classList.toggle('hidden', visualList.length<=1);
-
-            // reset input so selecting same file again works
-            input.value = '';
-        };
-window.saveMilestone = async () => {
+        window.saveMilestone = async () => {
             const title = document.getElementById('ms-title').value.trim();
             if (!title) return alert("Titel fehlt!");
             const user = localStorage.getItem('currentUser');
@@ -1978,7 +1714,7 @@ window.saveMilestone = async () => {
                 payload.ratingSamet = document.getElementById('ms-rating-s').value;
                 const dateVal = document.getElementById('ms-date').value;
                 payload.doneAt = dateVal ? new Date(dateVal).getTime() : Date.now();
-                if (milestonePhotoList && milestonePhotoList.length) { payload.memoryPhotos = milestonePhotoList.slice(0); payload.memoryPhoto = milestonePhotoList[0]; } else if (currentPhotoUrl) { payload.memoryPhoto = currentPhotoUrl; }
+                if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
             } else {
                 if (!currentEditingMilestoneId) { payload.status = 'open'; payload.isBucket = true; payload.timestamp = Date.now(); }
                 else {
@@ -1988,49 +1724,13 @@ window.saveMilestone = async () => {
                          payload.ratingSamet = document.getElementById('ms-rating-s').value;
                          const dateVal = document.getElementById('ms-date').value;
                          if (dateVal) payload.doneAt = new Date(dateVal).getTime();
-                         if (milestonePhotoList && milestonePhotoList.length) { payload.memoryPhotos = milestonePhotoList.slice(0); payload.memoryPhoto = milestonePhotoList[0]; } else if (currentPhotoUrl) { payload.memoryPhoto = currentPhotoUrl; }
+                         if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
                     }
                 }
             }
 
-            
-            // ---- PHOTO SAVE (Firebase Storage) ----
-            // only if memory fields are used (Meilenstein done / Bucket done)
-            const memoryEnabled = (currentModalMode === 'archive') || (!document.getElementById('ms-memory-fields').classList.contains('hidden'));
-            let wishId = currentEditingMilestoneId;
-
-            // For new entries we need an id BEFORE uploading to storage
-            let newRef = null;
-            if (!wishId) {
-                newRef = push(ref(db, 'wishes'));
-                wishId = newRef.key;
-            }
-
-            if (memoryEnabled) {
-                // Merge existing uploaded photos with newly selected files
-                let merged = Array.isArray(milestonePhotoList) ? milestonePhotoList.slice(0) : [];
-                if (pendingMilestoneFiles && pendingMilestoneFiles.length) {
-                    const uploaded = await uploadFilesToStorage(wishId, pendingMilestoneFiles);
-                    merged = merged.concat(uploaded);
-                }
-                // Deduplicate by URL
-                const seen = new Set();
-                merged = merged.filter(p => p && p.url && !seen.has(p.url) && (seen.add(p.url), true));
-
-                if (merged.length) {
-                    payload.memoryPhotos = merged;
-                    payload.memoryPhoto = merged[0].url; // cover for map/legacy
-                } else {
-                    payload.memoryPhotos = null;
-                    payload.memoryPhoto = null;
-                }
-            }
-
-            // reset pending files after save
-            pendingMilestoneFiles = [];
-
             if (currentEditingMilestoneId) await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
-            else { payload.by = user; if (!payload.timestamp) payload.timestamp = Date.now(); if (newRef) await set(newRef, payload); else await push(ref(db, 'wishes'), payload); }
+            else { payload.by = user; if (!payload.timestamp) payload.timestamp = Date.now(); await push(ref(db, 'wishes'), payload); }
             document.getElementById('milestone-modal').classList.add('hidden');
         };
 
@@ -2271,7 +1971,7 @@ window.saveMilestone = async () => {
         
         window.markAsDone = (id) => { currentCompletingId = id; openMemoryModalInternal(); };
         window.openCommentModal = (id) => { currentCompletingId = id; openMemoryModalInternal(); }
-        const openMemoryModalInternal = () => { document.getElementById('memory-modal').classList.remove('hidden'); document.getElementById('memory-photo-file').value = ""; document.getElementById('preview-image').classList.add('hidden'); document.getElementById('preview-thumbs').classList.add('hidden'); document.getElementById('preview-thumbs').innerHTML=''; document.getElementById('upload-text').innerText = "📸 Foto hinzufügen"; currentPhotoUrl = ""; currentPhotoUrlList = []; document.getElementById('memory-note').value = ""; }
+        const openMemoryModalInternal = () => { document.getElementById('memory-modal').classList.remove('hidden'); document.getElementById('memory-photo-file').value = ""; document.getElementById('preview-image').classList.add('hidden'); document.getElementById('upload-text').innerText = "📸 Foto hinzufügen"; currentPhotoBase64 = ""; document.getElementById('memory-note').value = ""; }
         window.closeMemoryModal = () => { document.getElementById('memory-modal').classList.add('hidden'); currentCompletingId = null; };
 
         document.getElementById('btn-save-memory').onclick = async () => {
@@ -2287,8 +1987,8 @@ window.saveMilestone = async () => {
             updates[`wishes/${currentCompletingId}/status`] = 'done';
             const snapshot = await get(ref(db, `wishes/${currentCompletingId}`)); const item = snapshot.val();
             if (item && item.status !== 'done') updates[`wishes/${currentCompletingId}/doneAt`] = Date.now();
-          if (currentPhotoUrl) {
-  const { fullUrl, thumbUrl } = await uploadPhotoForWish(currentCompletingId, currentPhotoUrl);
+          if (currentPhotoBase64) {
+  const { fullUrl, thumbUrl } = await uploadPhotoForWish(currentCompletingId, currentPhotoBase64);
   updates[`wishes/${currentCompletingId}/memoryPhoto`] = fullUrl;
   updates[`wishes/${currentCompletingId}/memoryThumb`] = thumbUrl;
 }
