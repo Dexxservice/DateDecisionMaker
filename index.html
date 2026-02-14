@@ -3092,6 +3092,66 @@ bindPolaroidUIOnce();
             btn.addEventListener('click', chooseAndSpin);
         };
 
+        // --- FUNZONE: Entscheidungs-Roulette ---
+        const initDecisionRoulette = () => {
+            const btn = document.getElementById('btn-spin-roulette');
+            const res = document.getElementById('roulette-result');
+            if (!btn || !res) return;
+
+            // fallback names
+            const getNames = () => {
+                const u = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || "";
+                const a = u === "Samet" ? "Samet" : (u === "Meriam" ? "Meriam" : "Meriam");
+                const b = a === "Samet" ? "Meriam" : "Samet";
+                return [a, b];
+            };
+
+            let spinning = false;
+            let ticker = null;
+
+            const spin = () => {
+                if (spinning) return;
+                spinning = true;
+                btn.disabled = true;
+                playSound && playSound('dice');
+
+                const [n1, n2] = getNames();
+                const options = [n1, n2];
+
+                // little "shuffle" animation (text flicker)
+                res.style.transition = "opacity 120ms ease, transform 120ms ease";
+                res.style.opacity = "0.85";
+                res.style.transform = "scale(0.98)";
+
+                let t = 0;
+                ticker = setInterval(() => {
+                    const pick = options[Math.floor(Math.random() * options.length)];
+                    res.textContent = pick;
+                    t += 1;
+                }, 70);
+
+                setTimeout(() => {
+                    if (ticker) clearInterval(ticker);
+                    ticker = null;
+
+                    const finalPick = options[Math.floor(Math.random() * options.length)];
+                    res.style.opacity = "0";
+                    res.style.transform = "scale(0.96)";
+
+                    setTimeout(() => {
+                        res.textContent = finalPick;
+                        res.style.opacity = "1";
+                        res.style.transform = "scale(1)";
+                        playSound && playSound('reveal');
+                        spinning = false;
+                        btn.disabled = false;
+                    }, 140);
+                }, 1050);
+            };
+
+            btn.addEventListener('click', spin);
+        };
+
 const initPolaroidCropCanvas = () => {
             const canvas = document.getElementById('polaroid-crop-canvas');
             if (!canvas) return;
@@ -3142,14 +3202,47 @@ const initPolaroidCropCanvas = () => {
                 const div = document.createElement('div');
                 div.className = "instax-card";
                 div.onclick = () => {
-                    // reuse existing fullscreen modal
+                    // reuse existing fullscreen modal (smooth thumb -> full)
                     const modal = document.getElementById('view-memory-modal');
                     if (!modal) return;
-                    document.getElementById('view-img').src = p.fullUrl || p.thumbUrl || "";
-                    document.getElementById('view-title').innerText = p.location ? p.location : "Polaroid";
-                    document.getElementById('view-date').innerText = (p.date || "") + (p.by ? ` • ${p.by}` : "");
-                    document.getElementById('view-note').innerText = p.note || "";
+                    const imgEl = document.getElementById('view-img');
+                    const titleEl = document.getElementById('view-title');
+                    const dateEl = document.getElementById('view-date');
+                    const noteEl = document.getElementById('view-note');
+                    if (!imgEl || !titleEl || !dateEl || !noteEl) return;
+
+                    const thumbSrc = p.thumbUrl || "";
+                    const fullSrc = p.fullUrl || thumbSrc || "";
+
+                    // Basic fade setup (nur hier)
+                    imgEl.style.transition = "opacity 180ms ease";
+                    imgEl.style.opacity = "1";
+
+                    // Set text first
+                    titleEl.innerText = p.location ? p.location : "Polaroid";
+                    dateEl.innerText = (p.date || "") + (p.by ? ` • ${p.by}` : "");
+                    noteEl.innerText = p.note || "";
+
+                    // Show modal + immediate preview
+                    if (thumbSrc && fullSrc && thumbSrc !== fullSrc) {
+                        imgEl.src = thumbSrc;
+                    } else {
+                        imgEl.src = fullSrc;
+                    }
                     modal.classList.remove('hidden');
+
+                    // Smooth swap to full if we started with thumb
+                    if (thumbSrc && fullSrc && thumbSrc !== fullSrc) {
+                        const pre = new Image();
+                        pre.onload = () => {
+                            imgEl.style.opacity = "0";
+                            setTimeout(() => {
+                                imgEl.src = fullSrc;
+                                requestAnimationFrame(() => { imgEl.style.opacity = "1"; });
+                            }, 160);
+                        };
+                        pre.src = fullSrc;
+                    }
                 };
 
                 div.innerHTML = `
@@ -3396,6 +3489,7 @@ const initPolaroidCropCanvas = () => {
             initPolaroidCropCanvas();
 
             initOneTwoWheel();
+            initDecisionRoulette();
 
             initDeepTalkChips();
 
