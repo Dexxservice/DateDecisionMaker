@@ -303,7 +303,7 @@
   aspect-ratio: 54 / 54;
   border-radius: 6px;
   object-fit: cover;
-  background: #f1f5f9;
+  background: #ffffff;
 }
 .instax-meta{
   margin-top: 8px;
@@ -2310,7 +2310,7 @@ bindPolaroidUIOnce();
             drawRoundedRect(ctx, winX, winY, winW, winH, 10);
             ctx.clip();
 
-            ctx.fillStyle = "#f1f5f9";
+            ctx.fillStyle = "#ffffff";
             ctx.fillRect(winX, winY, winW, winH);
 
             if (polaroidImg) {
@@ -2444,7 +2444,7 @@ bindPolaroidUIOnce();
             ctx.save();
             drawRoundedRect(ctx, winX, winY, winW, winH, 18);
             ctx.clip();
-            ctx.fillStyle = "#f1f5f9";
+            ctx.fillStyle = "#ffffff";
             ctx.fillRect(winX, winY, winW, winH);
 
             if (polaroidImg) {
@@ -2625,7 +2625,7 @@ bindPolaroidUIOnce();
 
                             const z = document.getElementById('polaroid-zoom');
                             if (z) {
-                                const minZ = Math.max(0.05, coverZoom * 0.6);
+                                const minZ = Math.max(0.05, coverZoom);
                                 const maxZ = Math.max(minZ + 0.1, coverZoom * 2.5);
                                 z.min = String(minZ);
                                 z.max = String(maxZ);
