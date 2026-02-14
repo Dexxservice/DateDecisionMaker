@@ -2129,7 +2129,10 @@ bindPolaroidUIOnce();
             previewEl.src = ""; previewEl.classList.add('hidden'); uploadTextEl.innerText = "📸 Foto hinzufügen"; currentPhotoBase64 = "";
             locEl.setAttribute('data-original-location', "");
 
-            if (type === 'bucket') {
+            if (type === 'idea') {
+                 modalTitle.innerText = mode === 'add' ? "Neue Idee 💡" : "Idee bearbeiten ✏️";
+                 memoryFields.classList.add('hidden');
+            } else if (type === 'bucket') {
                  modalTitle.innerText = mode === 'add' ? "Neuer Bucket List Traum ✨" : "Traum bearbeiten ✏️";
                  if (mode === 'add') memoryFields.classList.add('hidden');
                  else {
@@ -2361,7 +2364,7 @@ bindPolaroidUIOnce();
                 openIds.forEach(id => {
                     const item = data[id]; const isSecret = item.surprise && item.by !== currentUser;
                     const card = document.createElement('div'); card.className = "mint-card p-4 border-l-4 animate-slide-up " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
-                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2"><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
+                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2"><button onclick="openMilestoneModal('edit','${id}','idea')" class="text-gray-400 font-bold">✏</button><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
                     wishList.appendChild(card);
                 });
 
@@ -3092,66 +3095,6 @@ bindPolaroidUIOnce();
             btn.addEventListener('click', chooseAndSpin);
         };
 
-        // --- FUNZONE: Entscheidungs-Roulette ---
-        const initDecisionRoulette = () => {
-            const btn = document.getElementById('btn-spin-roulette');
-            const res = document.getElementById('roulette-result');
-            if (!btn || !res) return;
-
-            // fallback names
-            const getNames = () => {
-                const u = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || "";
-                const a = u === "Samet" ? "Samet" : (u === "Meriam" ? "Meriam" : "Meriam");
-                const b = a === "Samet" ? "Meriam" : "Samet";
-                return [a, b];
-            };
-
-            let spinning = false;
-            let ticker = null;
-
-            const spin = () => {
-                if (spinning) return;
-                spinning = true;
-                btn.disabled = true;
-                playSound && playSound('dice');
-
-                const [n1, n2] = getNames();
-                const options = [n1, n2];
-
-                // little "shuffle" animation (text flicker)
-                res.style.transition = "opacity 120ms ease, transform 120ms ease";
-                res.style.opacity = "0.85";
-                res.style.transform = "scale(0.98)";
-
-                let t = 0;
-                ticker = setInterval(() => {
-                    const pick = options[Math.floor(Math.random() * options.length)];
-                    res.textContent = pick;
-                    t += 1;
-                }, 70);
-
-                setTimeout(() => {
-                    if (ticker) clearInterval(ticker);
-                    ticker = null;
-
-                    const finalPick = options[Math.floor(Math.random() * options.length)];
-                    res.style.opacity = "0";
-                    res.style.transform = "scale(0.96)";
-
-                    setTimeout(() => {
-                        res.textContent = finalPick;
-                        res.style.opacity = "1";
-                        res.style.transform = "scale(1)";
-                        playSound && playSound('reveal');
-                        spinning = false;
-                        btn.disabled = false;
-                    }, 140);
-                }, 1050);
-            };
-
-            btn.addEventListener('click', spin);
-        };
-
 const initPolaroidCropCanvas = () => {
             const canvas = document.getElementById('polaroid-crop-canvas');
             if (!canvas) return;
@@ -3202,47 +3145,14 @@ const initPolaroidCropCanvas = () => {
                 const div = document.createElement('div');
                 div.className = "instax-card";
                 div.onclick = () => {
-                    // reuse existing fullscreen modal (smooth thumb -> full)
+                    // reuse existing fullscreen modal
                     const modal = document.getElementById('view-memory-modal');
                     if (!modal) return;
-                    const imgEl = document.getElementById('view-img');
-                    const titleEl = document.getElementById('view-title');
-                    const dateEl = document.getElementById('view-date');
-                    const noteEl = document.getElementById('view-note');
-                    if (!imgEl || !titleEl || !dateEl || !noteEl) return;
-
-                    const thumbSrc = p.thumbUrl || "";
-                    const fullSrc = p.fullUrl || thumbSrc || "";
-
-                    // Basic fade setup (nur hier)
-                    imgEl.style.transition = "opacity 180ms ease";
-                    imgEl.style.opacity = "1";
-
-                    // Set text first
-                    titleEl.innerText = p.location ? p.location : "Polaroid";
-                    dateEl.innerText = (p.date || "") + (p.by ? ` • ${p.by}` : "");
-                    noteEl.innerText = p.note || "";
-
-                    // Show modal + immediate preview
-                    if (thumbSrc && fullSrc && thumbSrc !== fullSrc) {
-                        imgEl.src = thumbSrc;
-                    } else {
-                        imgEl.src = fullSrc;
-                    }
+                    document.getElementById('view-img').src = p.fullUrl || p.thumbUrl || "";
+                    document.getElementById('view-title').innerText = p.location ? p.location : "Polaroid";
+                    document.getElementById('view-date').innerText = (p.date || "") + (p.by ? ` • ${p.by}` : "");
+                    document.getElementById('view-note').innerText = p.note || "";
                     modal.classList.remove('hidden');
-
-                    // Smooth swap to full if we started with thumb
-                    if (thumbSrc && fullSrc && thumbSrc !== fullSrc) {
-                        const pre = new Image();
-                        pre.onload = () => {
-                            imgEl.style.opacity = "0";
-                            setTimeout(() => {
-                                imgEl.src = fullSrc;
-                                requestAnimationFrame(() => { imgEl.style.opacity = "1"; });
-                            }, 160);
-                        };
-                        pre.src = fullSrc;
-                    }
                 };
 
                 div.innerHTML = `
@@ -3489,7 +3399,6 @@ const initPolaroidCropCanvas = () => {
             initPolaroidCropCanvas();
 
             initOneTwoWheel();
-            initDecisionRoulette();
 
             initDeepTalkChips();
 
