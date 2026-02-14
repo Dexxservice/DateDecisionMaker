@@ -159,6 +159,30 @@
         .quiz-flip-active { transform: rotateY(180deg); }
         .quiz-front, .quiz-back { backface-visibility: hidden; }
         .quiz-back { transform: rotateY(180deg); }
+        /* --- QUIZ ARENA v2 (A/B/C + Timer) --- */
+        .quiz2-chip { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:0.12em;
+            background: rgba(255,255,255,0.7); border: 1px solid #fbcfe8; padding: 6px 10px; border-radius: 999px; }
+        .quiz2-chip input { accent-color: #ec4899; }
+
+        .quiz2-timer-ring { width:38px; height:38px; border-radius:999px; display:flex; align-items:center; justify-content:center;
+            border: 3px solid rgba(236,72,153,0.25); background: rgba(255,255,255,0.65); }
+
+        .quiz2-ans-btn { width:100%; display:flex; align-items:center; gap:10px; text-align:left;
+            padding: 14px 14px; border-radius: 16px; background: rgba(244,63,94,0.06);
+            border: 1px solid rgba(251,207,232,0.9); box-shadow: 0 6px 16px rgba(15,23,42,0.06);
+            transition: transform .12s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease; }
+        .quiz2-ans-btn:active { transform: scale(0.98); }
+        .quiz2-ans-btn[disabled] { opacity: 0.65; filter: grayscale(0.15); }
+
+        .quiz2-badge { width:28px; height:28px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+            font-weight: 900; background: rgba(236,72,153,0.12); color:#be185d; }
+        .quiz2-ans-text { font-weight: 800; font-size: 12px; color: #0f172a; }
+
+        @keyframes quiz2Shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+        .quiz2-wrong { border-color: rgba(248,113,113,0.9)!important; background: rgba(248,113,113,0.10)!important; animation: quiz2Shake .35s ease; }
+        .quiz2-right { border-color: rgba(34,197,94,0.95)!important; background: rgba(34,197,94,0.10)!important; box-shadow: 0 10px 26px rgba(34,197,94,0.18); }
+        .quiz2-reveal { outline: 2px solid rgba(34,197,94,0.55); outline-offset: 2px; }
+
 
         .user-badge { font-size: 9px; padding: 2px 8px; border-radius: 99px; font-weight: bold; text-transform: uppercase; }
         .badge-meriam { background-color: #fce4ec; color: #f06292; } .badge-samet { background-color: #e0f2f1; color: #00897b; }
@@ -324,6 +348,59 @@
   text-transform: uppercase;
   color: #94a3b8;
   letter-spacing: 0.12em;
+}
+
+
+
+/* --- FUNZONE: Eins oder Zwei (Wheel) --- */
+.one-two-wheel-wrap{ position: relative; width: 220px; height: 220px; }
+.one-two-wheel{
+  width: 220px; height: 220px; border-radius: 999px;
+  background: conic-gradient(#FF80AB 0deg 180deg, #14B8A6 180deg 360deg);
+  border: 8px solid rgba(255,255,255,0.95);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12), inset 0 0 30px rgba(0,0,0,0.05);
+  transition: transform 2200ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.one-two-wheel::after{
+  content:"";
+  position:absolute;
+  inset: 18px;
+  border-radius: 999px;
+  border: 2px dashed rgba(255,255,255,0.7);
+  pointer-events:none;
+}
+.one-two-pointer{
+  position:absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-top: 22px solid white;
+  filter: drop-shadow(0 6px 6px rgba(0,0,0,0.18));
+}
+.one-two-wheel-label{
+  position:absolute;
+  inset: 0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 0 18px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.95);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  pointer-events:none;
+}
+.one-two-wheel-label span{
+  width: 46px;
+  height: 46px;
+  display:grid;
+  place-items:center;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.12);
+  backdrop-filter: blur(3px);
 }
 
 </style>
@@ -723,9 +800,82 @@
         </div>
 
         <div id="tab-fun" class="hidden pb-20 animate-fade-in">
+
+            <!-- FUNZONE: Eins oder Zwei -->
+            <div class="mint-card p-6 mb-6 animate-slide-up">
+                <h3 class="font-black text-teal-800 mb-2 uppercase text-xs tracking-widest text-center">Eins oder Zwei? 🎡</h3>
+                <p class="text-center text-[10px] text-gray-500 mb-5 italic px-2 leading-relaxed">
+                    Tragt zwei Optionen ein – dann wird zufällig ausgelost.
+                </p>
+
+                <div class="space-y-3">
+                    <input id="one-two-opt1" type="text" placeholder="1️⃣ Option 1 (z.B. Eis essen 🍦)" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm font-bold text-gray-700">
+                    <input id="one-two-opt2" type="text" placeholder="2️⃣ Option 2 (z.B. Zuhause bleiben 🏠)" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm font-bold text-gray-700">
+                </div>
+
+                <div class="mt-6 flex flex-col items-center">
+                    <div class="one-two-wheel-wrap my-4">
+                        <div id="one-two-wheel" class="one-two-wheel relative"></div>
+                        <div class="one-two-wheel-label">
+                            <span>1</span>
+                            <span>2</span>
+                        </div>
+                        <div class="one-two-pointer" aria-hidden="true"></div>
+                    </div>
+
+                    <button id="btn-one-two-spin" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Auslosen</button>
+                    <p id="one-two-result" class="mt-4 text-center text-sm font-bold text-gray-700"></p>
+                </div>
+            </div>
+
             <div class="mint-card p-8 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-indigo-600 mb-4 uppercase text-xs tracking-widest">🗣️ Deep Talk</h3>
                 <p class="text-[10px] text-gray-400 mb-6">Keine Lust auf Smalltalk? Lass uns tiefer gehen.</p>
+                <div id="deeptalk-chips" class="text-left mb-5">
+                    <p class="text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest text-center">Chips</p>
+
+                    <!-- Kategorien -->
+                    <div class="mb-4">
+                        <p class="text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Kategorien</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Alltag & Nähe">Alltag</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Werte & Moral">Werte</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Grenzen & Respekt">Grenzen</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Intimität (emotional)">Intimität</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Humor & Leichtigkeit">Humor</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Konflikte & Kommunikation">Konflikte</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Familie & Freundschaft">Familie</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Geld & Lebensstil">Geld</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Spiritualität & Glaube (inkl. Islam)">Glaube</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Identität & Persönlichkeit">Ich</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Vergangenheit">Vergangenheit</button>
+                            <button type="button" class="dt-chip px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-cat="Zukunft">Zukunft</button>
+                        </div>
+                    </div>
+
+                    <!-- Mood -->
+                    <div class="mb-4">
+                        <p class="text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Stimmung</p>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Sanft & liebevoll">Sanft</button>
+                            <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Tief & reflektiert">Tief</button>
+                            <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Spielerisch & witzig">Spielerisch</button>
+                            <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Direkt & ehrlich (ohne verletzend zu sein)">Direkt</button>
+                            <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Romantisch & verbindend">Romantisch</button>
+                        </div>
+                    </div>
+
+                    <!-- Custom -->
+                    <div class="mb-2">
+                        <p class="text-[10px] text-gray-500 mb-2 font-bold uppercase tracking-widest">Eigene Chips</p>
+                        <div class="flex gap-2">
+                            <input id="dt-custom-input" type="text" placeholder="z.B. Eifersucht, Ramadan, Social Media…" class="flex-1 px-4 py-3 rounded-2xl border border-indigo-100 bg-white/80 text-[12px] shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-200" />
+                            <button id="btn-dt-add-custom" type="button" class="bg-indigo-500 text-white px-4 py-3 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-md active:scale-95">+</button>
+                        </div>
+                        <div id="dt-custom-list" class="flex flex-wrap gap-2 mt-3 justify-center"></div>
+                    </div>
+                </div>
+
                 <div id="deeptalk-container" class="bg-indigo-50 p-6 rounded-2xl mb-6 hidden border border-indigo-100 shadow-inner">
                     <p id="deeptalk-question" class="text-lg font-bold text-indigo-900 italic leading-relaxed"></p>
                 </div>
@@ -752,39 +902,72 @@
             
             <div class="mint-card p-6 animate-slide-up" style="animation-delay: 0.2s;">
                 <h3 class="font-bold text-pink-600 mb-4 uppercase text-xs tracking-widest">❓ Quiz-Arena</h3>
-                
-                <div id="quiz-lobby">
-                    <div id="quiz-list" class="space-y-3 mb-6"></div>
-                    <div class="border-t pt-4">
-                        <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Neue Frage erstellen:</p>
-                        <input id="quiz-q" type="text" placeholder="Deine Frage..." class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm">
-                        <input id="quiz-a" type="text" placeholder="Die Antwort..." class="w-full p-3 bg-pink-50 rounded-xl mb-3 outline-none text-sm">
-                        <button id="btn-add-quiz" onclick="playSound('success')" class="pink-btn w-full py-2 rounded-xl font-bold text-xs uppercase">Hinzufügen</button>
-                    </div>
-                </div>
 
-                <div id="quiz-active" class="hidden text-center">
-                    <div class="mb-6 relative h-48 w-full perspective-1000 group cursor-pointer" onclick="revealAnswer()">
-                         <div id="quiz-card-inner" class="relative w-full h-full text-center transition-transform duration-700 transform-style-preserve-3d shadow-lg rounded-2xl">
-                             <div class="absolute w-full h-full backface-hidden bg-gradient-to-br from-pink-500 to-rose-400 rounded-2xl flex flex-col items-center justify-center p-4 text-white">
-                                 <p class="text-xs uppercase font-bold opacity-75 mb-2">Frage von <span id="qa-author"></span></p>
-                                 <p id="qa-question" class="text-lg font-black leading-tight">?</p>
-                                 <p class="text-[9px] mt-4 opacity-50">(Tippen zum Auflösen)</p>
-                             </div>
-                             <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-4 text-gray-800 rotate-y-180 border-4 border-pink-400">
-                                 <p class="text-xs font-bold text-pink-400 uppercase mb-2">Die Antwort:</p>
-                                 <p id="qa-answer" class="text-lg font-bold">!</p>
-                             </div>
-                         </div>
+                <!-- NEW (Index04V8+): Quiz Arena v2 (A/B/C + Timer + Reveal) -->
+                <div id="quiz2-wrap">
+
+                    <!-- Create -->
+                    <div class="border-b pb-4 mb-4">
+                        <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Neue Frage erstellen:</p>
+                        <input id="quiz2-q" type="text" placeholder="Deine Frage..." class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm">
+                        <input id="quiz2-a" type="text" placeholder="A: Option..." class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm">
+                        <input id="quiz2-b" type="text" placeholder="B: Option..." class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm">
+                        <input id="quiz2-c" type="text" placeholder="C: Option..." class="w-full p-3 bg-pink-50 rounded-xl mb-3 outline-none text-sm">
+
+                        <div class="flex items-center justify-between gap-3 mb-3">
+                            <p class="text-[9px] font-bold text-gray-400 uppercase">Richtige Antwort:</p>
+                            <div class="flex gap-2">
+                                <label class="quiz2-chip"><input type="radio" name="quiz2-correct" value="A" checked> A</label>
+                                <label class="quiz2-chip"><input type="radio" name="quiz2-correct" value="B"> B</label>
+                                <label class="quiz2-chip"><input type="radio" name="quiz2-correct" value="C"> C</label>
+                            </div>
+                        </div>
+
+                        <button id="btn-quiz2-add" onclick="playSound('success')" class="pink-btn w-full py-2 rounded-xl font-bold text-xs uppercase">Speichern</button>
+                        <p id="quiz2-create-hint" class="text-[10px] text-gray-400 mt-2 hidden"></p>
                     </div>
-                    <div id="quiz-controls" class="hidden opacity-0 transition-opacity duration-500">
-                        <p class="text-[10px] font-bold text-gray-400 uppercase mb-2">Hast du es gewusst?</p>
-                        <div class="flex gap-2">
-                            <button onclick="handleQuizResult(true)" class="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95">JA! 😎</button>
-                            <button onclick="handleQuizResult(false)" class="flex-1 bg-red-400 text-white py-3 rounded-xl font-bold text-xs shadow-md active:scale-95">NEIN 🙈</button>
+
+                    <!-- Open / Answered list -->
+                    <div class="mb-4">
+                        <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Offen / Beantwortet:</p>
+                        <div id="quiz2-list-open" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Done list -->
+                    <div class="mb-4">
+                        <p class="text-[9px] font-bold text-gray-400 uppercase mb-2">Erledigt (abgehakt):</p>
+                        <div id="quiz2-list-done" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Play / Reveal -->
+                    <div id="quiz2-play" class="hidden text-center">
+                        <div class="bg-white/70 border border-pink-100 rounded-2xl p-4 shadow-sm">
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-2">Frage von <span id="quiz2-by"></span></p>
+                            <p id="quiz2-question" class="text-lg font-black leading-tight text-gray-800">?</p>
+
+                            <div class="mt-4 flex items-center justify-center gap-3">
+                                <div class="quiz2-timer-ring">
+                                    <span id="quiz2-timer" class="text-[10px] font-black text-pink-600">10</span>
+                                </div>
+                                <p id="quiz2-status" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Du hast 10 Sekunden.</p>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-1 gap-2">
+                                <button id="quiz2-btn-A" class="quiz2-ans-btn" data-choice="A"><span class="quiz2-badge">A</span><span id="quiz2-text-A" class="quiz2-ans-text">...</span></button>
+                                <button id="quiz2-btn-B" class="quiz2-ans-btn" data-choice="B"><span class="quiz2-badge">B</span><span id="quiz2-text-B" class="quiz2-ans-text">...</span></button>
+                                <button id="quiz2-btn-C" class="quiz2-ans-btn" data-choice="C"><span class="quiz2-badge">C</span><span id="quiz2-text-C" class="quiz2-ans-text">...</span></button>
+                            </div>
+
+                            <div class="mt-4">
+                                <p id="quiz2-result" class="text-[11px] font-black text-gray-700"></p>
+                                <p id="quiz2-result-sub" class="text-[10px] text-gray-400 mt-1"></p>
+                            </div>
+
+                            <button id="btn-quiz2-check" class="mt-4 teal-btn w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-md hidden">✅ Abhaken</button>
+                            <button id="btn-quiz2-back" class="text-[10px] text-gray-400 font-bold uppercase mt-4 underline">Zurück</button>
                         </div>
                     </div>
-                    <button onclick="exitQuiz()" class="text-[10px] text-gray-400 font-bold uppercase mt-6 underline">Zurück zur Liste</button>
+
                 </div>
             </div>
         </div>
@@ -799,6 +982,9 @@
     </nav>
 
     <script type="module">
+    // Safety: ensure playSound exists so onclick handlers don't break login.
+    window.playSound = window.playSound || function(){ /* no-op */ };
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
@@ -1326,7 +1512,126 @@ Format: 4–10 Wörter + 1 Emoji am Ende. Nur die Idee, kein Intro, kein Punkt.`
             textEl.style.opacity = '1'; btn.innerText = originalText; btn.disabled = false;
         };
 
-        document.getElementById('btn-deeptalk').onclick = async () => {
+        
+        // --- DEEP TALK: Chipsystem (Kategorien + Mood + Custom) ---
+        const DT_LS_CATS = "deepTalkCatsV2";
+        const DT_LS_MOOD = "deepTalkMoodV2";
+        const DT_LS_CUSTOM = "deepTalkCustomV2";
+
+        const dtState = {
+            cats: new Set(),
+            mood: "",
+            custom: []
+        };
+
+        const dtApplyActive = (btn, active) => {
+            if (!btn) return;
+            if (active) {
+                btn.classList.remove('bg-white/70', 'text-indigo-700', 'border-indigo-100');
+                btn.classList.add('bg-indigo-500', 'text-white', 'border-indigo-500');
+            } else {
+                btn.classList.remove('bg-indigo-500', 'text-white', 'border-indigo-500');
+                btn.classList.add('bg-white/70', 'text-indigo-700', 'border-indigo-100');
+            }
+        };
+
+        const dtRenderCustom = () => {
+            const box = document.getElementById('dt-custom-list');
+            if (!box) return;
+            box.innerHTML = "";
+            dtState.custom.forEach((txt, idx) => {
+                const b = document.createElement('button');
+                b.type = "button";
+                b.className = "px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-indigo-50 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95";
+                b.innerHTML = `${txt} <span style="opacity:.6">×</span>`;
+                b.onclick = () => {
+                    playSound && playSound('click');
+                    dtState.custom.splice(idx, 1);
+                    dtPersist();
+                    dtRenderCustom();
+                };
+                box.appendChild(b);
+            });
+        };
+
+        const dtPersist = () => {
+            try {
+                localStorage.setItem(DT_LS_CATS, JSON.stringify(Array.from(dtState.cats)));
+                localStorage.setItem(DT_LS_MOOD, dtState.mood || "");
+                localStorage.setItem(DT_LS_CUSTOM, JSON.stringify(dtState.custom || []));
+            } catch (e) {}
+        };
+
+        const dtRestore = () => {
+            try {
+                const cats = JSON.parse(localStorage.getItem(DT_LS_CATS) || "[]");
+                const mood = localStorage.getItem(DT_LS_MOOD) || "";
+                const custom = JSON.parse(localStorage.getItem(DT_LS_CUSTOM) || "[]");
+                dtState.cats = new Set(Array.isArray(cats) ? cats : []);
+                dtState.mood = (mood || "");
+                dtState.custom = Array.isArray(custom) ? custom.slice(0, 12) : [];
+            } catch (e) {}
+        };
+
+        const initDeepTalkChips = () => {
+            const wrap = document.getElementById('deeptalk-chips');
+            if (!wrap) return;
+
+            dtRestore();
+
+            // category chips
+            const catBtns = wrap.querySelectorAll('[data-dt-cat]');
+            catBtns.forEach((btn) => {
+                const cat = btn.getAttribute('data-dt-cat');
+                dtApplyActive(btn, dtState.cats.has(cat));
+                btn.addEventListener('click', () => {
+                    playSound && playSound('click');
+                    if (dtState.cats.has(cat)) dtState.cats.delete(cat);
+                    else dtState.cats.add(cat);
+                    dtApplyActive(btn, dtState.cats.has(cat));
+                    dtPersist();
+                });
+            });
+
+            // mood (single select)
+            const moodBtns = wrap.querySelectorAll('[data-dt-mood]');
+            const setMood = (m) => {
+                dtState.mood = m || "";
+                moodBtns.forEach((b) => dtApplyActive(b, b.getAttribute('data-dt-mood') === dtState.mood));
+                dtPersist();
+            };
+            moodBtns.forEach((btn) => {
+                const m = btn.getAttribute('data-dt-mood');
+                btn.addEventListener('click', () => {
+                    playSound && playSound('click');
+                    setMood(dtState.mood === m ? "" : m);
+                });
+            });
+            if (dtState.mood) setMood(dtState.mood);
+
+            // custom chips
+            const input = document.getElementById('dt-custom-input');
+            const addBtn = document.getElementById('btn-dt-add-custom');
+            const addCustom = () => {
+                const v = (input?.value || "").trim();
+                if (!v) return;
+                if (dtState.custom.map(x => x.toLowerCase()).includes(v.toLowerCase())) { input.value = ""; return; }
+                dtState.custom.unshift(v);
+                dtState.custom = dtState.custom.slice(0, 12);
+                input.value = "";
+                playSound && playSound('click');
+                dtPersist();
+                dtRenderCustom();
+            };
+            if (addBtn) addBtn.onclick = addCustom;
+            if (input) input.addEventListener('keydown', (e) => {
+                if (e.key === "Enter") { e.preventDefault(); addCustom(); }
+            });
+            dtRenderCustom();
+        };
+
+
+document.getElementById('btn-deeptalk').onclick = async () => {
             const qEl = document.getElementById('deeptalk-question');
             const container = document.getElementById('deeptalk-container');
             const btn = document.getElementById('btn-deeptalk');
@@ -1350,14 +1655,32 @@ Format: 4–10 Wörter + 1 Emoji am Ende. Nur die Idee, kein Intro, kein Punkt.`
               "Zukunft"
             ];
 
+            const historyCats = Array.from(dtState?.cats || []);
+            const mood = (dtState?.mood || "").trim();
+            const customChips = Array.isArray(dtState?.custom) ? dtState.custom.filter(Boolean) : [];
+
+            // Primäres Thema: aus ausgewählten Kategorien, sonst random
             const lastTopic = sessionStorage.getItem('deepTalkLastTopic') || "";
-            let topic = topics[Math.floor(Math.random() * topics.length)];
-            for (let i = 0; i < 12 && topic === lastTopic; i++) {
-              topic = topics[Math.floor(Math.random() * topics.length)];
+            const pool = (historyCats.length ? historyCats : topics);
+
+            let topic = pool[Math.floor(Math.random() * pool.length)];
+            for (let i = 0; i < 14 && topic === lastTopic; i++) {
+              topic = pool[Math.floor(Math.random() * pool.length)];
             }
 
             const prompt = `Erstelle EINE Deep‑Talk‑Frage für ein Paar. Sprache: Deutsch. 1–2 Sätze, Alltagssprache.
 Kategorie/Schwerpunkt: ${topic}.
+
+Chips (falls vorhanden):
+- Ausgewählte Kategorien: ${historyCats.length ? historyCats.join(", ") : "(keine)"}
+- Stimmung/Ton: ${mood || "(überraschend/neutral)"}
+- Eigene Chips: ${customChips.length ? customChips.join(", ") : "(keine)"}
+
+Wichtig:
+- Beziehe ausgewählte Kategorien + eigene Chips sinnvoll ein, ohne sie plump aufzuzählen.
+- Ton soll zur Stimmung passen (falls gewählt).
+- Keine Therapeutensprache, keine Floskeln, keine generischen Standardfragen.
+- Konkret, überraschend, menschlich.
 
 Die Frage darf ALLE Deep‑Talk‑Themen abdecken (z.B. Werte, Grenzen, Intimität, Familie, Freundschaft, Geld, Eifersucht, Kommunikation, Träume, Humor, Konflikte, Spiritualität/Religion – inkl. Islam – usw.).
 Wichtig: NICHT nur Vergangenheit oder NICHT nur Zukunft. Wenn du „Vergangenheit“ oder „Zukunft“ wählst, mach es trotzdem konkret und nicht klischeehaft. In allen anderen Kategorien bitte Fokus auf Gegenwart/Alltag/Charakter/Beziehung – nicht auf „früher“ oder „später“.
@@ -1366,7 +1689,7 @@ Variation:
 - Vermeide Wiederholung oder ähnliche Fragen zu den letzten 3:
 ${last3.map(q => `- ${q}`).join("\n") || "- (keine)"}
 
-Regeln: keine Therapeutensprache, keine Floskeln, keine generischen Standardfragen. Konkret, überraschend, menschlich. Nur die Frage.`;
+Nur die Frage.`;
 
             const question = await callAI(prompt);
 const clean = question ? question.replace(/["']/g, "").trim() : "Welche kleine Sache in unserem Alltag würde unsere Beziehung sofort leichter oder schöner machen – und warum?";
@@ -1695,27 +2018,36 @@ bindPolaroidUIOnce();
     return { fullUrl: dataUrl, thumbUrl: "" };
   }
 
-  const thumbDataUrl = await makeThumbnailDataURL(dataUrl, 220, 0.7);
+  const thumbDataUrl = await makeThumbnailDataURL(dataUrl, 480, 0.90);
 
   const fullRef = sRef(storage, `wishes/${wishId}/memory.jpg`);
   await uploadString(fullRef, dataUrl, "data_url");
   const fullUrl = await getDownloadURL(fullRef);
 
-  const thumbRef = sRef(storage, `wishes/${wishId}/thumb.jpg`);
-  await uploadString(thumbRef, thumbDataUrl, "data_url");
-  const thumbUrl = await getDownloadURL(thumbRef);
+  let thumbUrl = "";
+  if (thumbDataUrl) {
+    const thumbRef = sRef(storage, `wishes/${wishId}/thumb.jpg`);
+    await uploadString(thumbRef, thumbDataUrl, "data_url");
+    thumbUrl = await getDownloadURL(thumbRef);
+  }
 
   return { fullUrl, thumbUrl };
 }
 
-            function makeThumbnailDataURL(originalDataUrl, maxSize = 220, quality = 0.7) {
+            function makeThumbnailDataURL(originalDataUrl, maxSize = 480, quality = 0.90) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
                 const canvas = document.createElement("canvas");
                 const ctx = canvas.getContext("2d");
 
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = "high";
+
                 const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+
+                // Wenn kein Downscale nötig ist, kein Thumbnail erstellen (spart Speicher & Uploads)
+                if (ratio >= 0.999) { resolve(null); return; }
                 const w = Math.round(img.width * ratio);
                 const h = Math.round(img.height * ratio);
 
@@ -1746,11 +2078,39 @@ bindPolaroidUIOnce();
             const data = snapshot.val();
             
             if (data && data.memoryPhoto) {
-                imgEl.src = data.memoryPhoto;
+                // Sofort ein (ggf. vorhandenes) Thumbnail anzeigen und dann das Original "smooth" nachladen
+                const thumbSrc = data.memoryThumb || "";
+                const fullSrc = data.memoryPhoto;
+
+                // Basic fade setup (nur hier, greift sonst nirgends ein)
+                imgEl.style.transition = "opacity 180ms ease";
+                imgEl.style.opacity = "1";
+
+                if (thumbSrc && thumbSrc !== fullSrc) {
+                    imgEl.src = thumbSrc;
+                } else {
+                    imgEl.src = fullSrc;
+                }
+
                 titleEl.innerText = data.text;
                 noteEl.innerText = data.memoryNote || "Keine Notiz dazu.";
                 const d = new Date(data.doneAt);
                 dateEl.innerText = d.toLocaleDateString('de-DE') + " • " + data.location;
+
+                // Wenn wir ein Thumbnail gezeigt haben: Original im Hintergrund laden und dann sanft ersetzen
+                if (thumbSrc && thumbSrc !== fullSrc) {
+                    const pre = new Image();
+                    pre.onload = () => {
+                        // fade out -> swap -> fade in
+                        imgEl.style.opacity = "0";
+                        setTimeout(() => {
+                            imgEl.src = fullSrc;
+                            // nächster Frame für sauberes Repaint
+                            requestAnimationFrame(() => { imgEl.style.opacity = "1"; });
+                        }, 160);
+                    };
+                    pre.src = fullSrc;
+                }
             } else {
                 modal.classList.add('hidden'); // Sollte nicht passieren
             }
@@ -1802,11 +2162,15 @@ bindPolaroidUIOnce();
         window.saveMilestone = async () => {
             const title = document.getElementById('ms-title').value.trim();
             if (!title) return alert("Titel fehlt!");
-            const user = localStorage.getItem('currentUser');
+            const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
             const location = document.getElementById('ms-location').value.trim();
             const originalLocation = document.getElementById('ms-location').getAttribute('data-original-location');
 
             const payload = { text: title, location: location, info: document.getElementById('ms-info').value.trim(), cat: document.getElementById('ms-cat').value, weather: document.getElementById('ms-weather').value };
+
+            // Foto aus dem Modal zwischenspeichern (niemals Base64 in DB schreiben)
+            const pendingPhoto = currentPhotoBase64 || "";
+
 
             if (location !== originalLocation) { payload.lat = null; payload.lon = null; }
             
@@ -1817,7 +2181,6 @@ bindPolaroidUIOnce();
                 payload.ratingSamet = document.getElementById('ms-rating-s').value;
                 const dateVal = document.getElementById('ms-date').value;
                 payload.doneAt = dateVal ? new Date(dateVal).getTime() : Date.now();
-                if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
             } else {
                 if (!currentEditingMilestoneId) { payload.status = 'open'; payload.isBucket = true; payload.timestamp = Date.now(); }
                 else {
@@ -1827,13 +2190,57 @@ bindPolaroidUIOnce();
                          payload.ratingSamet = document.getElementById('ms-rating-s').value;
                          const dateVal = document.getElementById('ms-date').value;
                          if (dateVal) payload.doneAt = new Date(dateVal).getTime();
-                         if (currentPhotoBase64) payload.memoryPhoto = currentPhotoBase64;
+                             }
+                }
+            }
+
+
+            // Wenn ein Foto gesetzt ist, stelle sicher, dass wir NUR Storage-URLs speichern (keine data: Base64)
+            const needsUpload = (typeof pendingPhoto === "string" && pendingPhoto.startsWith("data:"));
+            const hasUrlPhoto = (typeof pendingPhoto === "string" && pendingPhoto && !pendingPhoto.startsWith("data:"));
+
+            // Bei bestehendem Eintrag können wir vor dem Speichern hochladen und direkt URLs setzen
+            if (currentEditingMilestoneId && pendingPhoto) {
+                if (needsUpload) {
+                    try {
+                        const { fullUrl, thumbUrl } = await uploadPhotoForWish(currentEditingMilestoneId, pendingPhoto);
+                        if (fullUrl) payload.memoryPhoto = fullUrl;
+                        if (thumbUrl) payload.memoryThumb = thumbUrl;
+                    } catch (e) {
+                        console.error("Milestone-Foto Upload fehlgeschlagen:", e);
+                        alert("Foto-Upload fehlgeschlagen. Bitte erneut versuchen.");
+                        return;
                     }
+                } else if (hasUrlPhoto) {
+                    payload.memoryPhoto = pendingPhoto;
                 }
             }
 
             if (currentEditingMilestoneId) await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
-            else { payload.by = user; if (!payload.timestamp) payload.timestamp = Date.now(); await push(ref(db, 'wishes'), payload); }
+            else {
+                payload.by = user;
+                if (!payload.timestamp) payload.timestamp = Date.now();
+
+                const newRef = await push(ref(db, 'wishes'), payload);
+
+                // Falls beim Anlegen ein Foto gewählt wurde: erst nach Push hochladen und dann URLs nachtragen
+                if (pendingPhoto && needsUpload && newRef && newRef.key) {
+                    try {
+                        const { fullUrl, thumbUrl } = await uploadPhotoForWish(newRef.key, pendingPhoto);
+                        const patch = {};
+                        if (fullUrl) patch.memoryPhoto = fullUrl;
+                        if (thumbUrl) patch.memoryThumb = thumbUrl;
+                        if (Object.keys(patch).length) await update(ref(db, `wishes/${newRef.key}`), patch);
+                    } catch (e) {
+                        console.error("Neues Milestone-Foto Upload fehlgeschlagen:", e);
+                        // Eintrag bleibt ohne Foto (statt Base64 in DB zu schreiben)
+                        alert("Foto-Upload fehlgeschlagen. Du kannst das Bild später erneut hinzufügen.");
+                    }
+                } else if (pendingPhoto && hasUrlPhoto && newRef && newRef.key) {
+                    // Wenn aus irgendeinem Grund schon eine URL vorliegt, nachtragen
+                    await update(ref(db, `wishes/${newRef.key}`), { memoryPhoto: pendingPhoto });
+                }
+            }
             document.getElementById('milestone-modal').classList.add('hidden');
         };
 
@@ -1890,19 +2297,11 @@ bindPolaroidUIOnce();
 
             onValue(ref(db, 'loveLetter'), (snap) => { const d = snap.val(); if(d) document.getElementById('love-letter-display').innerText = `"${d.text}" - Von ${d.by}`; });
             
-            // --- QUIZ LOGIC UPDATE ---
-            onValue(ref(db, 'quiz'), (snap) => { 
-                const quizList = document.getElementById('quiz-list'); quizList.innerHTML = ""; 
-                const data = snap.val(); if(!data) return; 
-                Object.keys(data).reverse().forEach(id => { 
-                    const item = data[id]; const div = document.createElement('div'); 
-                    div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm animate-slide-up cursor-pointer hover:bg-pink-100 transition-colors"; 
-                    div.onclick = () => startQuiz(item); // Interaktiv
-                    div.innerHTML = `<div><p class="font-bold">Frage von ${item.by} ❓</p><p class="text-[9px] text-gray-400 mt-1">Bereit zum Raten?</p></div><span class="text-xl">👉</span>`; 
-                    quizList.appendChild(div); 
-                }); 
+            // --- QUIZ ARENA v2 UPDATE ---
+            onValue(ref(db, 'quiz'), (snap) => {
+                const data = snap.val() || {};
+                renderQuiz2Lists(data);
             });
-
 
             // --- NEW (Index04): Polaroids Sync ---
             onValue(ref(db, 'polaroids'), (snap) => {
@@ -2033,52 +2432,323 @@ bindPolaroidUIOnce();
         };
 
         // --- NEW QUIZ INTERACTION LOGIC ---
-        window.startQuiz = (item) => {
-            document.getElementById('quiz-lobby').classList.add('hidden');
-            document.getElementById('quiz-active').classList.remove('hidden');
-            document.getElementById('qa-question').innerText = item.q;
-            document.getElementById('qa-author').innerText = item.by;
-            document.getElementById('qa-answer').innerText = item.a;
-            // Reset state
-            const card = document.getElementById('quiz-card-inner');
-            card.classList.remove('quiz-flip-active');
-            document.getElementById('quiz-controls').classList.add('hidden');
-            document.getElementById('quiz-controls').classList.remove('opacity-100');
+        // --- QUIZ ARENA v2 (A/B/C + 10s Timer + Reveal + Check) ---
+        let quiz2Cache = {};
+        let quiz2ActiveId = null;
+        let quiz2Timer = null;
+        let quiz2TimeLeft = 0;
+
+        const quiz2GetUser = () => {
+            return sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser') || "";
         };
 
-        window.revealAnswer = () => {
-            playSound('reveal');
-            document.getElementById('quiz-card-inner').classList.add('quiz-flip-active');
-            setTimeout(() => {
-                const ctrls = document.getElementById('quiz-controls');
-                ctrls.classList.remove('hidden');
-                setTimeout(() => ctrls.classList.add('opacity-100'), 50);
-            }, 600);
+        const quiz2Els = () => ({
+            wrap: document.getElementById('quiz2-wrap'),
+            listOpen: document.getElementById('quiz2-list-open'),
+            listDone: document.getElementById('quiz2-list-done'),
+            play: document.getElementById('quiz2-play'),
+            by: document.getElementById('quiz2-by'),
+            q: document.getElementById('quiz2-question'),
+            timer: document.getElementById('quiz2-timer'),
+            status: document.getElementById('quiz2-status'),
+            result: document.getElementById('quiz2-result'),
+            resultSub: document.getElementById('quiz2-result-sub'),
+            btnA: document.getElementById('quiz2-btn-A'),
+            btnB: document.getElementById('quiz2-btn-B'),
+            btnC: document.getElementById('quiz2-btn-C'),
+            txtA: document.getElementById('quiz2-text-A'),
+            txtB: document.getElementById('quiz2-text-B'),
+            txtC: document.getElementById('quiz2-text-C'),
+            addBtn: document.getElementById('btn-quiz2-add'),
+            backBtn: document.getElementById('btn-quiz2-back'),
+            checkBtn: document.getElementById('btn-quiz2-check'),
+            createHint: document.getElementById('quiz2-create-hint'),
+            inQ: document.getElementById('quiz2-q'),
+            inA: document.getElementById('quiz2-a'),
+            inB: document.getElementById('quiz2-b'),
+            inC: document.getElementById('quiz2-c'),
+        });
+
+        const quiz2StopTimer = () => {
+            if (quiz2Timer) clearInterval(quiz2Timer);
+            quiz2Timer = null;
         };
 
-        window.handleQuizResult = (correct) => {
-            if(correct) { playSound('success'); alert("Stark! 🧠✨"); } 
-            else { playSound('click'); alert("Ups! Nächstes Mal 😉"); }
-            exitQuiz();
+        const quiz2SetAnswerButtonsEnabled = (enabled) => {
+            const { btnA, btnB, btnC } = quiz2Els();
+            [btnA, btnB, btnC].forEach(b => {
+                if (!b) return;
+                b.disabled = !enabled;
+            });
         };
 
-        window.exitQuiz = () => {
-            document.getElementById('quiz-active').classList.add('hidden');
-            document.getElementById('quiz-lobby').classList.remove('hidden');
+        const quiz2ResetAnswerStyles = () => {
+            const { btnA, btnB, btnC } = quiz2Els();
+            [btnA, btnB, btnC].forEach(b => {
+                if (!b) return;
+                b.classList.remove('quiz2-wrong', 'quiz2-right', 'quiz2-reveal');
+            });
         };
 
-        document.getElementById('btn-send-letter').onclick = () => { const input = document.getElementById('love-letter-input'); if(!input.value.trim()) return; set(ref(db, 'loveLetter'), { text: input.value, by: localStorage.getItem('currentUser'), time: Date.now() }); input.value = ""; };
-        document.getElementById('btn-spin-roulette').onclick = () => { 
-            const res = document.getElementById('roulette-result'); 
-            res.innerText = "⏳..."; 
-            playSound('roulette');
-            setTimeout(() => { 
-                res.innerText = Math.random() > 0.5 ? "Samet 🏆" : "Meriam 🏆"; 
-                playSound('success');
-            }, 2000); 
+        const quiz2MarkReveal = (item, chosen) => {
+            const { btnA, btnB, btnC, result, resultSub } = quiz2Els();
+            const map = { A: btnA, B: btnB, C: btnC };
+            quiz2ResetAnswerStyles();
+
+            const correctBtn = map[item.correct];
+            const chosenBtn = map[chosen];
+
+            if (chosen && chosenBtn) {
+                if (chosen === item.correct) {
+                    chosenBtn.classList.add('quiz2-right');
+                } else {
+                    chosenBtn.classList.add('quiz2-wrong');
+                    if (correctBtn) correctBtn.classList.add('quiz2-right', 'quiz2-reveal');
+                }
+            } else {
+                // TIMEOUT / no choice
+                if (correctBtn) correctBtn.classList.add('quiz2-right', 'quiz2-reveal');
+            }
+
+            const chosenLabel = chosen ? chosen : "—";
+            if (!chosen) {
+                result.textContent = "⏱️ Zeit abgelaufen!";
+                resultSub.textContent = `Richtig wäre: ${item.correct}`;
+                playSound && playSound('click');
+            } else if (chosen === item.correct) {
+                result.textContent = "✅ Richtig!";
+                resultSub.textContent = `Du hast ${chosenLabel} gewählt.`;
+                playSound && playSound('success');
+            } else {
+                result.textContent = "❌ Falsch!";
+                resultSub.textContent = `Du hast ${chosenLabel} gewählt. Richtig wäre: ${item.correct}`;
+                playSound && playSound('click');
+            }
         };
-        document.getElementById('btn-add-quiz').onclick = () => { const q = document.getElementById('quiz-q'); const a = document.getElementById('quiz-a'); if(!q.value || !a.value) return; push(ref(db, 'quiz'), { q: q.value, a: a.value, by: localStorage.getItem('currentUser') }); q.value = ""; a.value = ""; };
-        
+
+        const quiz2StartTimer = (seconds, onTimeout) => {
+            const { timer, status } = quiz2Els();
+            quiz2StopTimer();
+            quiz2TimeLeft = seconds;
+            if (timer) timer.textContent = String(quiz2TimeLeft);
+            if (status) status.textContent = `Du hast ${seconds} Sekunden.`;
+
+            quiz2Timer = setInterval(() => {
+                quiz2TimeLeft -= 1;
+                if (timer) timer.textContent = String(Math.max(0, quiz2TimeLeft));
+                if (quiz2TimeLeft <= 0) {
+                    quiz2StopTimer();
+                    onTimeout && onTimeout();
+                }
+            }, 1000);
+        };
+
+        const quiz2Open = (id) => {
+            const els = quiz2Els();
+            const item = quiz2Cache[id];
+            if (!item) return;
+
+            quiz2ActiveId = id;
+            quiz2StopTimer();
+            quiz2ResetAnswerStyles();
+            els.result.textContent = "";
+            els.resultSub.textContent = "";
+
+            els.play.classList.remove('hidden');
+            els.by.textContent = item.by || "?";
+            els.q.textContent = item.q || "?";
+            els.txtA.textContent = item.a || "";
+            els.txtB.textContent = item.b || "";
+            els.txtC.textContent = item.c || "";
+
+            // Default: disable, enable only if playable
+            quiz2SetAnswerButtonsEnabled(false);
+            els.checkBtn.classList.add('hidden');
+            els.timer.textContent = "10";
+
+            const me = quiz2GetUser();
+
+            if (item.status === "open") {
+                // Only partner answers (logical)
+                if (me && item.by && me !== item.by) {
+                    els.status.textContent = "Rate jetzt!";
+                    quiz2SetAnswerButtonsEnabled(true);
+
+                    quiz2StartTimer(10, () => {
+                        // time expired -> mark as answered with no choice
+                        quiz2SubmitAnswer(null, true);
+                    });
+                } else {
+                    els.status.textContent = "Warte auf Partner…";
+                    els.result.textContent = "";
+                    els.resultSub.textContent = "";
+                }
+            } else {
+                // answered / checked
+                els.status.textContent = item.status === "checked" ? "Abgehakt ✅" : "Beantwortet";
+                quiz2SetAnswerButtonsEnabled(false);
+                quiz2MarkReveal(item, item.chosen || null);
+
+                if (item.status === "answered") {
+                    els.checkBtn.classList.remove('hidden');
+                }
+            }
+
+            // Scroll into view (nice on small screens)
+            try { els.play.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch(e) {}
+        };
+
+        const quiz2SubmitAnswer = async (choice, isTimeout=false) => {
+            const item = quiz2Cache[quiz2ActiveId];
+            if (!item || item.status !== "open") return;
+
+            const me = quiz2GetUser();
+            if (!me || me === item.by) return; // creator doesn't answer
+
+            quiz2StopTimer();
+            quiz2SetAnswerButtonsEnabled(false);
+
+            // Immediate local reveal
+            quiz2MarkReveal(item, choice);
+
+            // persist
+            const payload = {
+                status: "answered",
+                answerBy: me,
+                chosen: choice ? String(choice) : null,
+                answeredAt: Date.now()
+            };
+            await update(ref(db, `quiz/${quiz2ActiveId}`), payload);
+
+            // show check button after answered
+            const { checkBtn, status } = quiz2Els();
+            if (status) status.textContent = isTimeout ? "Zeit abgelaufen" : "Beantwortet";
+            if (checkBtn) checkBtn.classList.remove('hidden');
+        };
+
+        const renderQuiz2Lists = (data) => {
+            quiz2Cache = data || {};
+            const { listOpen, listDone, play } = quiz2Els();
+            if (!listOpen || !listDone) return;
+
+            const items = Object.keys(quiz2Cache).map(id => ({ id, ...quiz2Cache[id] }));
+            // newest first
+            items.sort((x, y) => (y.createdAt || 0) - (x.createdAt || 0));
+
+            const open = items.filter(it => it.status !== "checked");
+            const done = items.filter(it => it.status === "checked");
+
+            const renderList = (container, arr, emptyText) => {
+                container.innerHTML = "";
+                if (!arr.length) {
+                    const p = document.createElement('p');
+                    p.className = "text-[10px] text-gray-400 italic px-1";
+                    p.textContent = emptyText;
+                    container.appendChild(p);
+                    return;
+                }
+                arr.forEach(it => {
+                    const div = document.createElement('div');
+                    div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm animate-slide-up cursor-pointer hover:bg-pink-100 transition-colors";
+                    const badge = it.status === "open" ? "🟣 Offen" : (it.status === "answered" ? "🟢 Beantwortet" : "✅ Abgehakt");
+                    const who = it.by ? `von ${it.by}` : "";
+                    div.innerHTML = `<div>
+                        <p class="font-bold">${badge} • ${who}</p>
+                        <p class="text-[10px] text-gray-500 mt-1">${(it.q || "").slice(0, 60)}${(it.q || "").length > 60 ? "…" : ""}</p>
+                    </div>
+                    <span class="text-xl">👉</span>`;
+                    div.onclick = () => quiz2Open(it.id);
+                    container.appendChild(div);
+                });
+            };
+
+            renderList(listOpen, open, "Noch keine Quizfragen 🙂");
+            renderList(listDone, done, "Noch nichts abgehakt.");
+
+            // If currently open in play view, re-open to refresh reveal state
+            if (quiz2ActiveId && quiz2Cache[quiz2ActiveId] && play && !play.classList.contains('hidden')) {
+                quiz2Open(quiz2ActiveId);
+            }
+        };
+
+        const initQuiz2Once = () => {
+            const els = quiz2Els();
+            if (!els.wrap) return;
+
+            // Answer clicks
+            [els.btnA, els.btnB, els.btnC].forEach(btn => {
+                if (!btn) return;
+                btn.addEventListener('click', () => {
+                    const choice = btn.getAttribute('data-choice');
+                    if (!choice) return;
+                    quiz2SubmitAnswer(choice, false);
+                });
+            });
+
+            // Back
+            if (els.backBtn) {
+                els.backBtn.addEventListener('click', () => {
+                    quiz2StopTimer();
+                    els.play.classList.add('hidden');
+                    quiz2ActiveId = null;
+                });
+            }
+
+            // Check (anyone can check, only if answered)
+            if (els.checkBtn) {
+                els.checkBtn.addEventListener('click', async () => {
+                    if (!quiz2ActiveId) return;
+                    const item = quiz2Cache[quiz2ActiveId];
+                    if (!item || item.status !== "answered") return;
+                    await update(ref(db, `quiz/${quiz2ActiveId}`), { status: "checked", checkedAt: Date.now() });
+                    playSound && playSound('success');
+                });
+            }
+
+            // Create
+            if (els.addBtn) {
+                els.addBtn.addEventListener('click', async () => {
+                    const me = quiz2GetUser();
+                    const q = (els.inQ?.value || "").trim();
+                    const a = (els.inA?.value || "").trim();
+                    const b = (els.inB?.value || "").trim();
+                    const c = (els.inC?.value || "").trim();
+                    const correct = (document.querySelector('input[name="quiz2-correct"]:checked')?.value || "A");
+
+                    const hint = els.createHint;
+                    const showHint = (msg) => {
+                        if (!hint) return;
+                        hint.textContent = msg;
+                        hint.classList.remove('hidden');
+                        setTimeout(() => hint.classList.add('hidden'), 2200);
+                    };
+
+                    if (!me) return showHint("Bitte erst einloggen.");
+                    if (!q || !a || !b || !c) return showHint("Bitte Frage + A/B/C ausfüllen 🙂");
+
+                    await push(ref(db, 'quiz'), {
+                        q, a, b, c,
+                        correct,
+                        by: me,
+                        createdAt: Date.now(),
+                        status: "open",
+                        answerBy: null,
+                        chosen: null,
+                        answeredAt: null
+                    });
+
+                    // clear
+                    els.inQ.value = "";
+                    els.inA.value = "";
+                    els.inB.value = "";
+                    els.inC.value = "";
+                    showHint("Gespeichert ✅");
+                    playSound && playSound('success');
+                });
+            }
+        };
+
+        initQuiz2Once();
         window.markAsDone = (id) => { currentCompletingId = id; openMemoryModalInternal(); };
         window.openCommentModal = (id) => { currentCompletingId = id; openMemoryModalInternal(); }
         const openMemoryModalInternal = () => { document.getElementById('memory-modal').classList.remove('hidden'); document.getElementById('memory-photo-file').value = ""; document.getElementById('preview-image').classList.add('hidden'); document.getElementById('upload-text').innerText = "📸 Foto hinzufügen"; currentPhotoBase64 = ""; document.getElementById('memory-note').value = ""; }
@@ -2092,7 +2762,7 @@ bindPolaroidUIOnce();
             saveBtn.innerText = "⏳ Lädt hoch...";
 
             const note = document.getElementById('memory-note').value.trim();
-            const user = localStorage.getItem('currentUser');
+            const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
             const updates = {};
             updates[`wishes/${currentCompletingId}/status`] = 'done';
             const snapshot = await get(ref(db, `wishes/${currentCompletingId}`)); const item = snapshot.val();
@@ -2116,7 +2786,7 @@ bindPolaroidUIOnce();
 
         document.getElementById('btn-add').onclick = () => {
             const input = document.getElementById('wish-input'); if(!input.value.trim()) return;
-            push(ref(db, 'wishes'), { text: input.value, location: document.getElementById('location-input').value.trim(), info: document.getElementById('info-input').value.trim(), cat: document.getElementById('cat-select').value, weather: document.getElementById('weather-select').value, surprise: document.getElementById('surprise-toggle').checked, isBucket: document.getElementById('bucket-toggle').checked, by: localStorage.getItem('currentUser'), timestamp: Date.now(), status: 'open' });
+            push(ref(db, 'wishes'), { text: input.value, location: document.getElementById('location-input').value.trim(), info: document.getElementById('info-input').value.trim(), cat: document.getElementById('cat-select').value, weather: document.getElementById('weather-select').value, surprise: document.getElementById('surprise-toggle').checked, isBucket: document.getElementById('bucket-toggle').checked, by: (sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser')), timestamp: Date.now(), status: 'open' });
             input.value = ""; document.getElementById('location-input').value = ""; document.getElementById('info-input').value = ""; document.getElementById('surprise-toggle').checked = false; document.getElementById('bucket-toggle').checked = false;
         };
 
@@ -2345,7 +3015,84 @@ bindPolaroidUIOnce();
             ctx.fillText(sub.slice(0, 34), winX + 4, noteY + 92);
         };
 
-        const initPolaroidCropCanvas = () => {
+        
+        // --- FUNZONE: Eins oder Zwei (Wheel) ---
+        const initOneTwoWheel = () => {
+            const wheel = document.getElementById('one-two-wheel');
+            const btn = document.getElementById('btn-one-two-spin');
+            const res = document.getElementById('one-two-result');
+            const opt1 = document.getElementById('one-two-opt1');
+            const opt2 = document.getElementById('one-two-opt2');
+
+            if (!wheel || !btn || !res || !opt1 || !opt2) return;
+
+            // restore last options (local only)
+            try {
+                const s1 = localStorage.getItem('oneTwoOpt1');
+                const s2 = localStorage.getItem('oneTwoOpt2');
+                if (s1) opt1.value = s1;
+                if (s2) opt2.value = s2;
+            } catch (e) {}
+
+            let spinning = false;
+            let currentAngle = 0;
+
+            const chooseAndSpin = () => {
+                const a = (opt1.value || '').trim();
+                const b = (opt2.value || '').trim();
+
+                if (!a || !b) {
+                    res.textContent = "Bitte beide Optionen eintragen 🙂";
+                    playSound && playSound('click');
+                    return;
+                }
+
+                // persist options
+                try {
+                    localStorage.setItem('oneTwoOpt1', a);
+                    localStorage.setItem('oneTwoOpt2', b);
+                } catch (e) {}
+
+                if (spinning) return;
+                spinning = true;
+                btn.disabled = true;
+                res.textContent = "";
+
+                // 1 = pink half (0..180), 2 = teal half (180..360)
+                const choice = Math.random() < 0.5 ? 1 : 2;
+
+                // Pick a target "pointer angle" within the chosen half.
+                // We solve finalAngle so that the pointer (top) lands in that half.
+                const minA = choice === 1 ? 20 : 200;
+                const maxA = choice === 1 ? 160 : 340;
+                const desiredPointerAngle = minA + Math.random() * (maxA - minA); // degrees
+
+                const spins = 3 + Math.floor(Math.random() * 3); // 3..5
+                const offset = (360 - (desiredPointerAngle % 360)) % 360;
+                const finalAngle = (360 * spins) + offset;
+
+                currentAngle = (currentAngle + finalAngle);
+                wheel.style.transform = `rotate(${currentAngle}deg)`;
+
+                const onEnd = () => {
+                    const winner = (choice === 1) ? a : b;
+                    res.textContent = `✅ Ergebnis: ${choice} — ${winner}`;
+                    // reset inputs after draw
+                    opt1.value = "";
+                    opt2.value = "";
+                    try { localStorage.removeItem('oneTwoOpt1'); localStorage.removeItem('oneTwoOpt2'); } catch (e) {}
+                    spinning = false;
+                    btn.disabled = false;
+                };
+
+                wheel.addEventListener('transitionend', onEnd, { once: true });
+                playSound && playSound('click');
+            };
+
+            btn.addEventListener('click', chooseAndSpin);
+        };
+
+const initPolaroidCropCanvas = () => {
             const canvas = document.getElementById('polaroid-crop-canvas');
             if (!canvas) return;
 
@@ -2387,26 +3134,7 @@ bindPolaroidUIOnce();
             const grid = document.getElementById('polaroid-grid');
             if (!grid) return;
             grid.innerHTML = "";
-            const toDayTs = (d) => {
-                // expects YYYY-MM-DD (from <input type="date">)
-                if (!d) return 0;
-                const t = Date.parse(d + "T00:00:00");
-                return Number.isFinite(t) ? t : 0;
-            };
-
-            const ids = Object.keys(dataObj || {}).sort((a, b) => {
-                const A = dataObj[a] || {};
-                const B = dataObj[b] || {};
-
-                const ad = toDayTs(A.date);
-                const bd = toDayTs(B.date);
-
-                // 1) sort by chosen date (newest first)
-                if (bd !== ad) return bd - ad;
-
-                // 2) tie-breaker: createdAt (newest first)
-                return (B.createdAt || 0) - (A.createdAt || 0);
-            });
+            const ids = Object.keys(dataObj || {}).sort((a, b) => (dataObj[b]?.createdAt || 0) - (dataObj[a]?.createdAt || 0));
             ids.forEach((id) => {
                 const p = dataObj[id];
                 if (!p) return;
@@ -2666,6 +3394,10 @@ bindPolaroidUIOnce();
             };
 
             initPolaroidCropCanvas();
+
+            initOneTwoWheel();
+
+            initDeepTalkChips();
 
             // Default mode
             setGalleryMode("dates");
