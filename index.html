@@ -2387,7 +2387,26 @@ bindPolaroidUIOnce();
             const grid = document.getElementById('polaroid-grid');
             if (!grid) return;
             grid.innerHTML = "";
-            const ids = Object.keys(dataObj || {}).sort((a, b) => (dataObj[b]?.createdAt || 0) - (dataObj[a]?.createdAt || 0));
+            const toDayTs = (d) => {
+                // expects YYYY-MM-DD (from <input type="date">)
+                if (!d) return 0;
+                const t = Date.parse(d + "T00:00:00");
+                return Number.isFinite(t) ? t : 0;
+            };
+
+            const ids = Object.keys(dataObj || {}).sort((a, b) => {
+                const A = dataObj[a] || {};
+                const B = dataObj[b] || {};
+
+                const ad = toDayTs(A.date);
+                const bd = toDayTs(B.date);
+
+                // 1) sort by chosen date (newest first)
+                if (bd !== ad) return bd - ad;
+
+                // 2) tie-breaker: createdAt (newest first)
+                return (B.createdAt || 0) - (A.createdAt || 0);
+            });
             ids.forEach((id) => {
                 const p = dataObj[id];
                 if (!p) return;
