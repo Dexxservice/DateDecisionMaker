@@ -4033,13 +4033,26 @@ const initPolaroidCropCanvas = () => {
                 const div = document.createElement('div');
                 div.className = "instax-card";
                 div.onclick = () => {
-                    // reuse existing fullscreen modal
+                    // reuse existing fullscreen modal, BUT force single-photo mode (no stale carousel state)
                     const modal = document.getElementById('view-memory-modal');
                     if (!modal) return;
-                    document.getElementById('view-img').src = p.fullUrl || p.thumbUrl || "";
-                    document.getElementById('view-title').innerText = p.location ? p.location : "Polaroid";
-                    document.getElementById('view-date').innerText = (p.date || "") + (p.by ? ` • ${p.by}` : "");
-                    document.getElementById('view-note').innerText = p.note || "";
+
+                    // IMPORTANT: Polaroid is always ONE photo → reset global view carousel state to exactly 1 image
+                    viewMemoryPhotos = [{
+                        thumbUrl: p.thumbUrl || "",
+                        fullUrl: p.fullUrl || p.thumbUrl || ""
+                    }];
+                    viewMemoryIdx = 0;
+                    bindViewCarouselOnce();
+                    showViewMemoryIndex(0);
+
+                    const t = document.getElementById('view-title');
+                    const d = document.getElementById('view-date');
+                    const n = document.getElementById('view-note');
+                    if (t) t.innerText = p.location ? p.location : "Polaroid";
+                    if (d) d.innerText = (p.date || "") + (p.by ? ` • ${p.by}` : "");
+                    if (n) n.innerText = p.note || "";
+
                     modal.classList.remove('hidden');
                 };
 
