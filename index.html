@@ -629,7 +629,7 @@
                 </div>
             </div>
             <div class="mt-6 space-y-2">
-                <button id="btn-save-milestone" onclick="saveMilestone(); playSound(\'success\')" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern</button>
+                <button id="btn-save-milestone" onclick="saveMilestone(); playSound('success')" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern</button>
                 <button onclick="document.getElementById('milestone-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 hover:text-gray-600">Abbrechen</button>
             </div>
         </div>
@@ -2795,6 +2795,8 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             }
 
             document.getElementById('milestone-modal').classList.add('hidden');
+            try { msManageMode = false; const mt = document.getElementById('ms-manage-toggle'); if (mt) mt.textContent = 'Fotos bearbeiten'; if (typeof renderMilestoneThumbs === 'function') renderMilestoneThumbs(); } catch(e) {}
+
         
             } finally {
                 if (btn) {
