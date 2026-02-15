@@ -404,6 +404,39 @@
 }
 
 </style>
+
+    <!-- HEY COUNTER STYLES (isoliert) -->
+    <style>
+      /* Klick-Hinweis: leuchtender Ring um den Badge */
+      .hey-badge-ring{ position: relative; }
+      .hey-badge-ring::after{
+        content:"";
+        position:absolute;
+        inset:-3px;
+        border-radius:9999px;
+        box-shadow:
+          0 0 0 2px rgba(45,212,191,0.25),
+          0 0 16px rgba(20,184,166,0.22),
+          0 0 30px rgba(236,72,153,0.16);
+        opacity:0.65;
+        pointer-events:none;
+        animation:heyBadgePulse 1.9s ease-in-out infinite;
+      }
+      @keyframes heyBadgePulse{
+        0%,100%{ transform:scale(1); opacity:0.55; }
+        50%{ transform:scale(1.04); opacity:0.95; }
+      }
+
+      /* Modal staged reveal */
+      .hey-tile{ transition: opacity .6s ease, transform .6s ease, filter .6s ease; }
+      .hey-tile.is-off{ opacity:0; transform: translateY(10px) scale(0.98); filter: blur(6px); pointer-events:none; }
+      .hey-tile.is-on{ opacity:1; transform: translateY(0) scale(1); filter: blur(0); }
+
+      /* Millisekunden ruhiger darstellen */
+      #hey-millis{ font-variant-numeric: tabular-nums; }
+      .hey-millis-soft{ opacity:0.75; font-weight:700; }
+    </style>
+
 </head>
 <body class="theme-original min-h-screen flex flex-col items-center select-none transition-colors duration-500">
 
@@ -657,6 +690,51 @@
         </div>
     </div>
 
+
+    <!-- HEY COUNTER MODAL -->
+    <div id="hey-counter-modal" class="hidden fixed inset-0 bg-black/55 z-[260] flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="mint-card p-8 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 bg-white/95 text-center animate-scale-in">
+            <button onclick="closeHeyCounter(); playSound('click');" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
+
+            <p class="text-[10px] font-black text-gray-500 uppercase tracking-[0.35em]">Seit dem ersten "Hey"</p>
+            <p id="hey-counter-date" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">10.12.2025</p>
+
+            <div class="mt-6">
+                <div class="text-6xl font-black text-teal-900 tracking-tight leading-none">
+                    <span id="hey-days">0</span>
+                </div>
+                <div class="text-[10px] font-black text-gray-400 uppercase tracking-[0.35em] mt-2">Tage</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <div id="hey-tile-hours" class="hey-tile is-off bg-white/70 border border-gray-100 rounded-2xl p-3 shadow-sm">
+                    <div id="hey-hours" class="text-lg font-black text-teal-800">0</div>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Stunden</div>
+                </div>
+                <div id="hey-tile-minutes" class="hey-tile is-off bg-white/70 border border-gray-100 rounded-2xl p-3 shadow-sm">
+                    <div id="hey-minutes" class="text-lg font-black text-indigo-800">0</div>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Minuten</div>
+                </div>
+                <div id="hey-tile-seconds" class="hey-tile is-off bg-white/70 border border-gray-100 rounded-2xl p-3 shadow-sm">
+                    <div id="hey-seconds" class="text-lg font-black text-pink-700">0</div>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Sekunden</div>
+                </div>
+                <div id="hey-tile-millis" class="hey-tile is-off bg-white/70 border border-gray-100 rounded-2xl p-3 shadow-sm">
+                    <div id="hey-millis" class="text-base font-black text-gray-700 hey-millis-soft">0</div>
+                    <div class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1">Millisek.</div>
+                </div>
+            </div>
+
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-5">Verrückt, was aus einem "Hey" entstehen kann.</p>
+
+            <div class="mt-6 grid grid-cols-2 gap-3">
+                <button onclick="closeHeyCounter(); playSound('click');" class="w-full bg-white/80 border border-gray-200 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-all">Schliessen</button>
+                <button onclick="editSystemStart(); playSound('click');" class="w-full teal-btn py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">Startdatum</button>
+            </div>
+        </div>
+    </div>
+
+
     <div id="main-dashboard" class="hidden w-full max-w-md p-4 relative z-10">
         <header class="flex flex-col mb-8 mt-2 px-2 animate-fade-in-down">
             <div class="flex justify-between items-start mb-2">
@@ -672,8 +750,11 @@
                 </div>
             </div>
             <div class="flex flex-wrap gap-2 justify-center items-center mt-2">
-                <button onclick="editSystemStart();" id="uptime-display" class="bg-white/60 backdrop-blur-md border border-teal-100 text-[10px] text-teal-600 font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-all flex items-center gap-2">
-                    <span class="animate-pulse text-teal-400 text-xs">●</span> System Uptime: Laden...
+                <button onclick="openHeyCounter(); playSound('click');" id="uptime-display" class="hey-badge-ring bg-white/60 backdrop-blur-md border border-teal-100 text-[10px] text-teal-600 font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-sm hover:bg-white transition-all flex items-center gap-2 cursor-pointer focus:outline-none focus:ring-2 focus:ring-teal-300/70">
+                    <span class="animate-pulse text-teal-400 text-xs">●</span>
+                    <span>Seit dem ersten "Hey"</span>
+                    <span id="hey-badge-days" class="font-black text-teal-700">…</span>
+                    <span class="ml-0.5">👆</span>
                 </button>
                 <div class="bg-white/60 backdrop-blur-md border border-pink-100 text-[10px] text-gray-500 font-bold px-3 py-1.5 rounded-full shadow-sm flex items-center gap-2">
                     <span id="partner-status" class="online-indicator offline"></span>
@@ -1757,21 +1838,142 @@ const clean = question ? question.replace(/["']/g, "").trim() : "Welche kleine S
             }
         };
 
+        
         window.editSystemStart = () => {
-            const date = prompt("Seit wann seid ihr zusammen? (Format: YYYY-MM-DD)", "2020-01-01");
-            if (date) { const ts = new Date(date).getTime(); if (!isNaN(ts)) set(ref(db, 'systemStart'), ts); }
+            const date = prompt('Seit wann kennt ihr euch? (Format: YYYY-MM-DD)', '2025-12-10');
+            if (date) {
+                const ts = new Date(date).getTime();
+                if (!isNaN(ts)) set(ref(db, 'systemStart'), ts);
+            }
         };
 
-        const updateUptime = () => {
-            const display = document.getElementById('uptime-display');
-            if (!relationshipStart) { display.innerText = "System Uptime: Startdatum setzen"; return; }
-            const diff = Date.now() - relationshipStart;
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            display.innerText = `System Uptime: ${days} Tage`;
-        };
-        setInterval(updateUptime, 3600000);
+        // --- HEY COUNTER (Badge + Modal) ---
+        const DEFAULT_HEY_START = new Date("2025-12-10T00:00:00+01:00").getTime();
+        let heySecTimer = null;
+        let heyMsTimer = null;
+        let heyRevealTimers = [];
 
-        // --- PIN AUTH (4-stellig) ---
+        const getHeyStart = () => (relationshipStart || DEFAULT_HEY_START);
+
+        const computeHeyParts = () => {
+            const start = getHeyStart();
+            const now = Date.now();
+            const diff = Math.max(0, now - start);
+
+            return {
+                start,
+                days: Math.floor(diff / 86400000),
+                totalHours: Math.floor(diff / 3600000),
+                totalMinutes: Math.floor(diff / 60000),
+                totalSeconds: Math.floor(diff / 1000),
+                totalMillis: Math.floor(diff),
+            };
+        };
+
+                const updateHeyBadge = () => {
+            const badgeDays = document.getElementById('hey-badge-days');
+            if (!badgeDays) return;
+            const { days } = computeHeyParts();
+            badgeDays.innerText = `${days} Tage`;
+        };
+
+        // Kompatibilität: an anderen Stellen wird updateUptime() aufgerufen
+        const updateUptime = () => { updateHeyBadge(); };
+
+        // stündlich reicht fürs Badge (Modal hat eigene Timer)
+        setInterval(updateHeyBadge, 3600000);
+
+        const setHeyCounterDom = ({ days, totalHours, totalMinutes, totalSeconds, totalMillis, start }) => {
+            const fmt = (n) => (Number.isFinite(n) ? Math.max(0, n).toLocaleString('de-DE') : '0');
+
+            const dateEl = document.getElementById('hey-counter-date');
+            if (dateEl) dateEl.innerText = new Date(start).toLocaleDateString('de-DE');
+
+            const dEl = document.getElementById('hey-days');
+            const hEl = document.getElementById('hey-hours');
+            const mEl = document.getElementById('hey-minutes');
+            const sEl = document.getElementById('hey-seconds');
+            const msEl = document.getElementById('hey-millis');
+
+            if (dEl) dEl.innerText = fmt(days);
+            if (hEl) hEl.innerText = fmt(totalHours);
+            if (mEl) mEl.innerText = fmt(totalMinutes);
+            if (sEl) sEl.innerText = fmt(totalSeconds);
+            if (msEl) msEl.innerText = fmt(totalMillis);
+        };
+
+        const setHeyStage = (id, on) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.classList.toggle('is-off', !on);
+            el.classList.toggle('is-on', on);
+        };
+
+        const resetHeyStages = () => {
+            ['hey-tile-hours','hey-tile-minutes','hey-tile-seconds','hey-tile-millis'].forEach(id => setHeyStage(id, false));
+        };
+
+        const clearHeyTimers = () => {
+            if (heySecTimer) { clearInterval(heySecTimer); heySecTimer = null; }
+            if (heyMsTimer) { clearInterval(heyMsTimer); heyMsTimer = null; }
+            if (heyRevealTimers?.length) { heyRevealTimers.forEach(t => clearTimeout(t)); heyRevealTimers = []; }
+        };
+
+        const startHeyLiveTimers = () => {
+            // Sekunden: 1x pro Sekunde
+            heySecTimer = setInterval(() => {
+                const { totalSeconds } = computeHeyParts();
+                const sEl = document.getElementById('hey-seconds');
+                if (sEl) sEl.innerText = totalSeconds.toLocaleString('de-DE');
+            }, 1000);
+
+            // Millisekunden: bewusst langsam, nicht hektisch
+            heyMsTimer = setInterval(() => {
+                const { totalMillis } = computeHeyParts();
+                const msEl = document.getElementById('hey-millis');
+                if (msEl) msEl.innerText = totalMillis.toLocaleString('de-DE');
+            }, 80);
+        };
+
+        window.openHeyCounter = () => {
+            const modal = document.getElementById('hey-counter-modal');
+            if (!modal) return;
+
+            clearHeyTimers();
+            resetHeyStages();
+
+            // sofort Tage setzen
+            const parts = computeHeyParts();
+            setHeyCounterDom(parts);
+
+            modal.classList.remove('hidden');
+
+            // staged reveal – langsam
+            heyRevealTimers.push(setTimeout(() => setHeyStage('hey-tile-hours', true), 650));
+            heyRevealTimers.push(setTimeout(() => setHeyStage('hey-tile-minutes', true), 1150));
+            heyRevealTimers.push(setTimeout(() => setHeyStage('hey-tile-seconds', true), 1750));
+            heyRevealTimers.push(setTimeout(() => setHeyStage('hey-tile-millis', true), 2350));
+
+            // live timers erst nach dem Reveal starten (ruhiger)
+            heyRevealTimers.push(setTimeout(() => startHeyLiveTimers(), 1900));
+        };
+
+        window.closeHeyCounter = () => {
+            const modal = document.getElementById('hey-counter-modal');
+            if (modal) modal.classList.add('hidden');
+            clearHeyTimers();
+        };
+
+        // ESC schließt Modal
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !document.getElementById('hey-counter-modal')?.classList.contains('hidden')) {
+                window.closeHeyCounter();
+            }
+        });
+
+        // Initial
+        updateHeyBadge();
+// --- PIN AUTH (4-stellig) ---
 const PIN_LEN = 4;
 let activeAuthUser = null;
 let expectedPin = null;
