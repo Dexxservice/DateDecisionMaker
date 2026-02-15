@@ -612,6 +612,18 @@
                     <img id="ms-preview-image" class="hidden w-full h-24 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
                     <div id="ms-photo-thumbs" class="hidden flex gap-2 mt-2"></div>
                     <button id="ms-manage-toggle" type="button" class="hidden mt-2 w-full py-2 rounded-xl border border-teal-200 bg-white/70 text-teal-700 font-semibold">Fotos bearbeiten</button>
+                    <div id="ms-replace-panel" class="hidden mt-2 p-3 rounded-xl border border-teal-200 bg-white/70">
+                      <div id="ms-replace-title" class="text-sm font-bold text-teal-700">Foto ersetzen</div>
+                      <div class="text-xs text-gray-500 mt-1">Wähle ein neues Foto aus und lade es hoch.</div>
+                      <input id="ms-replace-file" type="file" accept="image/*" class="hidden" />
+                      <button id="ms-replace-pick" type="button" class="mt-2 w-full py-2 rounded-xl border border-teal-200 bg-white/80 font-semibold text-teal-700">Foto auswählen</button>
+                      <div class="flex gap-2 mt-2">
+                        <button id="ms-replace-confirm" type="button" class="flex-1 py-2 rounded-xl bg-teal-500 text-white font-bold disabled:opacity-50" disabled>Hochladen</button>
+                        <button id="ms-replace-cancel" type="button" class="flex-1 py-2 rounded-xl border border-gray-200 bg-white/80 font-semibold text-gray-600">Abbrechen</button>
+                      </div>
+                      <div id="ms-replace-status" class="text-xs text-gray-500 mt-2"></div>
+                    </div>
+
                     <div id="ms-photo-hint" class="hidden text-[11px] text-teal-500 mt-1">Tippe ein Mini-Foto an, um es als Thumbnail (Karte & Zeitreise) zu wählen.</div>
                     <textarea id="ms-note" placeholder="Notiz..." class="w-full p-3 bg-teal-50 rounded-xl outline-none h-20 resize-none mt-2"></textarea>
                 </div>
@@ -2029,16 +2041,16 @@ bindPolaroidUIOnce();
                 // Management buttons (bigger, not tiny overlays)
                 if (memoryManageMode) {
                     const row = document.createElement('div');
-                    row.className = "flex gap-1";
+                    row.className = "flex flex-col gap-1 w-full";
                     const repBtn = document.createElement('button');
                     repBtn.type = "button";
-                    repBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-teal-200 bg-white/80";
+                    repBtn.className = "w-full px-2 py-2 rounded-xl text-[12px] border border-teal-200 bg-white/80 font-semibold text-teal-700";
                     repBtn.textContent = "Ersetzen";
                     repBtn.onclick = (ev) => { ev.stopPropagation(); window.replaceMemoryPhoto(i); };
 
                     const delBtn = document.createElement('button');
                     delBtn.type = "button";
-                    delBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-red-200 bg-white/80 text-red-600";
+                    delBtn.className = "w-full px-2 py-2 rounded-xl text-[12px] border border-red-200 bg-white/80 text-red-600 font-semibold";
                     delBtn.textContent = "Löschen";
                     delBtn.onclick = (ev) => { ev.stopPropagation(); window.deleteMemoryPhoto(i); };
 
@@ -2181,16 +2193,16 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
 
                 if (msManageMode) {
                     const row = document.createElement('div');
-                    row.className = "flex gap-1";
+                    row.className = "flex flex-col gap-1 w-full";
                     const repBtn = document.createElement('button');
                     repBtn.type = "button";
-                    repBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-teal-200 bg-white/80";
+                    repBtn.className = "w-full px-2 py-2 rounded-xl text-[12px] border border-teal-200 bg-white/80 font-semibold text-teal-700";
                     repBtn.textContent = "Ersetzen";
                     repBtn.onclick = (ev) => { ev.stopPropagation(); window.replaceMilestonePhoto(i); };
 
                     const delBtn = document.createElement('button');
                     delBtn.type = "button";
-                    delBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-red-200 bg-white/80 text-red-600";
+                    delBtn.className = "w-full px-2 py-2 rounded-xl text-[12px] border border-red-200 bg-white/80 text-red-600 font-semibold";
                     delBtn.textContent = "Löschen";
                     delBtn.onclick = (ev) => { ev.stopPropagation(); window.deleteMilestonePhoto(i); };
 
@@ -2202,6 +2214,143 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                 wrap.appendChild(box);
             });
 };
+
+        
+        // --- Manage: Replace/Delete helpers (global for module onclicks) ---
+        let msReplaceIndex = null;
+
+        const closeMsReplacePanel = () => {
+            const panel = document.getElementById('ms-replace-panel');
+            const confirm = document.getElementById('ms-replace-confirm');
+            const file = document.getElementById('ms-replace-file');
+            const title = document.getElementById('ms-replace-title');
+            const status = document.getElementById('ms-replace-status');
+            if (panel) panel.classList.add('hidden');
+            if (confirm) { confirm.disabled = true; confirm.textContent = "Hochladen"; }
+            if (file) file.value = "";
+            if (title) title.textContent = "Foto ersetzen";
+            if (status) status.textContent = "";
+            msReplaceIndex = null;
+        };
+
+        window.replaceMilestonePhoto = (idx) => {
+            msReplaceIndex = idx;
+            const panel = document.getElementById('ms-replace-panel');
+            const title = document.getElementById('ms-replace-title');
+            const confirm = document.getElementById('ms-replace-confirm');
+            const status = document.getElementById('ms-replace-status');
+            if (title) title.textContent = `Foto ${idx+1} ersetzen`;
+            if (status) status.textContent = "";
+            if (confirm) { confirm.disabled = true; confirm.textContent = "Hochladen"; }
+            if (panel) panel.classList.remove('hidden');
+        };
+
+        window.deleteMilestonePhoto = (idx) => {
+            if (!msExistingPhotos || !msExistingPhotos.length) return;
+            if (!confirm("Foto wirklich löschen?")) return;
+
+            msExistingPhotos.splice(idx, 1);
+
+            // keep thumb index valid
+            if (msThumbIndex >= msExistingPhotos.length) msThumbIndex = Math.max(0, msExistingPhotos.length - 1);
+
+            // update preview
+            const prev = document.getElementById('ms-preview-image');
+            if (prev) {
+                const sel = msExistingPhotos[msThumbIndex] || {};
+                prev.src = sel.fullUrl || sel.thumbUrl || "";
+            }
+
+            renderMilestoneThumbs();
+            closeMsReplacePanel();
+        };
+
+        // Wire replace panel buttons once
+        (() => {
+            const pickBtn = document.getElementById('ms-replace-pick');
+            const fileInput = document.getElementById('ms-replace-file');
+            const confirmBtn = document.getElementById('ms-replace-confirm');
+            const cancelBtn = document.getElementById('ms-replace-cancel');
+            const status = document.getElementById('ms-replace-status');
+
+            if (pickBtn && fileInput) {
+                pickBtn.onclick = () => fileInput.click();
+            }
+
+            if (fileInput && confirmBtn) {
+                fileInput.onchange = async () => {
+                    const f = fileInput.files && fileInput.files[0];
+                    if (!f) { confirmBtn.disabled = true; return; }
+                    confirmBtn.disabled = false;
+                    if (status) status.textContent = `Ausgewählt: ${f.name}`;
+                };
+            }
+
+            if (cancelBtn) cancelBtn.onclick = () => closeMsReplacePanel();
+
+            if (confirmBtn && fileInput) {
+                confirmBtn.onclick = async () => {
+                    try {
+                        const idx = msReplaceIndex;
+                        if (idx === null || idx === undefined) return;
+                        const f = fileInput.files && fileInput.files[0];
+                        if (!f) return;
+
+                        confirmBtn.disabled = true;
+                        confirmBtn.textContent = "Lädt hoch…";
+                        if (status) status.textContent = "Upload läuft…";
+
+                        // Read file -> dataURL
+                        const dataUrl = await new Promise((resolve, reject) => {
+                            const r = new FileReader();
+                            r.onload = () => resolve(String(r.result || ""));
+                            r.onerror = () => reject(r.error || new Error("FileReader error"));
+                            r.readAsDataURL(f);
+                        });
+
+                        // If we have an id, upload now and store URLs; otherwise keep data: (will upload on save)
+                        if (currentEditingMilestoneId) {
+                            const { fullUrl, thumbUrl } = await uploadPhotoForWishAtIndex(currentEditingMilestoneId, idx, dataUrl);
+                            msExistingPhotos[idx] = { fullUrl, thumbUrl };
+                        } else {
+                            msExistingPhotos[idx] = { fullUrl: dataUrl, thumbUrl: "" };
+                        }
+
+                        // If replaced photo is selected cover, update preview immediately
+                        const prev = document.getElementById('ms-preview-image');
+                        if (prev && msThumbIndex === idx) {
+                            const sel = msExistingPhotos[msThumbIndex] || {};
+                            prev.src = sel.fullUrl || sel.thumbUrl || "";
+                        }
+
+                        renderMilestoneThumbs();
+                        if (status) status.textContent = "Fertig ✅";
+                        window.playSound && window.playSound('success');
+                        closeMsReplacePanel();
+                    } catch (e) {
+                        console.error("replaceMilestonePhoto failed:", e);
+                        alert("Ersetzen fehlgeschlagen: " + (e?.message || e));
+                        try {
+                            const confirmBtn = document.getElementById('ms-replace-confirm');
+                            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = "Hochladen"; }
+                        } catch {}
+                    }
+                };
+            }
+        })();
+
+// Toggle: Fotos bearbeiten / Fertig
+        (function(){
+            const manageToggle = document.getElementById('ms-manage-toggle');
+            if (!manageToggle) return;
+            manageToggle.addEventListener('click', (ev) => {
+                ev.preventDefault();
+                msManageMode = !msManageMode;
+                manageToggle.textContent = msManageMode ? "Fertig" : "Fotos bearbeiten";
+                renderMilestoneThumbs();
+            });
+        })();
+
         // --- VIEW: support swipe / carousel if multiple photos exist ---
         let viewMemoryPhotos = [];
         let viewMemoryIdx = 0;
