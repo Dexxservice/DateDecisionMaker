@@ -607,7 +607,7 @@
                     </div>
                     <label class="block w-full p-3 bg-teal-50 rounded-xl border border-dashed border-teal-300 text-center cursor-pointer hover:bg-teal-100 transition-colors relative mt-3">
                         <span id="ms-upload-text" class="text-xs font-bold text-teal-600 uppercase tracking-widest">📸 Fotos hinzufügen (max 3)</span>
-                        <input id="ms-photo-file" type="file" accept="image/*" class="hidden" onchange="handleMilestonePhotoUpload(this)">
+                        <input id="ms-photo-file" type="file" accept="image/*" multiple class="hidden" onchange="handleMilestonePhotoUpload(this)">
                     </label>
                     <img id="ms-preview-image" class="hidden w-full h-24 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
                     <div id="ms-photo-thumbs" class="hidden flex gap-2 mt-2"></div>
@@ -2239,23 +2239,53 @@ bindPolaroidUIOnce();
             reader.readAsDataURL(file);
         };
 
-        window.handleMilestonePhotoUpload = (input) => {
-            const file = input.files[0]; if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                    const MAX_WIDTH = 600; let width = img.width; let height = img.height;
-                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
-                    currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.6);
-                    const preview = document.getElementById('ms-preview-image'); preview.src = currentPhotoBase64; preview.classList.remove('hidden');
-                    document.getElementById('ms-upload-text').innerText = "✅ Foto geändert";
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
+        window.handleMilestonePhotoUpload = async (input) => {
+            try {
+                const files = Array.from(input.files || []).filter(Boolean);
+                if (!files.length) return;
+
+                // wie viele Slots sind noch frei?
+                const remaining = Math.max(0, 3 - (msExistingPhotos?.length || 0));
+                const use = files.slice(0, remaining);
+
+                if (!use.length) {
+                    alert("Maximal 3 Fotos pro Date 💛");
+                    input.value = "";
+                    return;
+                }
+
+                // compress sequentially
+                for (const f of use) {
+                    const dataUrl = await compressImageFileToDataUrl(f, 900, 0.65);
+                    msExistingPhotos.push({ fullUrl: dataUrl, thumbUrl: "" });
+                }
+
+                // clamp
+                msExistingPhotos = msExistingPhotos.slice(0, 3);
+
+                // preview auf aktuelles Thumbnail/cover
+                msThumbIndex = Math.max(0, Math.min(msThumbIndex || 0, msExistingPhotos.length - 1));
+                const sel = msExistingPhotos[msThumbIndex] || msExistingPhotos[0] || {};
+                const preview = document.getElementById('ms-preview-image');
+                if (preview) {
+                    preview.src = sel.fullUrl || sel.thumbUrl || preview.src || "";
+                    if (preview.src) preview.classList.remove('hidden');
+                }
+
+                const uploadTextEl = document.getElementById('ms-upload-text');
+                if (uploadTextEl) {
+                    uploadTextEl.innerText = `✅ ${msExistingPhotos.length} Foto(s) vorhanden – weitere hinzufügen (max 3)`;
+                }
+
+                // alte Single-Replace-Logik deaktivieren
+                currentPhotoBase64 = "";
+
+                renderMilestoneThumbs();
+                input.value = "";
+            } catch (e) {
+                console.error("handleMilestonePhotoUpload failed:", e);
+                alert("Foto-Upload fehlgeschlagen: " + (e?.message || e));
+            }
         };
             async function uploadPhotoForWish(wishId, dataUrl) {
   if (!dataUrl) return { fullUrl: "", thumbUrl: "" };
@@ -2414,98 +2444,122 @@ bindPolaroidUIOnce();
             const location = document.getElementById('ms-location').value.trim();
             const originalLocation = document.getElementById('ms-location').getAttribute('data-original-location');
 
-            const payload = { text: title, location: location, info: document.getElementById('ms-info').value.trim(), cat: document.getElementById('ms-cat').value, weather: document.getElementById('ms-weather').value };
-
-            // Foto aus dem Modal zwischenspeichern (niemals Base64 in DB schreiben)
-            const pendingPhoto = currentPhotoBase64 || "";
-
+            const payload = {
+                text: title,
+                location: location,
+                info: document.getElementById('ms-info').value.trim(),
+                cat: document.getElementById('ms-cat').value,
+                weather: document.getElementById('ms-weather').value
+            };
 
             if (location !== originalLocation) { payload.lat = null; payload.lon = null; }
-            
+
             if (currentModalMode === 'archive') {
-                payload.status = 'done'; payload.isBucket = false;
+                payload.status = 'done';
+                payload.isBucket = false;
                 payload.memoryNote = document.getElementById('ms-note').value.trim();
                 payload.ratingMeriam = document.getElementById('ms-rating-m').value;
                 payload.ratingSamet = document.getElementById('ms-rating-s').value;
                 const dateVal = document.getElementById('ms-date').value;
                 payload.doneAt = dateVal ? new Date(dateVal).getTime() : Date.now();
             } else {
-                if (!currentEditingMilestoneId) { payload.status = 'open'; payload.isBucket = true; payload.timestamp = Date.now(); }
-                else {
+                if (!currentEditingMilestoneId) {
+                    payload.status = 'open';
+                    payload.isBucket = true;
+                    payload.timestamp = Date.now();
+                } else {
                     if (!document.getElementById('ms-memory-fields').classList.contains('hidden')) {
-                         payload.memoryNote = document.getElementById('ms-note').value.trim();
-                         payload.ratingMeriam = document.getElementById('ms-rating-m').value;
-                         payload.ratingSamet = document.getElementById('ms-rating-s').value;
-                         const dateVal = document.getElementById('ms-date').value;
-                         if (dateVal) payload.doneAt = new Date(dateVal).getTime();
-                             }
-                }
-            }
-
-
-            // Wenn ein Foto gesetzt ist, stelle sicher, dass wir NUR Storage-URLs speichern (keine data: Base64)
-            const needsUpload = (typeof pendingPhoto === "string" && pendingPhoto.startsWith("data:"));
-            const hasUrlPhoto = (typeof pendingPhoto === "string" && pendingPhoto && !pendingPhoto.startsWith("data:"));
-
-            // Bei bestehendem Eintrag können wir vor dem Speichern hochladen und direkt URLs setzen
-            if (currentEditingMilestoneId && pendingPhoto) {
-                if (needsUpload) {
-                    try {
-                        const { fullUrl, thumbUrl } = await uploadPhotoForWish(currentEditingMilestoneId, pendingPhoto);
-                        if (fullUrl) payload.memoryPhoto = fullUrl;
-                        if (thumbUrl) payload.memoryThumb = thumbUrl;
-
-                        // Wenn vorher mehrere Fotos vorhanden waren, wechseln wir bewusst auf "single" (einfacher Replace)
-                        payload.memoryPhotos = null;
-                        payload.memoryThumbIndex = 0;
-                    } catch (e) {
-                        console.error("Milestone-Foto Upload fehlgeschlagen:", e);
-                        alert("Foto-Upload fehlgeschlagen. Bitte erneut versuchen.");
-                        return;
+                        payload.memoryNote = document.getElementById('ms-note').value.trim();
+                        payload.ratingMeriam = document.getElementById('ms-rating-m').value;
+                        payload.ratingSamet = document.getElementById('ms-rating-s').value;
+                        const dateVal = document.getElementById('ms-date').value;
+                        if (dateVal) payload.doneAt = new Date(dateVal).getTime();
                     }
-                } else if (hasUrlPhoto) {
-                    payload.memoryPhoto = pendingPhoto;
                 }
             }
-            // Wenn bereits mehrere Fotos existieren: Thumbnail-Auswahl speichern
-            if (msExistingPhotos && Array.isArray(msExistingPhotos) && msExistingPhotos.length) {
-                // Wenn KEIN neues Foto gewählt wurde, behalten wir die bestehenden URLs
-                if (!needsUpload && !hasUrlPhoto) {
-                    payload.memoryPhotos = msExistingPhotos;
-                }
-                payload.memoryThumbIndex = msThumbIndex || 0;
 
-                const sel = msExistingPhotos[payload.memoryThumbIndex] || msExistingPhotos[0] || {};
-                payload.memoryPhoto = sel.fullUrl || payload.memoryPhoto || "";
-                payload.memoryThumb = sel.thumbUrl || payload.memoryThumb || "";
+            // ---- FOTO-LOGIK (max 3) ----
+            // Legacy fallback: wenn aus irgendeinem Grund noch currentPhotoBase64 gesetzt ist (alt)
+            if ((!msExistingPhotos || !msExistingPhotos.length) && currentPhotoBase64) {
+                msExistingPhotos = [{ fullUrl: currentPhotoBase64, thumbUrl: "" }];
+                msThumbIndex = 0;
             }
 
+            const applyCoverFrom = (arr) => {
+                const idx = Math.max(0, Math.min((msThumbIndex || 0), (arr.length - 1)));
+                const sel = arr[idx] || arr[0] || {};
+                payload.memoryThumbIndex = idx;
+                payload.memoryPhoto = sel.fullUrl || "";
+                payload.memoryThumb = sel.thumbUrl || "";
+                payload.memoryPhotos = arr;
+            };
 
-            if (currentEditingMilestoneId) await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
-            else {
-                payload.by = user;
-                if (!payload.timestamp) payload.timestamp = Date.now();
+            const uploadAndNormalizePhotos = async (wishId) => {
+                if (!msExistingPhotos || !Array.isArray(msExistingPhotos) || !msExistingPhotos.length) return;
 
-                const newRef = await push(ref(db, 'wishes'), payload);
+                // upload any data: entries in-place, keep order 0..2
+                const normalized = [];
+                for (let i = 0; i < Math.min(3, msExistingPhotos.length); i++) {
+                    const p = msExistingPhotos[i] || {};
+                    const full = p.fullUrl || p.url || "";
+                    const thumb = p.thumbUrl || p.thumb || "";
 
-                // Falls beim Anlegen ein Foto gewählt wurde: erst nach Push hochladen und dann URLs nachtragen
-                if (pendingPhoto && needsUpload && newRef && newRef.key) {
-                    try {
-                        const { fullUrl, thumbUrl } = await uploadPhotoForWish(newRef.key, pendingPhoto);
-                        const patch = {};
-                        if (fullUrl) patch.memoryPhoto = fullUrl;
-                        if (thumbUrl) patch.memoryThumb = thumbUrl;
-                        if (Object.keys(patch).length) await update(ref(db, `wishes/${newRef.key}`), patch);
-                    } catch (e) {
-                        console.error("Neues Milestone-Foto Upload fehlgeschlagen:", e);
-                        // Eintrag bleibt ohne Foto (statt Base64 in DB zu schreiben)
-                        alert("Foto-Upload fehlgeschlagen. Du kannst das Bild später erneut hinzufügen.");
+                    if (typeof full === "string" && full.startsWith("data:")) {
+                        const { fullUrl, thumbUrl } = await uploadPhotoForWishAtIndex(wishId, i, full);
+                        normalized.push({ fullUrl, thumbUrl });
+                    } else {
+                        // already URL
+                        normalized.push({ fullUrl: full, thumbUrl: thumb });
                     }
-                } else if (pendingPhoto && hasUrlPhoto && newRef && newRef.key) {
-                    // Wenn aus irgendeinem Grund schon eine URL vorliegt, nachtragen
-                    await update(ref(db, `wishes/${newRef.key}`), { memoryPhoto: pendingPhoto });
                 }
+                msExistingPhotos = normalized;
+            };
+
+            try {
+                if (currentEditingMilestoneId) {
+                    // Editing existing wish -> upload first, then update payload with URLs
+                    await uploadAndNormalizePhotos(currentEditingMilestoneId);
+
+                    if (msExistingPhotos && msExistingPhotos.length) {
+                        applyCoverFrom(msExistingPhotos);
+                    }
+
+                    await update(ref(db, `wishes/${currentEditingMilestoneId}`), payload);
+                } else {
+                    // Create new wish
+                    payload.by = user;
+                    if (!payload.timestamp) payload.timestamp = Date.now();
+
+                    // never store data: in DB
+                    delete payload.memoryPhoto;
+                    delete payload.memoryThumb;
+                    delete payload.memoryPhotos;
+                    delete payload.memoryThumbIndex;
+
+                    const newRef = await push(ref(db, 'wishes'), payload);
+
+                    // After push, upload photos and patch URLs
+                    if (newRef && newRef.key) {
+                        await uploadAndNormalizePhotos(newRef.key);
+
+                        if (msExistingPhotos && msExistingPhotos.length) {
+                            const patch = {};
+                            const idx = Math.max(0, Math.min((msThumbIndex || 0), msExistingPhotos.length - 1));
+                            const sel = msExistingPhotos[idx] || msExistingPhotos[0] || {};
+                            patch.memoryPhotos = msExistingPhotos;
+                            patch.memoryThumbIndex = idx;
+                            patch.memoryPhoto = sel.fullUrl || "";
+                            patch.memoryThumb = sel.thumbUrl || "";
+                            await update(ref(db, `wishes/${newRef.key}`), patch);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("saveMilestone failed:", e);
+                alert("Speichern fehlgeschlagen: " + (e?.message || e));
+                return;
             }
+
             document.getElementById('milestone-modal').classList.add('hidden');
         };
 
