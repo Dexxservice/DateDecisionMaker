@@ -611,6 +611,7 @@
                     </label>
                     <img id="ms-preview-image" class="hidden w-full h-24 object-cover rounded-xl mt-2 border border-teal-100 shadow-sm">
                     <div id="ms-photo-thumbs" class="hidden flex gap-2 mt-2"></div>
+                    <button id="ms-manage-toggle" type="button" class="hidden mt-2 w-full py-2 rounded-xl border border-teal-200 bg-white/70 text-teal-700 font-semibold">Fotos bearbeiten</button>
                     <div id="ms-photo-hint" class="hidden text-[11px] text-teal-500 mt-1">Tippe ein Mini-Foto an, um es als Thumbnail (Karte & Zeitreise) zu wählen.</div>
                     <textarea id="ms-note" placeholder="Notiz..." class="w-full p-3 bg-teal-50 rounded-xl outline-none h-20 resize-none mt-2"></textarea>
                 </div>
@@ -1981,18 +1982,22 @@ bindPolaroidUIOnce();
         // --- MULTI PHOTO (max 3) for Date Memories ---
         let currentPhotosBase64 = [];   // array of compressed data_urls (temporary, not stored in DB)
         let currentThumbIndex = 0;
+        let memoryManageMode = false;
 
         const renderMemoryThumbs = () => {
             const wrap = document.getElementById('memory-thumbs');
             const preview = document.getElementById('preview-image');
             const uploadText = document.getElementById('upload-text');
+            const manageToggle = document.getElementById('memory-manage-toggle');
             if (!wrap || !preview || !uploadText) return;
 
             // Hide all if nothing
             if (!currentPhotosBase64.length) {
                 wrap.classList.add('hidden');
                 preview.classList.add('hidden');
-                uploadText.innerText = "📸 Foto hinzufügen";
+                uploadText.innerText = "📸 Fotos hinzufügen (max 3)";
+                if (manageToggle) manageToggle.classList.add('hidden');
+                memoryManageMode = false;
                 return;
             }
 
@@ -2003,18 +2008,53 @@ bindPolaroidUIOnce();
             // Build thumbs
             wrap.innerHTML = "";
             wrap.classList.remove('hidden');
+            if (manageToggle) manageToggle.classList.remove('hidden');
+            if (manageToggle) manageToggle.classList.remove('hidden');
 
             currentPhotosBase64.forEach((src, i) => {
+                const box = document.createElement('div');
+                box.className = "flex flex-col items-center gap-1";
+
                 const btn = document.createElement('button');
                 btn.type = "button";
                 btn.className = "relative w-14 h-14 rounded-xl overflow-hidden border-2 " + (i === currentThumbIndex ? "border-teal-400" : "border-teal-100");
-                btn.innerHTML = `<img src="${src}" class="w-full h-full object-cover">` + (i === currentThumbIndex ? `<div class="absolute bottom-1 right-1 text-[10px] bg-teal-500 text-white px-1.5 py-0.5 rounded-lg font-black">⭐</div>` : "");
+                btn.innerHTML = `
+                    <img src="${src}" class="w-full h-full object-cover">
+                    ${i === currentThumbIndex ? `<div class="absolute bottom-1 right-1 text-[10px] bg-teal-500 text-white px-1.5 py-0.5 rounded-lg font-black">⭐</div>` : ""}
+                `.trim();
                 btn.onclick = () => { currentThumbIndex = i; renderMemoryThumbs(); };
-                wrap.appendChild(btn);
-            });
 
-            uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Fotos gewählt" : `✅ ${currentPhotosBase64.length} Foto(s) gewählt`;
+                box.appendChild(btn);
+
+                // Management buttons (bigger, not tiny overlays)
+                if (memoryManageMode) {
+                    const row = document.createElement('div');
+                    row.className = "flex gap-1";
+                    const repBtn = document.createElement('button');
+                    repBtn.type = "button";
+                    repBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-teal-200 bg-white/80";
+                    repBtn.textContent = "Ersetzen";
+                    repBtn.onclick = (ev) => { ev.stopPropagation(); window.replaceMemoryPhoto(i); };
+
+                    const delBtn = document.createElement('button');
+                    delBtn.type = "button";
+                    delBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-red-200 bg-white/80 text-red-600";
+                    delBtn.textContent = "Löschen";
+                    delBtn.onclick = (ev) => { ev.stopPropagation(); window.deleteMemoryPhoto(i); };
+
+                    row.appendChild(repBtn);
+                    row.appendChild(delBtn);
+                    box.appendChild(row);
+                }
+
+                wrap.appendChild(box);
+            });
+uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhanden" : `✅ ${currentPhotosBase64.length} Foto(s) vorhanden – weitere hinzufügen (max 3)`;
         };
+
+        const toggleMemoryManage = () => { memoryManageMode = !memoryManageMode; renderMemoryThumbs(); };
+        const _memTglBtn = document.getElementById('memory-manage-toggle');
+        if (_memTglBtn) _memTglBtn.onclick = toggleMemoryManage;
 
         const compressImageFileToDataUrl = (file, maxWidth = 900, quality = 0.65) => {
             return new Promise((resolve) => {
@@ -2094,13 +2134,17 @@ bindPolaroidUIOnce();
         // --- MILESTONE EDIT: Thumbnail Auswahl (für Karten + Map-Pin) ---
         let msExistingPhotos = [];
         let msThumbIndex = 0;
+        let msManageMode = false;
 
         const renderMilestoneThumbs = () => {
             const wrap = document.getElementById('ms-photo-thumbs');
             const hint = document.getElementById('ms-photo-hint');
+            const manageToggle = document.getElementById('ms-manage-toggle');
             if (!wrap) return;
 
             if (!msExistingPhotos.length) {
+                if (manageToggle) manageToggle.classList.add('hidden');
+                msManageMode = false;
                 wrap.classList.add('hidden');
                 if (hint) hint.classList.add('hidden');
                 wrap.innerHTML = "";
@@ -2108,24 +2152,56 @@ bindPolaroidUIOnce();
             }
 
             wrap.classList.remove('hidden');
+            if (manageToggle) manageToggle.classList.remove('hidden');
+            if (manageToggle) manageToggle.classList.remove('hidden');
             if (hint) hint.classList.remove('hidden');
             wrap.innerHTML = "";
 
             msExistingPhotos.forEach((p, i) => {
                 const src = p.thumbUrl || p.fullUrl || "";
+                const box = document.createElement('div');
+                box.className = "flex flex-col items-center gap-1";
+
                 const btn = document.createElement('button');
                 btn.type = "button";
-                btn.className = "relative w-12 h-12 rounded-xl overflow-hidden border-2 " + (i === msThumbIndex ? "border-pink-400" : "border-teal-100");
-                btn.innerHTML = `<img src="${src}" class="w-full h-full object-cover">` + (i === msThumbIndex ? `<div class="absolute bottom-1 right-1 text-[10px] bg-pink-500 text-white px-1.5 py-0.5 rounded-lg font-black">⭐</div>` : "");
+                btn.className = "relative w-14 h-14 rounded-xl overflow-hidden border-2 " + (i === msThumbIndex ? "border-pink-400" : "border-pink-100");
+                btn.innerHTML = `
+                    <img src="${src}" class="w-full h-full object-cover">
+                    ${i === msThumbIndex ? `<div class="absolute bottom-1 right-1 text-[10px] bg-pink-500 text-white px-1.5 py-0.5 rounded-lg font-black">⭐</div>` : ""}
+                `.trim();
+
                 btn.onclick = () => {
                     msThumbIndex = i;
                     renderMilestoneThumbs();
                     const prev = document.getElementById('ms-preview-image');
-                    if (prev) { prev.src = (msExistingPhotos[msThumbIndex]?.fullUrl || msExistingPhotos[msThumbIndex]?.thumbUrl || prev.src); prev.classList.remove('hidden'); }
+                    if (prev) { prev.src = (msExistingPhotos[msThumbIndex]?.fullUrl || msExistingPhotos[msThumbIndex]?.thumbUrl || ""); }
                 };
-                wrap.appendChild(btn);
+
+                box.appendChild(btn);
+
+                if (msManageMode) {
+                    const row = document.createElement('div');
+                    row.className = "flex gap-1";
+                    const repBtn = document.createElement('button');
+                    repBtn.type = "button";
+                    repBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-teal-200 bg-white/80";
+                    repBtn.textContent = "Ersetzen";
+                    repBtn.onclick = (ev) => { ev.stopPropagation(); window.replaceMilestonePhoto(i); };
+
+                    const delBtn = document.createElement('button');
+                    delBtn.type = "button";
+                    delBtn.className = "px-2 py-1 rounded-lg text-[11px] border border-red-200 bg-white/80 text-red-600";
+                    delBtn.textContent = "Löschen";
+                    delBtn.onclick = (ev) => { ev.stopPropagation(); window.deleteMilestonePhoto(i); };
+
+                    row.appendChild(repBtn);
+                    row.appendChild(delBtn);
+                    box.appendChild(row);
+                }
+
+                wrap.appendChild(box);
             });
-        };
+};
         // --- VIEW: support swipe / carousel if multiple photos exist ---
         let viewMemoryPhotos = [];
         let viewMemoryIdx = 0;
