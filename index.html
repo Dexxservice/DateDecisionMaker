@@ -676,7 +676,7 @@
 
     <div id="wishlist-modal" class="hidden fixed inset-0 bg-black/50 z-[190] flex items-start justify-center p-4 backdrop-blur-sm overflow-y-auto">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in my-8">
-            <button onclick="playSound('click'); document.getElementById('wishlist-modal').classList.add('hidden')" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
+            <button onclick="playSound('click'); closeWishlist()" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
             <h3 class="text-xl font-black text-pink-600 mb-1">Wunschliste 🎁</h3>
             <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase tracking-widest">Geschenkideen für euch beide</p>
 
@@ -3190,7 +3190,13 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
         }
 
         window.openWishlist = () => {
+            document.body.style.overflow = 'hidden';
             document.getElementById('wishlist-modal').classList.remove('hidden');
+        };
+
+        window.closeWishlist = () => {
+            document.body.style.overflow = '';
+            document.getElementById('wishlist-modal').classList.add('hidden');
         };
 
         window.reserveGiftWish = async (id) => {
