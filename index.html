@@ -1657,9 +1657,9 @@ async function callAI(prompt) {
                 container.classList.remove('hidden');
                 if (!resultMiniMap) {
                     resultMiniMap = L.map('mini-map', { zoomControl: false, attributionControl: false }).setView([coords.lat, coords.lon], 13);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                        subdomains: 'abcd',
-                        maxZoom: 20
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        subdomains: 'abc',
+                        maxZoom: 19
                     }).addTo(resultMiniMap);
                     resultMiniMarker = L.marker([coords.lat, coords.lon]).addTo(resultMiniMap);
                 } else {
@@ -1672,11 +1672,11 @@ async function callAI(prompt) {
 
         window.initMap = function() { 
             if (map) return;
-            map = L.map('map').setView([51.1657, 10.4515], 6); 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-                subdomains: 'abcd',
-                maxZoom: 20
+            map = L.map('map').setView([51.1657, 10.4515], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                subdomains: 'abc',
+                maxZoom: 19
             }).addTo(map);
         }
 
