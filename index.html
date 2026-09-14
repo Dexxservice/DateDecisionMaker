@@ -698,6 +698,22 @@
         </div>
     </div>
 
+    <div id="coupons-modal" class="hidden fixed inset-0 bg-black/50 z-[190] flex items-start justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in my-8">
+            <button onclick="playSound('click'); closeLoveCoupons()" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
+            <h3 class="text-xl font-black text-pink-600 mb-1">Liebes-Coupons 💝</h3>
+            <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase tracking-widest">Kleine Gutscheine füreinander</p>
+
+            <div class="space-y-2 mb-5 p-3 bg-gray-50 rounded-xl">
+                <input id="coupon-title" type="text" placeholder="z.B. Frühstück ans Bett" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <input id="coupon-note" type="text" placeholder="Notiz (optional)" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <button id="btn-add-coupon" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest shadow-md text-xs">Coupon erstellen</button>
+            </div>
+
+            <div id="coupons-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
     <div id="zeitreise-modal" class="hidden fixed inset-0 bg-black/50 z-[190] flex items-start justify-center p-4 backdrop-blur-sm overflow-y-auto">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 animate-scale-in my-8">
             <button onclick="playSound('click'); closeZeitreise()" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
@@ -1188,6 +1204,69 @@
                     </div>
 
                 </div>
+            </div>
+
+            <!-- FUNZONE: Gleichzeitig antworten -->
+            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+                <h3 class="font-black text-indigo-600 mb-2 uppercase text-xs tracking-widest">🤝 Gleichzeitig antworten</h3>
+                <p class="text-[10px] text-gray-400 mb-5">Ihr beantwortet dieselbe Frage unabhängig voneinander – matcht ihr?</p>
+
+                <div id="syncquiz-idle" class="hidden">
+                    <button onclick="startSyncQuizRound()" class="bg-indigo-500 text-white w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg hover:bg-indigo-600 transition-colors">✨ Neue Runde starten</button>
+                </div>
+
+                <div id="syncquiz-active" class="hidden">
+                    <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 mb-4">
+                        <p id="syncquiz-question" class="text-base font-bold text-indigo-900 leading-relaxed"></p>
+                    </div>
+
+                    <div id="syncquiz-input-area">
+                        <textarea id="syncquiz-answer-input" rows="2" placeholder="Deine Antwort..." class="w-full p-3 bg-white border border-indigo-100 rounded-xl outline-none text-sm mb-3 resize-none"></textarea>
+                        <button onclick="submitSyncQuizAnswer()" class="bg-indigo-500 text-white w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs shadow-md">Antwort abschicken</button>
+                    </div>
+
+                    <div id="syncquiz-waiting" class="hidden text-center py-4">
+                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">✅ Du hast geantwortet</p>
+                        <p id="syncquiz-my-answer" class="text-sm text-gray-600 italic mt-2"></p>
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mt-4 animate-pulse">Warte auf deinen Partner...</p>
+                    </div>
+
+                    <div id="syncquiz-reveal" class="hidden text-left">
+                        <div class="grid grid-cols-1 gap-3 mb-4">
+                            <div class="bg-pink-50 border border-pink-100 rounded-xl p-3">
+                                <p id="syncquiz-reveal-label-1" class="text-[9px] font-black text-pink-500 uppercase tracking-widest mb-1"></p>
+                                <p id="syncquiz-reveal-answer-1" class="text-sm font-bold text-gray-700"></p>
+                            </div>
+                            <div class="bg-teal-50 border border-teal-100 rounded-xl p-3">
+                                <p id="syncquiz-reveal-label-2" class="text-[9px] font-black text-teal-600 uppercase tracking-widest mb-1"></p>
+                                <p id="syncquiz-reveal-answer-2" class="text-sm font-bold text-gray-700"></p>
+                            </div>
+                        </div>
+                        <button onclick="startSyncQuizRound()" class="bg-indigo-500 text-white w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs shadow-md">🔁 Neue Runde</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FUNZONE: Foto-Memory -->
+            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+                <h3 class="font-black text-teal-800 mb-2 uppercase text-xs tracking-widest">🧠 Foto-Memory</h3>
+                <p class="text-[10px] text-gray-400 mb-5">Memory mit euren eigenen Erinnerungsfotos.</p>
+                <div id="memory-game-idle">
+                    <button onclick="startPhotoMemoryGame()" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">Spiel starten</button>
+                    <p id="memory-game-hint" class="text-[10px] text-gray-400 mt-3"></p>
+                </div>
+                <div id="memory-game-board" class="hidden">
+                    <p id="memory-game-status" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3"></p>
+                    <div id="memory-game-grid" class="grid grid-cols-4 gap-2"></div>
+                    <button onclick="startPhotoMemoryGame()" class="mt-4 text-[10px] text-gray-400 font-bold uppercase underline">Neu mischen</button>
+                </div>
+            </div>
+
+            <!-- FUNZONE: Liebes-Coupons -->
+            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+                <h3 class="font-black text-pink-600 mb-2 uppercase text-xs tracking-widest">💝 Liebes-Coupons</h3>
+                <p class="text-[10px] text-gray-400 mb-5">Verschenkt kleine Gutscheine, die eingelöst werden können.</p>
+                <button onclick="playSound('click'); openLoveCoupons()" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">Coupons ansehen</button>
             </div>
         </div>
     </div>
@@ -3545,6 +3624,9 @@ const syncData = (currentUser) => {
             bindLoveLetterUI();
             bindWishlistUI();
             renderWishlist(currentUser);
+            bindCouponsUI();
+            renderCoupons(currentUser);
+            onValue(ref(db, 'syncQuiz/current'), (snap) => renderSyncQuiz(snap.val()));
 
             onValue(ref(db, 'stats/claimedCount'), (snap) => { globalClaimedCount = snap.val() || 0; if (globalDoneCount !== undefined) updateRewardUI(globalDoneCount, globalClaimedCount); });
             onValue(ref(db, 'systemStart'), (snap) => { relationshipStart = snap.val(); updateUptime(); });
@@ -4935,6 +5017,306 @@ Antworte NUR mit der Fortsetzung (ohne "Ich habe noch nie" davor), keine Anführ
             if (resultEl) resultEl.textContent = 'Ich habe noch nie ' + choice;
             if (typeof playSound === 'function') playSound('pop');
         };
+
+        // --- FUNZONE: Gleichzeitig antworten (Sync-Quiz) ---
+        const SYNCQUIZ_FALLBACK = [
+            "Wo war unser erstes offizielles Date?",
+            "Was war unser lustigster gemeinsamer Moment bisher?",
+            "Wenn wir jetzt sofort verreisen könnten, wohin würden wir fahren?",
+            "Welchen Film oder welche Serie würden wir uns heute Abend anschauen?",
+            "Was würden wir uns kochen, wenn wir jetzt zusammen kochen würden?",
+            "Was war der romantischste Moment, den wir zusammen hatten?",
+            "Wie viele Kinder würden wir uns wünschen?",
+            "Wo stellen wir uns vor, in 10 Jahren zu leben?",
+            "Was würden wir als Haustier wählen, wenn wir eins hätten?",
+            "Was ist unser Lieblingslied als Paar?",
+            "Wo war der schönste Ort, an dem wir zusammen waren?",
+            "Was würden wir mit einem geschenkten freien Wochenende machen?",
+            "Was war das beste Geschenk, das wir uns gegenseitig gemacht haben?",
+            "Wie würden wir unseren perfekten Sonntag beschreiben?",
+            "Was war der Moment, in dem wir wussten, dass es ernst wird zwischen uns?"
+        ];
+
+        let syncQuizHistory = [];
+        let syncQuizCache = null;
+
+        window.startSyncQuizRound = async () => {
+            const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+            if (!user) return;
+
+            let question = null;
+            try {
+                const prompt = `Erstelle EINE Frage für ein Paar-Ratespiel, bei dem beide Partner unabhängig voneinander antworten und danach vergleichen. Sprache: Deutsch. Die Frage muss aus der "Wir/Uns"-Perspektive gestellt sein (gemeinsame Erinnerungen, gemeinsame Vorlieben, gemeinsame Zukunftsvorstellungen) - NICHT "Was ist MEINE Lieblingsfarbe" (das hat nur eine objektiv richtige Antwort), sondern etwas, wo beide unabhängig raten/antworten und der Vergleich interessant ist. 1 Satz.
+
+Vermeide Wiederholung/Ähnlichkeit zu:
+${syncQuizHistory.map((q) => `- ${q}`).join("\n") || "- (keine)"}
+
+Antworte NUR mit der Frage.`;
+                const aiResult = await callAI(prompt);
+                if (aiResult && aiResult.trim().length > 5) question = aiResult.replace(/["']/g, '').trim();
+            } catch (e) {
+                console.error('SyncQuiz AI generation failed:', e);
+            }
+
+            if (!question) {
+                question = pickRandomFrom(SYNCQUIZ_FALLBACK, syncQuizHistory[syncQuizHistory.length - 1]);
+            }
+            syncQuizHistory.push(question);
+            if (syncQuizHistory.length > 5) syncQuizHistory.shift();
+
+            await set(ref(db, 'syncQuiz/current'), {
+                question,
+                startedBy: user,
+                createdAt: Date.now(),
+                answers: { Samet: null, Meriam: null }
+            });
+            if (typeof playSound === 'function') playSound('pop');
+        };
+
+        window.submitSyncQuizAnswer = async () => {
+            const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+            if (!user || !syncQuizCache) return;
+            const input = document.getElementById('syncquiz-answer-input');
+            const text = (input?.value || "").trim();
+            if (!text) return alert("Bitte erst eine Antwort eingeben 🙂");
+
+            await update(ref(db, `syncQuiz/current/answers`), { [user]: text });
+            if (typeof playSound === 'function') playSound('success');
+        };
+
+        function renderSyncQuiz(round) {
+            const idleEl = document.getElementById('syncquiz-idle');
+            const activeEl = document.getElementById('syncquiz-active');
+            if (!idleEl || !activeEl) return;
+
+            const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+            syncQuizCache = round;
+
+            if (!round || !round.question) {
+                idleEl.classList.remove('hidden');
+                activeEl.classList.add('hidden');
+                return;
+            }
+
+            idleEl.classList.add('hidden');
+            activeEl.classList.remove('hidden');
+
+            const qEl = document.getElementById('syncquiz-question');
+            if (qEl) qEl.textContent = round.question;
+
+            const answers = round.answers || {};
+            const partner = user === 'Samet' ? 'Meriam' : 'Samet';
+            const myAnswer = answers[user];
+            const partnerAnswer = answers[partner];
+
+            const inputArea = document.getElementById('syncquiz-input-area');
+            const waitingArea = document.getElementById('syncquiz-waiting');
+            const revealArea = document.getElementById('syncquiz-reveal');
+            if (!inputArea || !waitingArea || !revealArea) return;
+
+            if (myAnswer && partnerAnswer) {
+                inputArea.classList.add('hidden');
+                waitingArea.classList.add('hidden');
+                revealArea.classList.remove('hidden');
+                document.getElementById('syncquiz-reveal-label-1').textContent = user;
+                document.getElementById('syncquiz-reveal-answer-1').textContent = myAnswer;
+                document.getElementById('syncquiz-reveal-label-2').textContent = partner;
+                document.getElementById('syncquiz-reveal-answer-2').textContent = partnerAnswer;
+            } else if (myAnswer) {
+                inputArea.classList.add('hidden');
+                revealArea.classList.add('hidden');
+                waitingArea.classList.remove('hidden');
+                document.getElementById('syncquiz-my-answer').textContent = `"${myAnswer}"`;
+            } else {
+                waitingArea.classList.add('hidden');
+                revealArea.classList.add('hidden');
+                inputArea.classList.remove('hidden');
+                const input = document.getElementById('syncquiz-answer-input');
+                if (input) input.value = '';
+            }
+        }
+
+        // --- FUNZONE: Foto-Memory ---
+        let memoryGameState = { cards: [], flipped: [], matched: [], lock: false, moves: 0 };
+
+        window.startPhotoMemoryGame = () => {
+            const data = (timelineCache && timelineCache.data) || {};
+            const photos = Object.values(data)
+                .filter((w) => w && w.memoryThumb)
+                .map((w) => w.memoryThumb);
+            const unique = Array.from(new Set(photos));
+            const hintEl = document.getElementById('memory-game-hint');
+
+            if (unique.length < 4) {
+                if (hintEl) hintEl.textContent = `Noch nicht genug Fotos (${unique.length}/4) – fügt mehr Erinnerungen mit Foto hinzu!`;
+                return;
+            }
+            if (hintEl) hintEl.textContent = '';
+
+            const pairCount = Math.min(8, unique.length);
+            const shuffledPool = unique.sort(() => Math.random() - 0.5).slice(0, pairCount);
+            let cards = [...shuffledPool, ...shuffledPool].map((url, i) => ({ id: i, url, matched: false }));
+            cards = cards.sort(() => Math.random() - 0.5);
+
+            memoryGameState = { cards, flipped: [], matched: [], lock: false, moves: 0 };
+
+            document.getElementById('memory-game-idle').classList.add('hidden');
+            document.getElementById('memory-game-board').classList.remove('hidden');
+            renderMemoryGameBoard();
+            if (typeof playSound === 'function') playSound('click');
+        };
+
+        function renderMemoryGameBoard() {
+            const grid = document.getElementById('memory-game-grid');
+            const status = document.getElementById('memory-game-status');
+            if (!grid) return;
+
+            grid.innerHTML = "";
+            memoryGameState.cards.forEach((card, idx) => {
+                const isFlipped = memoryGameState.flipped.includes(idx) || memoryGameState.matched.includes(idx);
+                const btn = document.createElement('button');
+                btn.type = "button";
+                btn.className = "aspect-square rounded-xl overflow-hidden border-2 " + (memoryGameState.matched.includes(idx) ? "border-green-400" : "border-teal-100") + " bg-teal-50";
+                btn.innerHTML = isFlipped
+                    ? `<img src="${card.url}" class="w-full h-full object-cover">`
+                    : `<div class="w-full h-full flex items-center justify-center text-2xl">❓</div>`;
+                btn.onclick = () => flipMemoryCard(idx);
+                grid.appendChild(btn);
+            });
+
+            if (status) {
+                const total = memoryGameState.cards.length / 2;
+                const done = memoryGameState.matched.length / 2;
+                status.textContent = `${done} / ${total} Paare gefunden · ${memoryGameState.moves} Versuche`;
+            }
+        }
+
+        function flipMemoryCard(idx) {
+            const state = memoryGameState;
+            if (state.lock) return;
+            if (state.flipped.includes(idx) || state.matched.includes(idx)) return;
+
+            state.flipped.push(idx);
+            renderMemoryGameBoard();
+
+            if (state.flipped.length === 2) {
+                state.moves++;
+                const [a, b] = state.flipped;
+                if (state.cards[a].url === state.cards[b].url) {
+                    state.matched.push(a, b);
+                    state.flipped = [];
+                    if (typeof playSound === 'function') playSound('success');
+                    renderMemoryGameBoard();
+                    if (state.matched.length === state.cards.length) {
+                        const status = document.getElementById('memory-game-status');
+                        if (status) status.textContent = `🎉 Geschafft in ${state.moves} Versuchen!`;
+                    }
+                } else {
+                    state.lock = true;
+                    if (typeof playSound === 'function') playSound('click');
+                    setTimeout(() => {
+                        state.flipped = [];
+                        state.lock = false;
+                        renderMemoryGameBoard();
+                    }, 900);
+                }
+            }
+        }
+
+        // --- FUNZONE: Liebes-Coupons ---
+        window.openLoveCoupons = () => {
+            document.body.style.overflow = 'hidden';
+            document.getElementById('coupons-modal').classList.remove('hidden');
+        };
+
+        window.closeLoveCoupons = () => {
+            document.body.style.overflow = '';
+            document.getElementById('coupons-modal').classList.add('hidden');
+        };
+
+        window.redeemCoupon = async (id) => {
+            await update(ref(db, `loveCoupons/${id}`), { redeemed: true, redeemedAt: Date.now() });
+            if (typeof playSound === 'function') playSound('success');
+        };
+
+        window.deleteCoupon = (id) => remove(ref(db, `loveCoupons/${id}`));
+
+        function bindCouponsUI() {
+            const btn = document.getElementById('btn-add-coupon');
+            if (!btn) return;
+
+            let sending = false;
+            btn.onclick = async () => {
+                if (sending) return;
+                const titleEl = document.getElementById('coupon-title');
+                const noteEl = document.getElementById('coupon-note');
+                const title = (titleEl.value || "").trim();
+                if (!title) return alert("Bitte einen Titel eingeben 🙂");
+                const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+                if (!user) return alert("Bitte erst einloggen.");
+
+                try {
+                    sending = true;
+                    btn.disabled = true;
+                    await push(ref(db, 'loveCoupons'), {
+                        title,
+                        note: (noteEl.value || "").trim(),
+                        by: user,
+                        createdAt: Date.now(),
+                        redeemed: false,
+                        redeemedAt: null
+                    });
+                    titleEl.value = ""; noteEl.value = "";
+                    if (typeof playSound === 'function') playSound('success');
+                } catch (e) {
+                    console.error("Coupon add failed:", e);
+                    alert("Konnte nicht gespeichert werden: " + (e?.message || e));
+                } finally {
+                    sending = false;
+                    btn.disabled = false;
+                }
+            };
+        }
+
+        function renderCoupons(currentUser) {
+            onValue(ref(db, 'loveCoupons'), (snap) => {
+                const container = document.getElementById('coupons-list');
+                if (!container) return;
+                const data = snap.val() || {};
+                const ids = Object.keys(data).sort((a, b) => (data[b].createdAt || 0) - (data[a].createdAt || 0));
+
+                if (!ids.length) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Noch keine Coupons erstellt 💝</p>';
+                    return;
+                }
+
+                container.innerHTML = "";
+                ids.forEach((id) => {
+                    const item = data[id];
+                    if (!item || !item.title || !item.by) return;
+                    const isOwn = item.by === currentUser;
+                    const badgeClass = item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet';
+
+                    const div = document.createElement('div');
+                    div.className = "p-3 rounded-xl border " + (item.redeemed ? "bg-gray-50 border-gray-200 opacity-60" : (isOwn ? "bg-pink-50 border-pink-100" : "bg-teal-50 border-teal-100"));
+
+                    let html = `<span class="user-badge ${badgeClass}">${escapeHtml(item.by)}</span>
+                        <p class="text-sm font-bold text-gray-700 mt-1">${escapeHtml(item.title)}</p>`;
+                    if (item.note) html += `<p class="text-xs text-gray-500 italic mt-1">${escapeHtml(item.note)}</p>`;
+
+                    if (item.redeemed) {
+                        html += `<span class="text-[10px] font-bold text-gray-400 uppercase mt-2 block">✅ Eingelöst</span>`;
+                    } else if (isOwn) {
+                        html += `<button onclick="deleteCoupon('${id}')" class="text-[9px] text-gray-400 underline mt-2">Entfernen</button>`;
+                    } else {
+                        html += `<button onclick="redeemCoupon('${id}')" class="teal-btn w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-widest mt-2">💝 Einlösen</button>`;
+                    }
+
+                    div.innerHTML = html;
+                    container.appendChild(div);
+                });
+            });
+        }
 
 const initPolaroidCropCanvas = () => {
             const canvas = document.getElementById('polaroid-crop-canvas');
