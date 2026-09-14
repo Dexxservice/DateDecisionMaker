@@ -187,7 +187,10 @@
         .user-badge { font-size: 9px; padding: 2px 8px; border-radius: 99px; font-weight: bold; text-transform: uppercase; }
         .badge-meriam { background-color: #fce4ec; color: #f06292; } .badge-samet { background-color: #e0f2f1; color: #00897b; }
         .filter-select { background-color: #f0fdfa; border: 1px solid #99f6e4; border-radius: 0.75rem; padding: 0.5rem; font-size: 0.875rem; outline: none; }
-        .online-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; } .online { background-color: #4ADE80; box-shadow: 0 0 8px #4ADE80; } .offline { background-color: #CBD5E1; }
+        .online-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; } .online { background-color: #4ADE80; box-shadow: 0 0 8px #4ADE80; animation: onlinePulse 1.8s ease-in-out infinite; } .offline { background-color: #94A3B8; }
+        @keyframes onlinePulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.55), 0 0 8px #4ADE80; } 50% { box-shadow: 0 0 0 6px rgba(74,222,128,0), 0 0 8px #4ADE80; } }
+        .presence-pop { animation: presencePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes presencePop { 0% { transform: scale(0.7); opacity: 0.3; } 60% { transform: scale(1.15); } 100% { transform: scale(1); opacity: 1; } }
         .stat-card { text-align: center; padding: 18px 5px; display: flex; flex-direction: column; justify-content: space-between; }
         .stat-title { font-size: 0.55rem; text-transform: uppercase; color: #94A3B8; font-weight: 800; letter-spacing: 0.1em; margin-bottom: 4px; }
         .stat-val { font-size: 2rem; font-weight: 900; color: #111827; line-height: 1; }
@@ -2408,23 +2411,51 @@ bindPolaroidUIOnce();
             } 
         };
         
-        const startPresence = (u) => { 
-            setInterval(() => update(ref(db, `presence/${u}`), { onlineAt: Date.now() }), 5000); 
-            const partner = u === "Samet" ? "Meriam" : "Samet"; 
-            onValue(ref(db, `presence/${partner}`), (s) => { 
+        const formatLastSeen = (timestamp) => {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const time = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+            if (date.toDateString() === now.toDateString()) return `heute um ${time}`;
+
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (date.toDateString() === yesterday.toDateString()) return `gestern um ${time}`;
+
+            const sameYear = date.getFullYear() === now.getFullYear();
+            const dateStr = sameYear
+                ? date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
+                : date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            return `am ${dateStr} um ${time}`;
+        };
+
+        const startPresence = (u) => {
+            setInterval(() => update(ref(db, `presence/${u}`), { onlineAt: Date.now() }), 5000);
+            const partner = u === "Samet" ? "Meriam" : "Samet";
+            let wasOnline = null;
+            onValue(ref(db, `presence/${partner}`), (s) => {
                 const data = s.val();
                 const indicator = document.getElementById('partner-status');
                 const lastSeenText = document.getElementById('partner-last-seen');
                 if (!data || !data.onlineAt) { indicator.className = "online-indicator offline"; lastSeenText.innerText = `${partner} war noch nie hier`; return; }
-                const isOnline = (Date.now() - data.onlineAt) < 15000; 
+                const isOnline = (Date.now() - data.onlineAt) < 15000;
                 indicator.className = "online-indicator " + (isOnline ? "online" : "offline");
-                if (isOnline) { lastSeenText.innerText = `${partner} online`; lastSeenText.className = "text-[9px] font-bold text-green-500 transition-all"; }
-                else { 
-                    const date = new Date(data.onlineAt);
-                    lastSeenText.innerText = `${partner} zuletzt: ${date.toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit'})}`; 
-                    lastSeenText.className = "text-[9px] text-gray-400 font-medium transition-all";
+                if (isOnline) { lastSeenText.innerText = `${partner} online`; lastSeenText.className = "text-[9px] font-black text-green-500 transition-all"; }
+                else {
+                    lastSeenText.innerText = `${partner} zuletzt ${formatLastSeen(data.onlineAt)}`;
+                    lastSeenText.className = "text-[9px] text-gray-600 font-bold transition-all";
                 }
-            }); 
+
+                // Coole Pop-Animation beim Statuswechsel (nicht beim allerersten Laden)
+                if (wasOnline !== null && wasOnline !== isOnline) {
+                    [indicator, lastSeenText].forEach((el) => {
+                        el.classList.remove('presence-pop');
+                        void el.offsetWidth;
+                        el.classList.add('presence-pop');
+                    });
+                }
+                wasOnline = isOnline;
+            });
         };
 
         window.switchTab = (tab) => { 
