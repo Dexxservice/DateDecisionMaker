@@ -809,14 +809,25 @@
         </header>
 
         <div id="tab-home" class="animate-fade-in">
+            <div id="activity-feed-card" class="hidden mint-card p-4 mb-6 border-l-4 border-pink-300 bg-gradient-to-r from-pink-50 to-white shadow-sm animate-slide-up">
+                <div class="flex items-center justify-between mb-2">
+                    <p class="text-[10px] font-black text-pink-500 uppercase tracking-widest">🆕 Neu seit deinem letzten Besuch</p>
+                    <button onclick="dismissActivityFeed()" class="text-[9px] text-gray-400 underline font-bold uppercase shrink-0 ml-2">Gesehen</button>
+                </div>
+                <div id="activity-feed-list"></div>
+            </div>
             <div class="flex gap-2 mb-6 animate-fade-in">
                 <button onclick="playSound('click'); openWishlist()" class="flex-1 bg-white/70 backdrop-blur-md border border-pink-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
                     <span id="chip-gifts-count" class="block text-lg font-black text-pink-500 leading-none">0</span>
                     <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Wünsche offen</span>
                 </button>
+                <button onclick="playSound('click'); document.getElementById('wish-list').scrollIntoView({behavior:'smooth', block:'start'})" class="flex-1 bg-white/70 backdrop-blur-md border border-teal-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
+                    <span id="chip-ideas-count" class="block text-lg font-black text-teal-600 leading-none">0</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Ideen offen</span>
+                </button>
                 <button onclick="playSound('click'); switchTab('bucket')" class="flex-1 bg-white/70 backdrop-blur-md border border-yellow-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
                     <span id="chip-bucket-count" class="block text-lg font-black text-yellow-600 leading-none">0</span>
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bucket-Punkte offen</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bucket offen</span>
                 </button>
             </div>
             <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden animate-scale-in">
@@ -3226,6 +3237,97 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             return div.innerHTML;
         }
 
+        function truncateClient(text, max) {
+            if (!text) return "";
+            return text.length > max ? text.slice(0, max - 3) + "..." : text;
+        }
+
+        // --- Activity Feed: "Neu seit deinem letzten Besuch" ---
+        function getLastSeenKey(user) { return `lastSeenActivity_${user}`; }
+
+        function getLastSeen(user) {
+            const v = localStorage.getItem(getLastSeenKey(user));
+            if (!v) {
+                // Erster Start mit diesem Feature: nicht die komplette Vergangenheit anzeigen
+                localStorage.setItem(getLastSeenKey(user), String(Date.now()));
+                return Date.now();
+            }
+            return parseInt(v, 10) || Date.now();
+        }
+
+        window.dismissActivityFeed = () => {
+            if (!activityCache.currentUser) return;
+            localStorage.setItem(getLastSeenKey(activityCache.currentUser), String(Date.now()));
+            activityCache.lastSeen = Date.now();
+            renderActivityFeed();
+            if (typeof playSound === 'function') playSound('click');
+        };
+
+        let activityCache = { wishes: null, loveLetters: null, giftWishes: null, lastSeen: 0, currentUser: null };
+
+        function renderActivityFeed() {
+            const card = document.getElementById('activity-feed-card');
+            const list = document.getElementById('activity-feed-list');
+            if (!card || !list) return;
+            const { wishes, loveLetters, giftWishes, lastSeen, currentUser } = activityCache;
+            if (!currentUser) return;
+
+            const events = [];
+
+            if (wishes) {
+                Object.keys(wishes).forEach((id) => {
+                    const w = wishes[id];
+                    if (!w) return;
+                    const isSecret = w.surprise === true;
+
+                    if (w.by !== currentUser && w.timestamp && w.timestamp > lastSeen) {
+                        if (w.isBucket === true && w.status !== 'done') {
+                            events.push({ ts: w.timestamp, icon: '✨', text: isSecret ? `${w.by} hat einen geheimen Bucket-Traum hinzugefügt 🤫` : `${w.by}: neuer Bucket-Traum "${w.text}"` });
+                        } else if (w.status === 'done') {
+                            events.push({ ts: w.timestamp, icon: '🏆', text: `${w.by} hat "${w.text}" nachgetragen` });
+                        } else if (w.isBucket !== true) {
+                            events.push({ ts: w.timestamp, icon: '💡', text: isSecret ? `${w.by} hat eine geheime Idee hinzugefügt 🤫` : `${w.by}: neue Idee "${w.text}"` });
+                        }
+                    }
+
+                    if (w.comments) {
+                        Object.values(w.comments).forEach((c) => {
+                            if (c && c.by !== currentUser && c.timestamp > lastSeen) {
+                                events.push({ ts: c.timestamp, icon: '💬', text: c.text ? `${c.by} hat kommentiert: "${truncateClient(c.text, 50)}"` : `${c.by} hat eine Sprachnachricht geschickt 🎤` });
+                            }
+                        });
+                    }
+                });
+            }
+
+            if (loveLetters) {
+                Object.values(loveLetters).forEach((l) => {
+                    if (l && l.by !== currentUser && l.sentAt > lastSeen) {
+                        events.push({ ts: l.sentAt, icon: '💌', text: `${l.by}: "${truncateClient(l.text, 50)}"` });
+                    }
+                });
+            }
+
+            if (giftWishes) {
+                Object.values(giftWishes).forEach((g) => {
+                    if (g && g.by !== currentUser && g.timestamp > lastSeen) {
+                        events.push({ ts: g.timestamp, icon: '🎁', text: `${g.by} wünscht sich: "${truncateClient(g.text, 50)}"` });
+                    }
+                });
+            }
+
+            events.sort((a, b) => b.ts - a.ts);
+            const top = events.slice(0, 6);
+
+            if (!top.length) {
+                card.classList.add('hidden');
+                return;
+            }
+
+            card.classList.remove('hidden');
+            list.innerHTML = top.map((e) => `<div class="flex items-start gap-2 py-1.5"><span class="text-base leading-none">${e.icon}</span><p class="text-xs text-gray-600 flex-1 leading-snug">${escapeHtml(e.text)}</p></div>`).join('');
+        }
+
         window.openWishlist = () => {
             document.body.style.overflow = 'hidden';
             document.getElementById('wishlist-modal').classList.remove('hidden');
@@ -3312,6 +3414,9 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                 const data = snap.val() || {};
                 const ids = Object.keys(data).sort((a, b) => (data[b].timestamp || 0) - (data[a].timestamp || 0));
 
+                activityCache.giftWishes = data;
+                renderActivityFeed();
+
                 const giftChip = document.getElementById('chip-gifts-count');
                 if (giftChip) {
                     const openCount = ids.filter((id) => data[id].by !== currentUser && data[id].bought !== true).length;
@@ -3368,6 +3473,8 @@ const syncData = (currentUser) => {
             const partner = currentUser === "Samet" ? "Meriam" : "Samet";
             document.getElementById('love-letter-title').innerText = `Post-it an ${partner} 📝`;
             document.getElementById('vs-label').innerText = `Ich vs ${partner}`;
+            activityCache.currentUser = currentUser;
+            activityCache.lastSeen = getLastSeen(currentUser);
             bindLoveLetterUI();
             bindWishlistUI();
             renderWishlist(currentUser);
@@ -3384,6 +3491,9 @@ const syncData = (currentUser) => {
             });
 
             onValue(ref(db, 'loveLetters'), (snap) => {
+  activityCache.loveLetters = snap.val();
+  renderActivityFeed();
+
   const container = document.getElementById('love-letter-display');
   if (!container) return;
 
@@ -3504,6 +3614,11 @@ const syncData = (currentUser) => {
                 const bucketOpenCount = bucketIds.filter(id => data[id].status !== 'done').length;
                 const bucketChip = document.getElementById('chip-bucket-count');
                 if (bucketChip) bucketChip.innerText = bucketOpenCount;
+                const ideasChip = document.getElementById('chip-ideas-count');
+                if (ideasChip) ideasChip.innerText = openIds.length;
+
+                activityCache.wishes = data;
+                renderActivityFeed();
 
                 timelineCache = { data, doneIds, currentUser };
                 renderTimeline(document.getElementById('zeitreise-search') ? document.getElementById('zeitreise-search').value : '');
