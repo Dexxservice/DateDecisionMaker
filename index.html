@@ -703,7 +703,7 @@
             <button onclick="playSound('click'); closeZeitreise()" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
             <div class="flex items-center justify-between mb-1">
                 <h3 class="text-xl font-black text-teal-800">Zeitreise 🏆</h3>
-                <button onclick="playSound('pop'); openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+ Neu</button>
+                <button onclick="playSound('pop'); closeZeitreise(); openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+ Neu</button>
             </div>
             <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase tracking-widest">Alle eure Erinnerungen</p>
 
@@ -2937,6 +2937,15 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
         };
 
         window.openMilestoneModal = async (mode, id = null, type = 'archive') => {
+            if (mode === 'edit' && id) {
+                const guardUser = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+                const guardSnap = await get(ref(db, `wishes/${id}`));
+                const guardData = guardSnap.val();
+                if (guardData && guardData.surprise === true && guardData.by !== guardUser) {
+                    alert("🤫 Das ist eine geheime Idee deines Partners – die kannst du nicht bearbeiten.");
+                    return;
+                }
+            }
             currentModalMode = type;
             const modal = document.getElementById('milestone-modal');
             const titleEl = document.getElementById('ms-title'); const locEl = document.getElementById('ms-location'); const infoEl = document.getElementById('ms-info');
@@ -3598,15 +3607,22 @@ const syncData = (currentUser) => {
 
                 openIds.forEach(id => {
                     const item = data[id]; const isSecret = item.surprise && item.by !== currentUser;
+                    const isOwn = item.by === currentUser;
                     const card = document.createElement('div'); card.className = "mint-card p-4 border-l-4 animate-slide-up " + (item.by === 'Meriam' ? 'border-pink-200' : 'border-teal-200');
-                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2"><button onclick="openMilestoneModal('edit','${id}','idea')" class="text-gray-400 font-bold">✏</button><button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button><button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button></div></div>`;
+                    const controls = (isOwn ? `<button onclick="openMilestoneModal('edit','${id}','idea')" class="text-gray-400 font-bold">✏</button>` : '')
+                        + `<button onclick="markAsDone('${id}')" class="text-teal-400 font-bold">✓</button>`
+                        + (isOwn ? `<button onclick="deleteWish('${id}')" class="text-gray-200 text-xs">✕</button>` : '');
+                    card.innerHTML = `<div class="flex justify-between items-start"><div class="flex-1"><p class="font-bold ${isSecret ? 'italic text-gray-300' : ''}">${item.surprise && item.by === currentUser ? '🔒 ' : ''}${isSecret ? '🤫 Geheime Idee' : item.text}</p>${!isSecret && item.location ? `<p class="text-[11px] text-teal-600 mt-1 font-medium">📍 ${item.location}</p>` : ''}<div class="flex gap-2 mt-2"><span class="user-badge ${item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet'}">${item.by}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getCatLabel(item.cat)}</span><span class="user-badge badge-samet text-[7px] bg-teal-50 text-teal-600">${getWeatherLabel(item.weather)}</span></div></div><div class="flex gap-2">${controls}</div></div>`;
                     wishList.appendChild(card);
                 });
 
                 bucketIds.forEach(id => {
                     const item = data[id]; const isDone = item.status === 'done';
+                    const isSecret = item.surprise && item.by !== currentUser;
+                    const isOwn = item.by === currentUser;
                     const div = document.createElement('div'); div.className = "mint-card p-4 bucket-card animate-slide-up relative " + (isDone ? "opacity-50" : "");
-                    div.innerHTML = `<div class="absolute top-2 right-2"><button onclick="openMilestoneModal('edit', '${id}', 'bucket')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button></div><div class="flex justify-between items-center"><div><p class="font-black text-yellow-700">${item.text} ✨</p><p class="text-[9px] uppercase text-yellow-600 mt-1"><span class="font-bold">Von ${item.by}</span> • ${isDone ? 'Erreicht' : 'Bucket List'}</p></div>${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold text-lg mr-6">✓</button>` : ''}</div>`;
+                    const editBtn = isOwn ? `<div class="absolute top-2 right-2"><button onclick="openMilestoneModal('edit', '${id}', 'bucket')" class="text-gray-400 hover:text-teal-500 p-1 bg-white/50 rounded-full shadow-sm">✏️</button></div>` : '';
+                    div.innerHTML = `${editBtn}<div class="flex justify-between items-center"><div><p class="font-black ${isSecret ? 'text-gray-400' : 'text-yellow-700'}">${isSecret ? '🤫 Geheimer Bucket-Traum' : item.text + ' ✨'}</p><p class="text-[9px] uppercase text-yellow-600 mt-1"><span class="font-bold">Von ${item.by}</span> • ${isDone ? 'Erreicht' : 'Bucket List'}</p></div>${!isDone ? `<button onclick="markAsDone('${id}')" class="text-yellow-600 font-bold text-lg mr-6">✓</button>` : ''}</div>`;
                     bucketList.appendChild(div);
                 });
 
@@ -3651,7 +3667,7 @@ const syncData = (currentUser) => {
                 memoryHTML += `<p class="text-[10px] italic text-gray-600 mt-2 bg-gray-50 p-2 rounded-lg border-l-2 border-pink-200">"${item.memoryNote}"</p>`;
             }
 
-            memoryHTML += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-1.5 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
+            memoryHTML += `<button onclick="closeZeitreise(); openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-1.5 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
 
             const hasMyRating = timelineCache.currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
             let ratingUI = "";
@@ -3666,7 +3682,7 @@ const syncData = (currentUser) => {
                 <div class="timeline-dot"></div>
                 <div class="timeline-content">
                     <div class="mint-card p-3 relative">
-                        <div class="absolute top-2 right-2"><button onclick="playSound('click'); openMilestoneModal('edit', '${id}')" class="text-gray-300 hover:text-teal-500 text-xs">✏️</button></div>
+                        <div class="absolute top-2 right-2"><button onclick="playSound('click'); closeZeitreise(); openMilestoneModal('edit', '${id}')" class="text-gray-300 hover:text-teal-500 text-xs">✏️</button></div>
                         <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${timeStr}</span>
                         <h4 class="font-bold text-teal-800 text-sm leading-tight mt-1">${item.text}</h4>
                         ${item.location ? `<p class="text-[10px] text-gray-500 mt-1">📍 ${item.location}</p>` : ''}
