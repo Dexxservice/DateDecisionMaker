@@ -900,6 +900,7 @@
             <button onclick="playSound('click'); openCalendar()" id="highlight-placeholder" class="hidden w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2 mb-6">
                 <span class="text-2xl opacity-50">📅</span> <span>Ersten Termin hinzufügen</span>
             </button>
+            <div id="upcoming-events-preview" class="hidden mb-6 space-y-2"></div>
             <div class="mint-card p-2 mb-6 grid grid-cols-3 gap-0 divide-x divide-teal-50 shadow-sm border-b-4 border-teal-200 animate-slide-up">
                 <div class="stat-card"><p class="stat-title">Date-Serie</p><p id="stat-streak" class="stat-val text-pink-500">0</p><p class="stat-label">Wochen</p><p id="streak-info" class="streak-status italic text-[7px] leading-tight mt-1"></p></div>
                 <div class="stat-card"><p class="stat-title">Ideen-Duell</p><p id="stat-vs" class="stat-val text-teal-600">0:0</p><p id="vs-label" class="stat-label text-[7px]">Ich vs Partner</p></div>
@@ -3507,11 +3508,13 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             const ids = Object.keys(calendarEventsCache);
             const cardEl = document.getElementById('highlight-card');
             const placeholderEl = document.getElementById('highlight-placeholder');
+            const previewEl = document.getElementById('upcoming-events-preview');
             if (!cardEl || !placeholderEl) return;
 
             if (!ids.length) {
                 cardEl.classList.add('hidden');
                 placeholderEl.classList.remove('hidden');
+                if (previewEl) { previewEl.classList.add('hidden'); previewEl.innerHTML = ''; }
                 highlightTargetMs = null;
                 return;
             }
@@ -3525,6 +3528,26 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             document.getElementById('highlight-title').innerText = `${CAL_CATEGORY_ICON[next.ev.category] || ''} ${next.ev.title}`.trim();
             highlightTargetMs = next.occ.getTime();
             updateHighlightCountdown();
+
+            // Kompakte Vorschau der weiteren kommenden Termine direkt auf Home (zusätzlich zum Highlight)
+            if (previewEl) {
+                const rest = items.slice(1, 4);
+                if (!rest.length) {
+                    previewEl.classList.add('hidden');
+                    previewEl.innerHTML = '';
+                } else {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    previewEl.classList.remove('hidden');
+                    previewEl.innerHTML = rest.map(({ ev, occ }) => {
+                        const daysUntil = Math.round((occ - today) / 86400000);
+                        const daysLabel = daysUntil === 0 ? "Heute" : daysUntil === 1 ? "Morgen" : `in ${daysUntil} Tagen`;
+                        return `<button onclick="playSound('click'); openCalendar()" class="w-full flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-100 rounded-xl px-3 py-2 text-left transition-all active:scale-95">
+                            <span class="text-xs font-bold text-gray-600">${CAL_CATEGORY_ICON[ev.category] || '✨'} ${escapeHtml(ev.title)}</span>
+                            <span class="text-[10px] font-bold text-pink-400 shrink-0 ml-2">${daysLabel}</span>
+                        </button>`;
+                    }).join('') + `<button onclick="playSound('click'); openCalendar()" class="w-full text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest py-1">Alle Termine im Kalender →</button>`;
+                }
+            }
         }
 
         function updateHighlightCountdown() {
