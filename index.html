@@ -5145,9 +5145,15 @@ Antworte NUR mit der Frage.`;
             if (memoryGameLoading) return;
 
             const data = (timelineCache && timelineCache.data) || {};
-            const photos = Object.values(data)
-                .filter((w) => w && w.memoryThumb)
-                .map((w) => w.memoryThumb);
+            const photos = [];
+            Object.values(data).forEach((w) => {
+                if (!w) return;
+                if (Array.isArray(w.memoryPhotos) && w.memoryPhotos.length) {
+                    w.memoryPhotos.forEach((p) => { if (p && p.thumbUrl) photos.push(p.thumbUrl); });
+                } else if (w.memoryThumb) {
+                    photos.push(w.memoryThumb);
+                }
+            });
             const allUnique = Array.from(new Set(photos)).sort(() => Math.random() - 0.5);
             const hintEl = document.getElementById('memory-game-hint');
             const idleEl = document.getElementById('memory-game-idle');
