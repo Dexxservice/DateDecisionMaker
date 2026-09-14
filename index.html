@@ -674,6 +674,23 @@
         </div>
     </div>
 
+    <div id="wishlist-modal" class="hidden fixed inset-0 bg-black/50 z-[190] flex items-start justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in my-8">
+            <button onclick="playSound('click'); document.getElementById('wishlist-modal').classList.add('hidden')" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
+            <h3 class="text-xl font-black text-pink-600 mb-1">Wunschliste 🎁</h3>
+            <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase tracking-widest">Geschenkideen für euch beide</p>
+
+            <div class="space-y-2 mb-5 p-3 bg-gray-50 rounded-xl">
+                <input id="giftwish-text" type="text" placeholder="Was wünschst du dir?" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <input id="giftwish-link" type="text" placeholder="🔗 Link (optional)" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <input id="giftwish-note" type="text" placeholder="Notiz (optional)" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <button id="btn-add-giftwish" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest shadow-md text-xs">Hinzufügen</button>
+            </div>
+
+            <div id="wishlist-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
     <div id="countdown-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in my-8">
             <h3 class="text-xl font-black text-pink-600 mb-4">Countdown setzen ⏳</h3>
@@ -810,6 +827,10 @@
                     <button id="btn-send-letter" onclick="playSound('success')" class="bg-yellow-400 text-white p-2 rounded-lg text-xs font-bold uppercase">Senden</button>
                 </div>
             </div>
+            <button onclick="playSound('click'); openWishlist()" class="w-full mint-card p-4 mb-6 flex items-center justify-between animate-slide-up" style="animation-delay: 0.25s;">
+                <span class="font-black text-gray-700 text-sm">🎁 Wunschliste</span>
+                <span class="text-gray-400 text-xs">Geschenkideen ansehen →</span>
+            </button>
             <div class="mint-card p-6 mb-6 animate-slide-up" style="animation-delay: 0.3s;">
                 <h3 class="font-black text-teal-800 mb-4 uppercase text-xs tracking-widest">Füge eine Date-Idee hinzu ✨</h3>
                 <div class="flex gap-2 mb-3 items-center">
@@ -3162,11 +3183,122 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             });
         }
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? "" : String(str);
+            return div.innerHTML;
+        }
+
+        window.openWishlist = () => {
+            document.getElementById('wishlist-modal').classList.remove('hidden');
+        };
+
+        window.reserveGiftWish = async (id) => {
+            const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+            if (!user) return;
+            await update(ref(db, `giftWishes/${id}`), { reservedBy: user, reservedAt: Date.now() });
+            if (typeof playSound === 'function') playSound('success');
+        };
+
+        window.unreserveGiftWish = async (id) => {
+            await update(ref(db, `giftWishes/${id}`), { reservedBy: null, reservedAt: null });
+        };
+
+        window.deleteGiftWish = (id) => remove(ref(db, `giftWishes/${id}`));
+
+        function bindWishlistUI() {
+            const btn = document.getElementById('btn-add-giftwish');
+            if (!btn) return;
+
+            let sending = false;
+            btn.onclick = async () => {
+                if (sending) return;
+                const textEl = document.getElementById('giftwish-text');
+                const linkEl = document.getElementById('giftwish-link');
+                const noteEl = document.getElementById('giftwish-note');
+                const text = (textEl.value || "").trim();
+                if (!text) return alert("Bitte einen Wunsch eingeben 🙂");
+                const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+                if (!user) return alert("Bitte erst einloggen.");
+
+                try {
+                    sending = true;
+                    btn.disabled = true;
+                    await push(ref(db, 'giftWishes'), {
+                        text,
+                        link: (linkEl.value || "").trim(),
+                        note: (noteEl.value || "").trim(),
+                        by: user,
+                        timestamp: Date.now(),
+                        reservedBy: null,
+                        reservedAt: null
+                    });
+                    textEl.value = ""; linkEl.value = ""; noteEl.value = "";
+                    if (typeof playSound === 'function') playSound('success');
+                } catch (e) {
+                    console.error("Gift wish add failed:", e);
+                    alert("Konnte nicht gespeichert werden: " + (e?.message || e));
+                } finally {
+                    sending = false;
+                    btn.disabled = false;
+                }
+            };
+        }
+
+        function renderWishlist(currentUser) {
+            onValue(ref(db, 'giftWishes'), (snap) => {
+                const container = document.getElementById('wishlist-list');
+                if (!container) return;
+                const data = snap.val() || {};
+                const ids = Object.keys(data).sort((a, b) => (data[b].timestamp || 0) - (data[a].timestamp || 0));
+
+                if (!ids.length) {
+                    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Noch keine Wünsche eingetragen 🎁</p>';
+                    return;
+                }
+
+                container.innerHTML = "";
+                ids.forEach((id) => {
+                    const item = data[id];
+                    if (!item || !item.text || !item.by) return;
+                    const isOwn = item.by === currentUser;
+                    const badgeClass = item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet';
+
+                    const div = document.createElement('div');
+                    div.className = "p-3 rounded-xl border " + (isOwn ? "bg-pink-50 border-pink-100" : "bg-teal-50 border-teal-100");
+
+                    let html = `<span class="user-badge ${badgeClass}">${escapeHtml(item.by)}</span>
+                        <p class="text-sm font-bold text-gray-700 mt-1">${escapeHtml(item.text)}</p>`;
+                    if (item.note) html += `<p class="text-xs text-gray-500 italic mt-1">${escapeHtml(item.note)}</p>`;
+                    if (item.link) html += `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-teal-600 underline break-all block mt-1">${escapeHtml(item.link)}</a>`;
+
+                    if (isOwn) {
+                        // Eigener Wunsch: Reservierungsstatus wird NIE angezeigt (Überraschung bleibt geheim)
+                        html += `<button onclick="deleteGiftWish('${id}')" class="text-[9px] text-gray-400 underline mt-2">Entfernen</button>`;
+                    } else if (item.reservedBy === currentUser) {
+                        html += `<div class="mt-2 flex items-center justify-between">
+                            <span class="text-[10px] font-bold text-green-600 uppercase">✅ Von dir reserviert</span>
+                            <button onclick="unreserveGiftWish('${id}')" class="text-[9px] text-gray-400 underline">Rückgängig</button>
+                        </div>`;
+                    } else if (item.reservedBy) {
+                        html += `<span class="text-[10px] font-bold text-gray-400 uppercase mt-2 block">Bereits reserviert</span>`;
+                    } else {
+                        html += `<button onclick="reserveGiftWish('${id}')" class="teal-btn w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-widest mt-2">🎁 Ich besorge das</button>`;
+                    }
+
+                    div.innerHTML = html;
+                    container.appendChild(div);
+                });
+            });
+        }
+
 const syncData = (currentUser) => {
             const partner = currentUser === "Samet" ? "Meriam" : "Samet";
             document.getElementById('love-letter-title').innerText = `Post-it an ${partner} 📝`;
             document.getElementById('vs-label').innerText = `Ich vs ${partner}`;
             bindLoveLetterUI();
+            bindWishlistUI();
+            renderWishlist(currentUser);
 
             onValue(ref(db, 'stats/claimedCount'), (snap) => { globalClaimedCount = snap.val() || 0; if (globalDoneCount !== undefined) updateRewardUI(globalDoneCount, globalClaimedCount); });
             onValue(ref(db, 'systemStart'), (snap) => { relationshipStart = snap.val(); updateUptime(); });
