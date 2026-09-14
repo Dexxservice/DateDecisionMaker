@@ -537,6 +537,12 @@
                 <label class="switch"><input type="checkbox" id="sound-toggle" onchange="toggleSound(this)"><span class="slider"></span></label>
             </div>
 
+            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Benachrichtigungen</p>
+            <div class="mb-6 p-3 bg-gray-50 rounded-xl">
+                <button onclick="enablePushNotifications()" class="teal-btn w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest">🔔 Notifications aktivieren</button>
+                <p id="push-status" class="text-[10px] text-gray-400 mt-2 text-center"></p>
+            </div>
+
             <button onclick="localStorage.clear(); location.reload()" class="w-full text-xs text-red-400 font-bold border border-red-200 p-3 rounded-xl mb-2 hover:bg-red-50">⚠️ App Daten zurücksetzen</button>
             <button onclick="document.getElementById('settings-modal').classList.add('hidden')" class="w-full bg-gray-200 text-gray-600 font-bold p-3 rounded-xl text-xs uppercase mt-2">Schließen</button>
         </div>
@@ -1092,12 +1098,74 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
         import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
-        
+
         const firebaseConfig = { apiKey: "AIzaSyCKF4yb7X6XDt5PSTMwiXmn0y7j9aTVMjc", authDomain: "date-decision-maker.firebaseapp.com", databaseURL: "https://date-decision-maker-default-rtdb.europe-west1.firebasedatabase.app", projectId: "date-decision-maker", storageBucket: "date-decision-maker.firebasestorage.app", messagingSenderId: "187389563873", appId: "1:187389563873:web:4fa5fea6a44c42e18078a0", measurementId: "G-LKDJCYHYQW" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const storage = getStorage(app);
+
+        // --- PUSH NOTIFICATIONS (FCM) ---
+        const FCM_VAPID_KEY = "BE1kwrMihVuy_EEjeUMDjb20PTTu95952Vjy2XMiUT2uVhQvajOZ4-E9One-R7nUJ-gwqaoIDLYX4JLwX1frH98";
+
+        function showInAppToast(title, body) {
+            const toast = document.createElement('div');
+            toast.className = "fixed top-4 left-1/2 -translate-x-1/2 z-[400] max-w-sm w-[90%] bg-white/95 backdrop-blur-xl border border-pink-200 shadow-2xl rounded-2xl p-4 animate-fade-in";
+            const titleEl = document.createElement('p');
+            titleEl.className = "font-black text-sm text-teal-800";
+            titleEl.textContent = title || 'MerSam OS';
+            const bodyEl = document.createElement('p');
+            bodyEl.className = "text-xs text-gray-500 mt-1";
+            bodyEl.textContent = body || '';
+            toast.appendChild(titleEl);
+            toast.appendChild(bodyEl);
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 5000);
+        }
+
+        window.enablePushNotifications = async function() {
+            const statusEl = document.getElementById('push-status');
+            try {
+                const supported = await isMessagingSupported().catch(() => false);
+                if (!supported || !('serviceWorker' in navigator)) {
+                    if (statusEl) statusEl.textContent = "Push wird auf diesem Gerät/Browser nicht unterstützt.";
+                    return;
+                }
+                const user = (typeof currentUser !== "undefined" && currentUser) || sessionStorage.getItem('currentUser');
+                if (!user) {
+                    if (statusEl) statusEl.textContent = "Bitte zuerst einloggen.";
+                    return;
+                }
+
+                const permission = await Notification.requestPermission();
+                if (permission !== 'granted') {
+                    if (statusEl) statusEl.textContent = "Berechtigung wurde nicht erteilt.";
+                    return;
+                }
+
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                const messaging = getMessaging(app);
+                const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: registration });
+
+                if (!token) {
+                    if (statusEl) statusEl.textContent = "Kein Token erhalten, bitte erneut versuchen.";
+                    return;
+                }
+
+                await set(ref(db, `pushTokens/${user}/${token}`), true);
+                if (statusEl) statusEl.textContent = "✅ Notifications aktiviert für " + user;
+
+                onMessage(messaging, (payload) => {
+                    const title = payload?.notification?.title || 'MerSam OS';
+                    const body = payload?.notification?.body || '';
+                    showInAppToast(title, body);
+                });
+            } catch (e) {
+                console.error("Push setup failed:", e);
+                if (statusEl) statusEl.textContent = "Fehler: " + (e?.message || e);
+            }
+        };
 
 
         // --- SOUND & SETTINGS ENGINE ---
