@@ -5139,29 +5139,56 @@ Antworte NUR mit der Frage.`;
         // --- FUNZONE: Foto-Memory ---
         let memoryGameState = { cards: [], flipped: [], matched: [], lock: false, moves: 0 };
 
-        window.startPhotoMemoryGame = () => {
+        let memoryGameLoading = false;
+
+        window.startPhotoMemoryGame = async () => {
+            if (memoryGameLoading) return;
+
             const data = (timelineCache && timelineCache.data) || {};
             const photos = Object.values(data)
                 .filter((w) => w && w.memoryThumb)
                 .map((w) => w.memoryThumb);
             const unique = Array.from(new Set(photos));
             const hintEl = document.getElementById('memory-game-hint');
+            const idleEl = document.getElementById('memory-game-idle');
+            const boardEl = document.getElementById('memory-game-board');
 
             if (unique.length < 4) {
                 if (hintEl) hintEl.textContent = `Noch nicht genug Fotos (${unique.length}/4) – fügt mehr Erinnerungen mit Foto hinzu!`;
                 return;
             }
-            if (hintEl) hintEl.textContent = '';
 
             const pairCount = Math.min(8, unique.length);
             const shuffledPool = unique.sort(() => Math.random() - 0.5).slice(0, pairCount);
+
+            // Alle Fotos VOR dem Spielstart laden (Cache), damit das Umdrehen bei schlechter
+            // Verbindung (z.B. Zug) nicht hängt - Karten sollen sofort sichtbar sein.
+            memoryGameLoading = true;
+            idleEl.classList.remove('hidden');
+            boardEl.classList.add('hidden');
+            let loaded = 0;
+            if (hintEl) hintEl.textContent = `📸 Lädt Fotos... (0/${shuffledPool.length})`;
+
+            await Promise.all(shuffledPool.map((url) => new Promise((resolve) => {
+                const img = new Image();
+                img.onload = img.onerror = () => {
+                    loaded++;
+                    if (hintEl) hintEl.textContent = `📸 Lädt Fotos... (${loaded}/${shuffledPool.length})`;
+                    resolve();
+                };
+                img.src = url;
+            })));
+
+            memoryGameLoading = false;
+            if (hintEl) hintEl.textContent = '';
+
             let cards = [...shuffledPool, ...shuffledPool].map((url, i) => ({ id: i, url, matched: false }));
             cards = cards.sort(() => Math.random() - 0.5);
 
             memoryGameState = { cards, flipped: [], matched: [], lock: false, moves: 0 };
 
-            document.getElementById('memory-game-idle').classList.add('hidden');
-            document.getElementById('memory-game-board').classList.remove('hidden');
+            idleEl.classList.add('hidden');
+            boardEl.classList.remove('hidden');
             renderMemoryGameBoard();
             if (typeof playSound === 'function') playSound('click');
         };
