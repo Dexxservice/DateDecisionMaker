@@ -974,30 +974,67 @@
 
         <div id="tab-fun" class="hidden pb-20 animate-fade-in">
 
-            <!-- FUNZONE: Eins oder Zwei -->
+            <!-- FUNZONE: Eins oder Zwei / Mehrere Optionen -->
             <div class="mint-card p-6 mb-6 animate-slide-up">
-                <h3 class="font-black text-teal-800 mb-2 uppercase text-xs tracking-widest text-center">Eins oder Zwei? 🎡</h3>
-                <p class="text-center text-[10px] text-gray-500 mb-5 italic px-2 leading-relaxed">
-                    Tragt zwei Optionen ein – dann wird zufällig ausgelost.
-                </p>
-
-                <div class="space-y-3">
-                    <input id="one-two-opt1" type="text" placeholder="1️⃣ Option 1 (z.B. Eis essen 🍦)" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm font-bold text-gray-700">
-                    <input id="one-two-opt2" type="text" placeholder="2️⃣ Option 2 (z.B. Zuhause bleiben 🏠)" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm font-bold text-gray-700">
+                <div class="flex gap-2 mb-5">
+                    <button type="button" id="picker-tab-onetwo" onclick="switchFunPicker('onetwo')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white shadow-sm transition-all">Eins oder Zwei</button>
+                    <button type="button" id="picker-tab-multi" onclick="switchFunPicker('multi')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 shadow-sm transition-all">Mehrere Optionen</button>
                 </div>
 
-                <div class="mt-6 flex flex-col items-center">
-                    <div class="one-two-wheel-wrap my-4">
-                        <div id="one-two-wheel" class="one-two-wheel relative"></div>
-                        <div class="one-two-wheel-label">
-                            <span>1</span>
-                            <span>2</span>
-                        </div>
-                        <div class="one-two-pointer" aria-hidden="true"></div>
+                <div id="picker-onetwo">
+                    <p class="text-center text-[10px] text-gray-500 mb-5 italic px-2 leading-relaxed">
+                        Tragt zwei Optionen ein – dann wird zufällig ausgelost.
+                    </p>
+
+                    <div class="space-y-3">
+                        <input id="one-two-opt1" type="text" placeholder="1️⃣ Option 1 (z.B. Eis essen 🍦)" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm font-bold text-gray-700">
+                        <input id="one-two-opt2" type="text" placeholder="2️⃣ Option 2 (z.B. Zuhause bleiben 🏠)" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm font-bold text-gray-700">
                     </div>
 
-                    <button id="btn-one-two-spin" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Auslosen</button>
-                    <p id="one-two-result" class="mt-4 text-center text-sm font-bold text-gray-700"></p>
+                    <div class="mt-6 flex flex-col items-center">
+                        <div class="one-two-wheel-wrap my-4">
+                            <div id="one-two-wheel" class="one-two-wheel relative"></div>
+                            <div class="one-two-wheel-label">
+                                <span>1</span>
+                                <span>2</span>
+                            </div>
+                            <div class="one-two-pointer" aria-hidden="true"></div>
+                        </div>
+
+                        <button id="btn-one-two-spin" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Auslosen</button>
+                        <p id="one-two-result" class="mt-4 text-center text-sm font-bold text-gray-700"></p>
+                    </div>
+                </div>
+
+                <div id="picker-multi" class="hidden">
+                    <p class="text-center text-[10px] text-gray-500 mb-4 italic px-2 leading-relaxed">
+                        Beliebig viele Optionen, Komma-getrennt – wer kocht, wer wählt den Film, was gibt's zu essen...
+                    </p>
+                    <textarea id="multi-options-input" rows="2" placeholder="z.B. Pizza, Sushi, Pasta, Döner" class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm mb-4 resize-none"></textarea>
+                    <button id="btn-multi-spin" class="teal-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Entscheiden</button>
+                    <div id="multi-result" class="mt-4 text-center text-2xl font-black text-teal-600 min-h-[2.5rem] flex items-center justify-center"></div>
+                </div>
+            </div>
+
+            <!-- FUNZONE: Wahrheit oder Pflicht -->
+            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+                <h3 class="font-black text-pink-600 mb-2 uppercase text-xs tracking-widest">💋 Wahrheit oder Pflicht</h3>
+                <p class="text-[10px] text-gray-400 mb-4">Nur für euch zwei.</p>
+
+                <div class="flex items-center justify-center gap-3 mb-5 bg-gray-50 rounded-2xl p-3">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Charmant 💕</span>
+                    <label class="switch"><input type="checkbox" id="tod-spicy-toggle" onchange="playSound('click')"><span class="slider"></span></label>
+                    <span class="text-[10px] font-bold text-pink-500 uppercase tracking-widest">Extra Spicy 🔥🔞</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <button onclick="playTruthOrDare('truth')" class="teal-btn py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">🗣️ Wahrheit</button>
+                    <button onclick="playTruthOrDare('dare')" class="pink-btn py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">😈 Pflicht</button>
+                </div>
+
+                <div id="tod-result-card" class="hidden bg-pink-50 border border-pink-100 rounded-2xl p-5 text-left">
+                    <p id="tod-result-label" class="text-[9px] font-black text-pink-500 uppercase tracking-widest mb-2"></p>
+                    <p id="tod-result" class="text-sm font-bold text-gray-700 leading-relaxed"></p>
                 </div>
             </div>
 
@@ -1035,6 +1072,7 @@
                             <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Spielerisch & witzig">Spielerisch</button>
                             <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Direkt & ehrlich (ohne verletzend zu sein)">Direkt</button>
                             <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-indigo-100 text-indigo-700 shadow-sm active:scale-95" data-dt-mood="Romantisch & verbindend">Romantisch</button>
+                            <button type="button" class="dt-mood px-3 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/70 border border-pink-200 text-pink-600 shadow-sm active:scale-95" data-dt-mood="Verführerisch & sinnlich">🔥 Verführerisch</button>
                         </div>
                     </div>
 
@@ -1066,13 +1104,6 @@
                     <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Die Vorschläge der Jury:</p><div id="movie-text" class="text-xs text-gray-700 leading-relaxed whitespace-pre-line"></div>
                 </div>
             </div>
-            <div class="mint-card p-8 mb-6 text-center animate-slide-up" style="animation-delay: 0.1s;">
-                <h3 class="font-bold text-teal-800 mb-4 uppercase text-xs tracking-widest font-black">🎡 Entscheidungs-Roulette</h3>
-                <p class="text-[10px] text-gray-400 mb-6">Wer kocht? Wer wählt den Film? Das Schicksal entscheidet!</p>
-                <div id="roulette-result" class="text-3xl font-black text-teal-600 mb-8 h-12 flex items-center justify-center bg-teal-50 rounded-2xl shadow-inner border border-teal-100">?</div>
-                <button id="btn-spin-roulette" class="teal-btn px-12 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-md">Spin Roulette</button>
-            </div>
-            
             <div class="mint-card p-6 animate-slide-up" style="animation-delay: 0.2s;">
                 <h3 class="font-bold text-pink-600 mb-4 uppercase text-xs tracking-widest">❓ Quiz-Arena</h3>
 
@@ -1897,6 +1928,8 @@ document.getElementById('btn-deeptalk').onclick = async () => {
               topic = pool[Math.floor(Math.random() * pool.length)];
             }
 
+            const isSeductive = /Verführerisch/i.test(mood);
+
             const prompt = `Erstelle EINE Deep‑Talk‑Frage für ein Paar. Sprache: Deutsch. 1–2 Sätze, Alltagssprache.
 Kategorie/Schwerpunkt: ${topic}.
 
@@ -1910,6 +1943,7 @@ Wichtig:
 - Ton soll zur Stimmung passen (falls gewählt).
 - Keine Therapeutensprache, keine Floskeln, keine generischen Standardfragen.
 - Konkret, überraschend, menschlich.
+${isSeductive ? `- Die Stimmung ist "Verführerisch & sinnlich": Die Frage darf flirty, sinnlich und anziehungsbezogen sein (Begehren, Fantasien, Anziehung, Berührung) – romantisch-erwachsen und einladend zum Erzählen, aber geschmackvoll formuliert, keine expliziten sexuellen Beschreibungen in der Frage selbst.` : ""}
 
 Die Frage darf ALLE Deep‑Talk‑Themen abdecken (z.B. Werte, Grenzen, Intimität, Familie, Freundschaft, Geld, Eifersucht, Kommunikation, Träume, Humor, Konflikte, Spiritualität/Religion – inkl. Islam – usw.).
 Wichtig: NICHT nur Vergangenheit oder NICHT nur Zukunft. Wenn du „Vergangenheit“ oder „Zukunft“ wählst, mach es trotzdem konkret und nicht klischeehaft. In allen anderen Kategorien bitte Fokus auf Gegenwart/Alltag/Charakter/Beziehung – nicht auf „früher“ oder „später“.
@@ -4563,6 +4597,170 @@ const syncData = (currentUser) => {
             btn.addEventListener('click', chooseAndSpin);
         };
 
+        // --- FUNZONE: Tab-Umschalter Eins-oder-Zwei / Mehrere Optionen ---
+        window.switchFunPicker = (which) => {
+            const onetwoTab = document.getElementById('picker-tab-onetwo');
+            const multiTab = document.getElementById('picker-tab-multi');
+            const onetwoPanel = document.getElementById('picker-onetwo');
+            const multiPanel = document.getElementById('picker-multi');
+            if (!onetwoTab || !multiTab || !onetwoPanel || !multiPanel) return;
+
+            const activeClasses = ['bg-teal-500', 'text-white'];
+            const inactiveClasses = ['bg-gray-100', 'text-gray-500'];
+
+            if (which === 'multi') {
+                onetwoPanel.classList.add('hidden'); multiPanel.classList.remove('hidden');
+                multiTab.classList.remove(...inactiveClasses); multiTab.classList.add(...activeClasses);
+                onetwoTab.classList.remove(...activeClasses); onetwoTab.classList.add(...inactiveClasses);
+            } else {
+                multiPanel.classList.add('hidden'); onetwoPanel.classList.remove('hidden');
+                onetwoTab.classList.remove(...inactiveClasses); onetwoTab.classList.add(...activeClasses);
+                multiTab.classList.remove(...activeClasses); multiTab.classList.add(...inactiveClasses);
+            }
+            if (typeof playSound === 'function') playSound('click');
+        };
+
+        // --- FUNZONE: Mehrere Optionen (Ersatz für das alte, nie funktionierende Roulette) ---
+        const initMultiPicker = () => {
+            const input = document.getElementById('multi-options-input');
+            const btn = document.getElementById('btn-multi-spin');
+            const result = document.getElementById('multi-result');
+            if (!input || !btn || !result) return;
+
+            let spinning = false;
+
+            btn.addEventListener('click', () => {
+                if (spinning) return;
+                const options = (input.value || "").split(",").map((s) => s.trim()).filter(Boolean);
+                if (options.length < 2) {
+                    result.textContent = "Bitte mindestens 2 Optionen eintragen 🙂";
+                    return;
+                }
+
+                spinning = true;
+                btn.disabled = true;
+                playSound && playSound('click');
+
+                let ticks = 0;
+                const maxTicks = 14 + Math.floor(Math.random() * 6);
+                const interval = setInterval(() => {
+                    result.textContent = options[Math.floor(Math.random() * options.length)];
+                    ticks++;
+                    if (ticks >= maxTicks) {
+                        clearInterval(interval);
+                        const winner = options[Math.floor(Math.random() * options.length)];
+                        result.textContent = "✅ " + winner;
+                        playSound && playSound('success');
+                        spinning = false;
+                        btn.disabled = false;
+                    }
+                }, 90);
+            });
+        };
+
+        // --- FUNZONE: Wahrheit oder Pflicht ---
+        const TOD_TRUTH_MILD = [
+            "Was war dein erster Gedanke, als du mich das erste Mal gesehen hast?",
+            "Was findest du an mir unwiderstehlich attraktiv?",
+            "Was ist dein Lieblingsmoment von uns beiden bisher?",
+            "Was würdest du gerne öfter von mir hören?",
+            "Welche Kleinigkeit an mir macht dich jedes Mal schwach?",
+            "Was war der romantischste Moment, den du je mit mir erlebt hast?",
+            "Wenn du einen Ort für ein Date mit mir aussuchen könntest, egal wo auf der Welt – welchen?",
+            "Was schätzt du an unserer Beziehung am meisten?",
+            "Welches Kompliment von mir hast du nie vergessen?",
+            "Was würdest du gerne mal wieder mit mir zusammen tun, das wir lange nicht gemacht haben?",
+            "Was ist eine kleine Geste von mir, die dir extrem viel bedeutet?",
+            "Wann fühlst du dich mir am nächsten?",
+            "Was war dein Lieblings-Date mit mir bisher?",
+            "Was liebst du an unseren ruhigen, gemeinsamen Momenten?",
+            "Was war ein Moment, in dem du besonders stolz auf uns als Paar warst?"
+        ];
+
+        const TOD_DARE_MILD = [
+            "Gib deinem Partner ein Kompliment, das er/sie noch nie von dir gehört hat.",
+            "Schau deinem Partner 30 Sekunden lang tief in die Augen, ohne zu lachen.",
+            "Gib deinem Partner einen Kuss auf die Stirn.",
+            "Flüster deinem Partner etwas Liebes ins Ohr.",
+            "Tanzt 1 Minute lang zusammen, ganz ohne Musik.",
+            "Massiere die Schultern deines Partners für 1 Minute.",
+            "Halte die Hand deines Partners und erzähl ihm/ihr, warum du sie/ihn liebst.",
+            "Gib deinem Partner einen Kuss auf die Hand.",
+            "Schreib deinem Partner jetzt eine kurze Liebesnachricht.",
+            "Umarme deinen Partner für 20 Sekunden, ohne loszulassen.",
+            "Küss deinen Partner an einer Stelle, die er/sie nicht erwartet.",
+            "Streichel sanft durch die Haare deines Partners.",
+            "Sag deinem Partner drei Dinge, die du an ihm/ihr körperlich liebst.",
+            "Küss deinen Partner so, wie beim allerersten Mal.",
+            "Erzähl deinem Partner, was du dir für eure Zukunft am meisten wünschst."
+        ];
+
+        const TOD_TRUTH_SPICY = [
+            "Was ist deine geheime Fantasie, die du dir mit mir wünschst?",
+            "Wo würdest du gerne mal mit mir intim werden, außer im Schlafzimmer?",
+            "Was turnt dich an mir am meisten an?",
+            "Was war unser bisher heißester gemeinsamer Moment?",
+            "Was würdest du gerne mal im Bett ausprobieren, hast dich aber noch nicht getraut zu sagen?",
+            "Was denkst du, wenn du mich nackt siehst?",
+            "Welche Berührung von mir macht dich am schnellsten schwach?",
+            "Was ist dein liebster Teil an meinem Körper?",
+            "Wann hattest du zuletzt eine schmutzige Fantasie über uns beide?",
+            "Was würdest du gerne heute Nacht mit mir tun?",
+            "Wenn du mich jetzt verführen müsstest, wie würdest du anfangen?",
+            "Was ist etwas, das du dir im Bett von mir wünschst, aber noch nie gesagt hast?",
+            "Was war der Moment, in dem du mich am meisten begehrt hast?",
+            "Welches Kleidungsstück (oder keins 😏) würdest du gerne öfter an mir sehen?"
+        ];
+
+        const TOD_DARE_SPICY = [
+            "Zieh ein Kleidungsstück aus, deiner Wahl.",
+            "Küss deinen Partner überall dort, wo er/sie es sich wünscht.",
+            "Flüster deinem Partner ins Ohr, was du gerade mit ihm/ihr machen möchtest.",
+            "Zieh dich für deinen Partner ganz langsam aus – so verführerisch wie möglich.",
+            "Massiere deinen Partner ohne Kleidung am Oberkörper.",
+            "Küss deinen Partner überall am Hals.",
+            "Beschreibe deinem Partner, was du gleich mit ihm/ihr vorhast.",
+            "Lass deinen Partner ein Kleidungsstück von dir aussuchen, das ausgezogen wird.",
+            "Gib deinem Partner einen langsamen, intensiven Kuss – mindestens 30 Sekunden.",
+            "Zieh deinem Partner ein Kleidungsstück aus.",
+            "Flüster deinem Partner deine geheimste Fantasie ins Ohr.",
+            "Küss deinen Partner an drei Stellen, die er/sie nicht erwartet.",
+            "Verwöhne deinen Partner 2 Minuten lang genau so, wie er/sie es am liebsten mag.",
+            "Beendet das Spiel jetzt und geht ins Schlafzimmer 😉."
+        ];
+
+        let todLastResult = "";
+
+        function pickRandomTod(arr) {
+            if (!arr.length) return "";
+            if (arr.length === 1) return arr[0];
+            let choice = arr[Math.floor(Math.random() * arr.length)];
+            let tries = 0;
+            while (choice === todLastResult && tries < 10) {
+                choice = arr[Math.floor(Math.random() * arr.length)];
+                tries++;
+            }
+            return choice;
+        }
+
+        window.playTruthOrDare = (type) => {
+            const spicy = document.getElementById('tod-spicy-toggle')?.checked;
+            const pool = type === 'truth'
+                ? (spicy ? TOD_TRUTH_SPICY : TOD_TRUTH_MILD)
+                : (spicy ? TOD_DARE_SPICY : TOD_DARE_MILD);
+
+            const choice = pickRandomTod(pool);
+            todLastResult = choice;
+
+            const labelEl = document.getElementById('tod-result-label');
+            const resultEl = document.getElementById('tod-result');
+            const cardEl = document.getElementById('tod-result-card');
+            if (labelEl) labelEl.textContent = (type === 'truth' ? '🗣️ Wahrheit' : '😈 Pflicht') + (spicy ? ' · Extra Spicy 🔥' : ' · Charmant 💕');
+            if (resultEl) resultEl.textContent = choice;
+            if (cardEl) cardEl.classList.remove('hidden');
+            if (typeof playSound === 'function') playSound(type === 'truth' ? 'pop' : 'click');
+        };
+
 const initPolaroidCropCanvas = () => {
             const canvas = document.getElementById('polaroid-crop-canvas');
             if (!canvas) return;
@@ -4880,6 +5078,7 @@ const initPolaroidCropCanvas = () => {
             initPolaroidCropCanvas();
 
             initOneTwoWheel();
+            initMultiPicker();
 
             initDeepTalkChips();
 
