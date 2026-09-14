@@ -698,6 +698,21 @@
         </div>
     </div>
 
+    <div id="zeitreise-modal" class="hidden fixed inset-0 bg-black/50 z-[190] flex items-start justify-center p-4 backdrop-blur-sm overflow-y-auto">
+        <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-teal-100 animate-scale-in my-8">
+            <button onclick="playSound('click'); closeZeitreise()" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-xl font-black text-teal-800">Zeitreise 🏆</h3>
+                <button onclick="playSound('pop'); openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+ Neu</button>
+            </div>
+            <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase tracking-widest">Alle eure Erinnerungen</p>
+
+            <input id="zeitreise-search" type="text" oninput="renderTimeline(this.value)" placeholder="🔍 Suche nach Titel oder Ort..." class="w-full p-3 bg-teal-50 rounded-xl outline-none text-sm mb-4">
+
+            <div id="archive-list" class="space-y-0"></div>
+        </div>
+    </div>
+
     <div id="countdown-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in my-8">
             <h3 class="text-xl font-black text-pink-600 mb-4">Countdown setzen ⏳</h3>
@@ -794,6 +809,16 @@
         </header>
 
         <div id="tab-home" class="animate-fade-in">
+            <div class="flex gap-2 mb-6 animate-fade-in">
+                <button onclick="playSound('click'); openWishlist()" class="flex-1 bg-white/70 backdrop-blur-md border border-pink-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
+                    <span id="chip-gifts-count" class="block text-lg font-black text-pink-500 leading-none">0</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Wünsche offen</span>
+                </button>
+                <button onclick="playSound('click'); switchTab('bucket')" class="flex-1 bg-white/70 backdrop-blur-md border border-yellow-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
+                    <span id="chip-bucket-count" class="block text-lg font-black text-yellow-600 leading-none">0</span>
+                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bucket-Punkte offen</span>
+                </button>
+            </div>
             <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden animate-scale-in">
                 <div class="absolute top-2 right-2 flex gap-2 z-20">
                     <button onclick="editCountdown()" class="text-gray-400 hover:text-teal-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Bearbeiten">✏️</button>
@@ -895,11 +920,10 @@
             </div>
             <h3 class="font-black text-teal-800 mb-4 px-2 text-sm uppercase tracking-widest text-center italic animate-fade-in" style="animation-delay: 0.5s;">Unsere Ideen 💡</h3>
             <div id="wish-list" class="space-y-4 mb-10"></div>
-            <div class="flex items-center justify-between px-2 mb-4">
-                <h3 class="font-bold text-gray-400 text-sm uppercase tracking-widest italic text-center flex-1">Unsere Zeitreise 🏆</h3>
-                <button onclick="playSound('pop'); openMilestoneModal('add', null, 'archive')" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+</button>
-            </div>
-            <div id="archive-list" class="space-y-0 pb-20"></div>
+            <button onclick="playSound('click'); openZeitreise()" class="w-full mint-card p-4 mb-10 flex items-center justify-between animate-slide-up">
+                <span class="font-black text-gray-700 text-sm">🏆 Zeitreise ansehen</span>
+                <span class="text-gray-400 text-xs">Alle Erinnerungen →</span>
+            </button>
         </div>
 
         <div id="tab-map" class="hidden pb-20 animate-fade-in">
@@ -3212,6 +3236,16 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             document.getElementById('wishlist-modal').classList.add('hidden');
         };
 
+        window.openZeitreise = () => {
+            document.body.style.overflow = 'hidden';
+            document.getElementById('zeitreise-modal').classList.remove('hidden');
+        };
+
+        window.closeZeitreise = () => {
+            document.body.style.overflow = '';
+            document.getElementById('zeitreise-modal').classList.add('hidden');
+        };
+
         window.reserveGiftWish = async (id) => {
             const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
             if (!user) return;
@@ -3277,6 +3311,12 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                 if (!container) return;
                 const data = snap.val() || {};
                 const ids = Object.keys(data).sort((a, b) => (data[b].timestamp || 0) - (data[a].timestamp || 0));
+
+                const giftChip = document.getElementById('chip-gifts-count');
+                if (giftChip) {
+                    const openCount = ids.filter((id) => data[id].by !== currentUser && data[id].bought !== true).length;
+                    giftChip.innerText = openCount;
+                }
 
                 if (!ids.length) {
                     container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Noch keine Wünsche eingetragen 🎁</p>';
@@ -3460,62 +3500,123 @@ const syncData = (currentUser) => {
                     bucketList.appendChild(div);
                 });
 
-                // TIMELINE RENDERER (Ersetzt die alte Done-Liste)
-                doneIds.forEach((id, index) => {
-                    const item = data[id]; const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
-                    
-                    const wrapper = document.createElement('div');
-                    wrapper.className = "timeline-wrapper animate-slide-up";
-                    wrapper.style.animationDelay = (index * 0.1) + "s";
-                    
-                    let memoryHTML = "";
-                    if(item.memoryPhoto) {
-                        memoryHTML = `<img src="${item.memoryThumb || item.memoryPhoto}" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2 mb-1 shadow-sm border border-gray-100" onclick="openMemoryView('${id}')">`;
-                    }
-                    
-                    // Comments Section
-                    if(item.comments) {
-                        const commentsArray = Object.values(item.comments);
-                        memoryHTML += `<div class="mt-2 space-y-2">`;
-                        commentsArray.forEach(comment => {
-                            const isMeriam = comment.by === 'Meriam';
-                            const cDate = new Date(comment.timestamp).toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
-                            const containerClass = isMeriam ? "bg-pink-50 border-pink-100 text-pink-800" : "bg-teal-50 border-teal-100 text-teal-800";
-                            memoryHTML += `<div class="p-2 rounded-xl border ${containerClass} text-xs relative"><div class="flex justify-between items-center mb-1 opacity-70"><span class="font-bold">${comment.by}</span><span class="text-[8px]">${cDate}</span></div>${comment.text ? `<p class="italic">"${comment.text}"</p>` : ''}${comment.voiceUrl ? `<audio controls src="${comment.voiceUrl}" class="w-full mt-1" style="height:32px"></audio>` : ''}</div>`;
-                        });
-                        memoryHTML += `</div>`;
-                    } else if (item.memoryNote) {
-                        memoryHTML += `<p class="text-[10px] italic text-gray-600 mt-2 bg-gray-50 p-2 rounded-lg border-l-2 border-pink-200">"${item.memoryNote}"</p>`;
-                    }
-                    
-                    memoryHTML += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-1.5 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
+                // TIMELINE: gecacht + über renderTimeline() gruppiert nach Jahr gerendert (Zeitreise-Modal)
+                const bucketOpenCount = bucketIds.filter(id => data[id].status !== 'done').length;
+                const bucketChip = document.getElementById('chip-bucket-count');
+                if (bucketChip) bucketChip.innerText = bucketOpenCount;
 
-                    // Rating Section
-                    const hasMyRating = currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
-                    let ratingUI = "";
-                    
-                    if (hasMyRating) {
-                        ratingUI = `<div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between"><span class="text-[9px] font-bold text-gray-400 uppercase">Eure Ratings:</span><div class="flex gap-2"><div class="bg-pink-50 text-pink-500 text-[9px] font-bold px-2 py-1 rounded-md border border-pink-100">M: ${item.ratingMeriam || '-'}</div><div class="bg-teal-50 text-teal-600 text-[9px] font-bold px-2 py-1 rounded-md border border-teal-100">S: ${item.ratingSamet || '-'}</div></div></div>`;
-                    } else {
-                        ratingUI = `<div class="mt-2 pt-2 border-t border-gray-100"><p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-1 text-center animate-pulse">Deine Bewertung (1-10):</p><div class="flex flex-wrap justify-center gap-1">${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="playSound('pop'); saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-6 h-6 text-[9px] shadow-sm">${n}</button>`).join('')}</div></div>`;
-                    }
+                timelineCache = { data, doneIds, currentUser };
+                renderTimeline(document.getElementById('zeitreise-search') ? document.getElementById('zeitreise-search').value : '');
+            });
+        };
 
-                    wrapper.innerHTML = `
-                        <div class="timeline-line"></div>
-                        <div class="timeline-dot"></div>
-                        <div class="timeline-content">
-                            <div class="mint-card p-3 relative">
-                                <div class="absolute top-2 right-2"><button onclick="playSound('click'); openMilestoneModal('edit', '${id}')" class="text-gray-300 hover:text-teal-500 text-xs">✏️</button></div>
-                                <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${timeStr}</span>
-                                <h4 class="font-bold text-teal-800 text-sm leading-tight mt-1">${item.text}</h4>
-                                ${item.location ? `<p class="text-[10px] text-gray-500 mt-1">📍 ${item.location}</p>` : ''}
-                                ${memoryHTML}
-                                ${ratingUI}
-                            </div>
-                        </div>
-                    `;
-                    archiveList.appendChild(wrapper);
+        let timelineCache = { data: null, doneIds: [], currentUser: null };
+
+        function buildTimelineItemHTML(id, item) {
+            const timeStr = new Date(item.doneAt).toLocaleDateString('de-DE');
+            const wrapper = document.createElement('div');
+            wrapper.className = "timeline-wrapper animate-slide-up";
+
+            let memoryHTML = "";
+            if (item.memoryPhoto) {
+                memoryHTML = `<img src="${item.memoryThumb || item.memoryPhoto}" loading="lazy" class="w-full h-24 object-cover rounded-lg mt-2 mb-1 shadow-sm border border-gray-100" onclick="openMemoryView('${id}')">`;
+            }
+
+            if (item.comments) {
+                const commentsArray = Object.values(item.comments);
+                memoryHTML += `<div class="mt-2 space-y-2">`;
+                commentsArray.forEach(comment => {
+                    const isMeriam = comment.by === 'Meriam';
+                    const cDate = new Date(comment.timestamp).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    const containerClass = isMeriam ? "bg-pink-50 border-pink-100 text-pink-800" : "bg-teal-50 border-teal-100 text-teal-800";
+                    memoryHTML += `<div class="p-2 rounded-xl border ${containerClass} text-xs relative"><div class="flex justify-between items-center mb-1 opacity-70"><span class="font-bold">${comment.by}</span><span class="text-[8px]">${cDate}</span></div>${comment.text ? `<p class="italic">"${comment.text}"</p>` : ''}${comment.voiceUrl ? `<audio controls src="${comment.voiceUrl}" class="w-full mt-1" style="height:32px"></audio>` : ''}</div>`;
                 });
+                memoryHTML += `</div>`;
+            } else if (item.memoryNote) {
+                memoryHTML += `<p class="text-[10px] italic text-gray-600 mt-2 bg-gray-50 p-2 rounded-lg border-l-2 border-pink-200">"${item.memoryNote}"</p>`;
+            }
+
+            memoryHTML += `<button onclick="openCommentModal('${id}')" class="w-full mt-2 text-[10px] font-bold text-gray-400 border border-dashed border-gray-300 rounded-lg py-1.5 hover:bg-gray-50 uppercase tracking-widest">📝 Kommentieren</button>`;
+
+            const hasMyRating = timelineCache.currentUser === 'Meriam' ? item.ratingMeriam : item.ratingSamet;
+            let ratingUI = "";
+            if (hasMyRating) {
+                ratingUI = `<div class="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between"><span class="text-[9px] font-bold text-gray-400 uppercase">Eure Ratings:</span><div class="flex gap-2"><div class="bg-pink-50 text-pink-500 text-[9px] font-bold px-2 py-1 rounded-md border border-pink-100">M: ${item.ratingMeriam || '-'}</div><div class="bg-teal-50 text-teal-600 text-[9px] font-bold px-2 py-1 rounded-md border border-teal-100">S: ${item.ratingSamet || '-'}</div></div></div>`;
+            } else {
+                ratingUI = `<div class="mt-2 pt-2 border-t border-gray-100"><p class="text-[9px] font-bold text-teal-600 uppercase tracking-widest mb-1 text-center animate-pulse">Deine Bewertung (1-10):</p><div class="flex flex-wrap justify-center gap-1">${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => `<button onclick="playSound('pop'); saveRating('${id}', ${n})" class="rating-btn hover:bg-teal-500 hover:text-white w-6 h-6 text-[9px] shadow-sm">${n}</button>`).join('')}</div></div>`;
+            }
+
+            wrapper.innerHTML = `
+                <div class="timeline-line"></div>
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                    <div class="mint-card p-3 relative">
+                        <div class="absolute top-2 right-2"><button onclick="playSound('click'); openMilestoneModal('edit', '${id}')" class="text-gray-300 hover:text-teal-500 text-xs">✏️</button></div>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">${timeStr}</span>
+                        <h4 class="font-bold text-teal-800 text-sm leading-tight mt-1">${item.text}</h4>
+                        ${item.location ? `<p class="text-[10px] text-gray-500 mt-1">📍 ${item.location}</p>` : ''}
+                        ${memoryHTML}
+                        ${ratingUI}
+                    </div>
+                </div>
+            `;
+            return wrapper;
+        }
+
+        window.renderTimeline = function (searchTerm) {
+            const archiveList = document.getElementById('archive-list');
+            const { data, doneIds } = timelineCache;
+            if (!archiveList || !data) return;
+
+            const term = (searchTerm || "").trim().toLowerCase();
+            const filtered = term
+                ? doneIds.filter((id) => {
+                    const item = data[id];
+                    return (item.text || "").toLowerCase().includes(term) || (item.location || "").toLowerCase().includes(term);
+                })
+                : doneIds;
+
+            archiveList.innerHTML = "";
+            if (!filtered.length) {
+                archiveList.innerHTML = '<p class="text-xs text-gray-400 text-center py-8">Keine Einträge gefunden.</p>';
+                return;
+            }
+
+            const byYear = {};
+            filtered.forEach((id) => {
+                const year = new Date(data[id].doneAt).getFullYear();
+                if (!byYear[year]) byYear[year] = [];
+                byYear[year].push(id);
+            });
+            const years = Object.keys(byYear).sort((a, b) => b - a);
+            const currentYear = new Date().getFullYear();
+
+            years.forEach((year) => {
+                const isOpen = term.length > 0 || String(year) === String(currentYear);
+                const section = document.createElement('div');
+                section.className = "mb-4";
+                section.innerHTML = `
+                    <button type="button" class="w-full flex items-center justify-between py-2 px-1 text-left" data-year-toggle="${year}">
+                        <span class="font-black text-gray-600 text-sm">${year}</span>
+                        <span class="text-gray-400 text-[10px] font-bold uppercase">${byYear[year].length} Einträge <span class="year-chevron">${isOpen ? '▲' : '▼'}</span></span>
+                    </button>
+                    <div class="year-body space-y-0" data-year-body="${year}"${isOpen ? '' : ' hidden'}></div>
+                `;
+                archiveList.appendChild(section);
+                const body = section.querySelector(`[data-year-body="${year}"]`);
+                byYear[year].forEach((id) => body.appendChild(buildTimelineItemHTML(id, data[id])));
+            });
+
+            archiveList.querySelectorAll('[data-year-toggle]').forEach((btn) => {
+                btn.onclick = () => {
+                    playSound('click');
+                    const year = btn.getAttribute('data-year-toggle');
+                    const body = archiveList.querySelector(`[data-year-body="${year}"]`);
+                    const chevron = btn.querySelector('.year-chevron');
+                    const hidden = body.hasAttribute('hidden');
+                    if (hidden) { body.removeAttribute('hidden'); chevron.textContent = '▲'; }
+                    else { body.setAttribute('hidden', ''); chevron.textContent = '▼'; }
+                };
             });
         };
 
