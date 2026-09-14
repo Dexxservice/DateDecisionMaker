@@ -732,13 +732,52 @@
         </div>
     </div>
 
-    <div id="countdown-modal" class="hidden fixed inset-0 bg-black/50 z-[200] flex items-center justify-center p-4 backdrop-blur-sm">
+    <div id="calendar-modal" class="hidden fixed inset-0 bg-black/50 z-[190] flex items-start justify-center p-4 backdrop-blur-sm overflow-y-auto">
         <div class="mint-card p-6 w-full max-w-sm relative shadow-2xl border-2 border-pink-100 animate-scale-in my-8">
-            <h3 class="text-xl font-black text-pink-600 mb-4">Countdown setzen ⏳</h3>
-            <input id="new-cd-title" type="text" placeholder="Ereignis (z.B. Urlaub 🌴)" class="w-full p-3 bg-pink-50 rounded-xl mb-2 outline-none text-sm font-bold text-gray-700">
-            <input id="new-cd-date" type="datetime-local" class="w-full p-3 bg-white border border-gray-200 rounded-xl mb-4 outline-none text-sm text-center text-gray-700">
-            <button id="btn-save-countdown" onclick="playSound('success')" type="button" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest text-xs">Starten</button>
-            <button onclick="playSound('click'); document.getElementById('countdown-modal').classList.add('hidden')" class="text-[10px] text-gray-400 font-bold uppercase w-full py-2 mt-2 hover:text-gray-600">Abbrechen</button>
+            <button onclick="playSound('click'); closeCalendar()" class="absolute -top-3 -right-3 bg-white/90 border border-gray-200 w-10 h-10 rounded-full shadow-lg font-black text-gray-500 hover:text-gray-700 active:scale-95">✕</button>
+            <div class="flex items-center justify-between mb-1">
+                <h3 class="text-xl font-black text-pink-600">Kalender 📅</h3>
+                <button onclick="playSound('pop'); toggleCalendarForm()" class="text-xs bg-pink-100 text-pink-500 px-3 py-1 rounded-lg font-bold hover:bg-pink-200 transition-colors shadow-sm">+ Neu</button>
+            </div>
+            <p class="text-[10px] text-gray-500 mb-4 font-bold uppercase tracking-widest">Eure wichtigen Termine</p>
+
+            <div id="calendar-form" class="hidden space-y-2 mb-5 p-3 bg-gray-50 rounded-xl">
+                <input id="cal-title" type="text" placeholder="Titel (z.B. Meriams Geburtstag)" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <input id="cal-date" type="date" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                <select id="cal-category" class="w-full p-3 bg-white border border-gray-200 rounded-xl outline-none text-sm">
+                    <option value="birthday">🎂 Geburtstag</option>
+                    <option value="anniversary">💍 Jahrestag</option>
+                    <option value="appointment">📌 Termin</option>
+                    <option value="other">✨ Sonstiges</option>
+                </select>
+                <label class="flex items-center justify-between p-2">
+                    <span class="text-[10px] font-bold text-gray-500 uppercase">Jedes Jahr wiederholen</span>
+                    <label class="switch"><input type="checkbox" id="cal-recurring"><span class="slider"></span></label>
+                </label>
+                <button id="btn-add-calendar-event" class="pink-btn w-full py-3 rounded-xl font-black uppercase tracking-widest shadow-md text-xs">Speichern</button>
+            </div>
+
+            <div class="flex gap-2 mb-4">
+                <button type="button" id="cal-tab-list" onclick="switchCalendarTab('list')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-pink-500 text-white shadow-sm transition-all">📋 Liste</button>
+                <button type="button" id="cal-tab-grid" onclick="switchCalendarTab('grid')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 shadow-sm transition-all">🗓️ Monat</button>
+            </div>
+
+            <div id="calendar-panel-list">
+                <div id="calendar-list" class="space-y-2"></div>
+            </div>
+
+            <div id="calendar-panel-grid" class="hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <button type="button" onclick="shiftCalendarMonth(-1)" class="text-gray-400 hover:text-pink-500 px-3 py-1 font-black text-lg">‹</button>
+                    <p id="calendar-grid-month" class="text-xs font-black text-gray-700 uppercase tracking-widest"></p>
+                    <button type="button" onclick="shiftCalendarMonth(1)" class="text-gray-400 hover:text-pink-500 px-3 py-1 font-black text-lg">›</button>
+                </div>
+                <div class="grid grid-cols-7 gap-1 mb-2 text-center">
+                    <span class="text-[8px] font-black text-gray-400 uppercase">Mo</span><span class="text-[8px] font-black text-gray-400 uppercase">Di</span><span class="text-[8px] font-black text-gray-400 uppercase">Mi</span><span class="text-[8px] font-black text-gray-400 uppercase">Do</span><span class="text-[8px] font-black text-gray-400 uppercase">Fr</span><span class="text-[8px] font-black text-gray-400 uppercase">Sa</span><span class="text-[8px] font-black text-gray-400 uppercase">So</span>
+                </div>
+                <div id="calendar-grid-days" class="grid grid-cols-7 gap-1 mb-4"></div>
+                <div id="calendar-day-detail" class="hidden bg-pink-50 border border-pink-100 rounded-xl p-3 space-y-1"></div>
+            </div>
         </div>
     </div>
 
@@ -849,24 +888,18 @@
                     <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bucket offen</span>
                 </button>
             </div>
-            <div id="countdown-card" class="mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden hidden animate-scale-in">
-                <div class="absolute top-2 right-2 flex gap-2 z-20">
-                    <button onclick="editCountdown()" class="text-gray-400 hover:text-teal-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Bearbeiten">✏️</button>
-                    <button onclick="deleteCountdown()" class="text-gray-400 hover:text-red-500 p-2 bg-white/80 rounded-full shadow-sm transition-colors active:scale-95" title="Löschen">🗑️</button>
-                </div>
+            <button onclick="playSound('click'); openCalendar()" id="highlight-card" class="hidden w-full mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden animate-scale-in text-left">
                 <p class="text-center text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Nächstes Highlight</p>
-                <h3 id="countdown-title" class="text-center text-xl font-black text-gray-800 mb-3 tracking-tight truncate px-4"></h3>
+                <h3 id="highlight-title" class="text-center text-xl font-black text-gray-800 mb-3 tracking-tight truncate px-4"></h3>
                 <div class="flex justify-center gap-4 text-center">
-                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-days" class="block text-2xl font-black text-pink-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Tage</span></div>
-                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-hours" class="block text-2xl font-black text-teal-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Std</span></div>
-                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="cd-min" class="block text-2xl font-black text-indigo-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Min</span></div>
+                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="highlight-days" class="block text-2xl font-black text-pink-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Tage</span></div>
+                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="highlight-hours" class="block text-2xl font-black text-teal-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Std</span></div>
+                    <div class="bg-white/60 rounded-lg p-2 min-w-[50px]"><span id="highlight-min" class="block text-2xl font-black text-indigo-500 leading-none">0</span><span class="text-[7px] uppercase font-bold text-gray-400">Min</span></div>
                 </div>
-            </div>
-            <div id="countdown-placeholder" class="mb-6 text-center hidden animate-fade-in">
-                <button onclick="openCountdownModal()" class="w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2">
-                    <span class="text-2xl opacity-50">➕</span> <span>Countdown hinzufügen</span>
-                </button>
-            </div>
+            </button>
+            <button onclick="playSound('click'); openCalendar()" id="highlight-placeholder" class="hidden w-full text-[10px] font-bold text-gray-400 border-2 border-dashed border-gray-200 px-6 py-6 rounded-2xl uppercase tracking-widest hover:bg-white hover:border-pink-300 hover:text-pink-400 transition-all flex flex-col items-center justify-center gap-2 mb-6">
+                <span class="text-2xl opacity-50">📅</span> <span>Ersten Termin hinzufügen</span>
+            </button>
             <div class="mint-card p-2 mb-6 grid grid-cols-3 gap-0 divide-x divide-teal-50 shadow-sm border-b-4 border-teal-200 animate-slide-up">
                 <div class="stat-card"><p class="stat-title">Date-Serie</p><p id="stat-streak" class="stat-val text-pink-500">0</p><p class="stat-label">Wochen</p><p id="streak-info" class="streak-status italic text-[7px] leading-tight mt-1"></p></div>
                 <div class="stat-card"><p class="stat-title">Ideen-Duell</p><p id="stat-vs" class="stat-val text-teal-600">0:0</p><p id="vs-label" class="stat-label text-[7px]">Ich vs Partner</p></div>
@@ -1771,8 +1804,6 @@ async function callAI(prompt) {
         let polaroidDragging = false;
         let polaroidLast = { x: 0, y: 0 };
 
-        let countdownTarget = null;
-        let countdownTitle = "";
         let relationshipStart = null;
         let globalDoneCount = 0;
         let globalClaimedCount = 0;
@@ -3323,37 +3354,247 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             }
 };
 
-        window.openCountdownModal = () => { document.getElementById('countdown-modal').classList.remove('hidden'); if (countdownTarget) document.getElementById('new-cd-title').value = countdownTitle; };
-        window.editCountdown = () => { document.getElementById('countdown-modal').classList.remove('hidden'); document.getElementById('new-cd-title').value = countdownTitle; };
+        // --- KALENDER (ersetzt den alten Einzel-Countdown) ---
+        const CAL_CATEGORY_ICON = { birthday: '🎂', anniversary: '💍', appointment: '📌', other: '✨' };
 
-        document.getElementById('btn-save-countdown').onclick = async () => {
-            try {
-                const title = document.getElementById('new-cd-title').value.trim();
-                const dateStr = document.getElementById('new-cd-date').value;
-                if(!title || !dateStr) return alert("Bitte ausfüllen!");
-                const timestamp = new Date(dateStr).getTime();
-                if (isNaN(timestamp)) return alert("Ungültiges Datum!");
-                await set(ref(db, 'countdown/current'), { title: title, target: timestamp });
-                document.getElementById('countdown-modal').classList.add('hidden');
-                document.getElementById('new-cd-title').value = ""; document.getElementById('new-cd-date').value = "";
-                playSound('success');
-            } catch (e) { alert("Fehler: " + e.message); }
+        let calendarEventsCache = {};
+        let calendarGridDate = new Date();
+        let highlightTargetMs = null;
+
+        function calNextOccurrence(ev) {
+            const [y, m, d] = ev.date.split('-').map(Number);
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            let occ = new Date(y, m - 1, d);
+            if (ev.recurring) {
+                occ = new Date(today.getFullYear(), m - 1, d);
+                occ.setHours(0, 0, 0, 0);
+                if (occ < today) occ = new Date(today.getFullYear() + 1, m - 1, d);
+            }
+            return occ;
+        }
+
+        function calOccurrenceInYear(ev, year) {
+            const [evYear, m, d] = ev.date.split('-').map(Number);
+            if (ev.recurring) return new Date(year, m - 1, d);
+            return evYear === year ? new Date(year, m - 1, d) : null;
+        }
+
+        window.openCalendar = () => {
+            document.body.style.overflow = 'hidden';
+            document.getElementById('calendar-modal').classList.remove('hidden');
+        };
+        window.closeCalendar = () => {
+            document.body.style.overflow = '';
+            document.getElementById('calendar-modal').classList.add('hidden');
+        };
+        window.toggleCalendarForm = () => {
+            document.getElementById('calendar-form').classList.toggle('hidden');
+        };
+        window.deleteCalendarEvent = (id) => { if (confirm("Termin löschen?")) remove(ref(db, `calendarEvents/${id}`)); };
+
+        window.switchCalendarTab = (which) => {
+            const listTab = document.getElementById('cal-tab-list');
+            const gridTab = document.getElementById('cal-tab-grid');
+            const listPanel = document.getElementById('calendar-panel-list');
+            const gridPanel = document.getElementById('calendar-panel-grid');
+            const active = ['bg-pink-500', 'text-white'];
+            const inactive = ['bg-gray-100', 'text-gray-500'];
+            if (which === 'grid') {
+                listPanel.classList.add('hidden'); gridPanel.classList.remove('hidden');
+                gridTab.classList.remove(...inactive); gridTab.classList.add(...active);
+                listTab.classList.remove(...active); listTab.classList.add(...inactive);
+                renderCalendarGrid();
+            } else {
+                gridPanel.classList.add('hidden'); listPanel.classList.remove('hidden');
+                listTab.classList.remove(...inactive); listTab.classList.add(...active);
+                gridTab.classList.remove(...active); gridTab.classList.add(...inactive);
+            }
+            if (typeof playSound === 'function') playSound('click');
         };
 
-        window.deleteCountdown = () => { if(confirm("Löschen?")) set(ref(db, 'countdown/current'), null); };
-
-        const updateCountdownUI = () => {
-            if (!countdownTarget) return;
-            const diff = countdownTarget - Date.now();
-            if (diff <= 0) { document.getElementById('cd-days').innerText = "0"; return; }
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            document.getElementById('cd-days').innerText = days;
-            document.getElementById('cd-hours').innerText = hours;
-            document.getElementById('cd-min').innerText = minutes;
+        window.shiftCalendarMonth = (delta) => {
+            calendarGridDate = new Date(calendarGridDate.getFullYear(), calendarGridDate.getMonth() + delta, 1);
+            renderCalendarGrid();
         };
-        setInterval(updateCountdownUI, 1000);
+
+        function bindCalendarUI() {
+            const btn = document.getElementById('btn-add-calendar-event');
+            if (!btn) return;
+            let sending = false;
+            btn.onclick = async () => {
+                if (sending) return;
+                const titleEl = document.getElementById('cal-title');
+                const dateEl = document.getElementById('cal-date');
+                const catEl = document.getElementById('cal-category');
+                const recEl = document.getElementById('cal-recurring');
+                const title = (titleEl.value || "").trim();
+                const dateVal = dateEl.value;
+                if (!title) return alert("Bitte einen Titel eingeben 🙂");
+                if (!dateVal) return alert("Bitte ein Datum wählen 🙂");
+                const user = sessionStorage.getItem('currentUser') || localStorage.getItem('currentUser');
+                if (!user) return alert("Bitte erst einloggen.");
+
+                try {
+                    sending = true;
+                    btn.disabled = true;
+                    await push(ref(db, 'calendarEvents'), {
+                        title,
+                        date: dateVal,
+                        category: catEl.value,
+                        recurring: !!recEl.checked,
+                        by: user,
+                        createdAt: Date.now()
+                    });
+                    titleEl.value = ""; dateEl.value = ""; recEl.checked = false; catEl.value = "birthday";
+                    document.getElementById('calendar-form').classList.add('hidden');
+                    if (typeof playSound === 'function') playSound('success');
+                } catch (e) {
+                    console.error("Calendar event add failed:", e);
+                    alert("Konnte nicht gespeichert werden: " + (e?.message || e));
+                } finally {
+                    sending = false;
+                    btn.disabled = false;
+                }
+            };
+        }
+
+        function renderCalendarEvents() {
+            onValue(ref(db, 'calendarEvents'), (snap) => {
+                calendarEventsCache = snap.val() || {};
+                renderCalendarList();
+                renderNextHighlight();
+                const gridPanel = document.getElementById('calendar-panel-grid');
+                if (gridPanel && !gridPanel.classList.contains('hidden')) renderCalendarGrid();
+            });
+        }
+
+        function renderCalendarList() {
+            const container = document.getElementById('calendar-list');
+            if (!container) return;
+
+            const ids = Object.keys(calendarEventsCache);
+            if (!ids.length) {
+                container.innerHTML = '<p class="text-xs text-gray-400 text-center py-6">Noch keine Termine eingetragen 📅</p>';
+                return;
+            }
+
+            const items = ids.map((id) => ({ id, ev: calendarEventsCache[id], occ: calNextOccurrence(calendarEventsCache[id]) }))
+                .sort((a, b) => a.occ - b.occ);
+
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+
+            container.innerHTML = "";
+            items.forEach(({ id, ev, occ }) => {
+                const daysUntil = Math.round((occ - today) / 86400000);
+                const daysLabel = daysUntil === 0 ? "Heute!" : daysUntil === 1 ? "Morgen" : `in ${daysUntil} Tagen`;
+
+                const div = document.createElement('div');
+                div.className = "p-3 rounded-xl border bg-pink-50 border-pink-100";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex-1">
+                            <p class="text-sm font-bold text-gray-700">${CAL_CATEGORY_ICON[ev.category] || '✨'} ${escapeHtml(ev.title)}</p>
+                            <p class="text-[10px] text-gray-500 mt-1">${occ.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })}${ev.recurring ? ' · jährlich' : ''} · <span class="font-bold text-pink-500">${daysLabel}</span></p>
+                        </div>
+                        <button onclick="deleteCalendarEvent('${id}')" class="text-[9px] text-gray-400 underline shrink-0">Entfernen</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderNextHighlight() {
+            const ids = Object.keys(calendarEventsCache);
+            const cardEl = document.getElementById('highlight-card');
+            const placeholderEl = document.getElementById('highlight-placeholder');
+            if (!cardEl || !placeholderEl) return;
+
+            if (!ids.length) {
+                cardEl.classList.add('hidden');
+                placeholderEl.classList.remove('hidden');
+                highlightTargetMs = null;
+                return;
+            }
+
+            const items = ids.map((id) => ({ ev: calendarEventsCache[id], occ: calNextOccurrence(calendarEventsCache[id]) }))
+                .sort((a, b) => a.occ - b.occ);
+            const next = items[0];
+
+            placeholderEl.classList.add('hidden');
+            cardEl.classList.remove('hidden');
+            document.getElementById('highlight-title').innerText = `${CAL_CATEGORY_ICON[next.ev.category] || ''} ${next.ev.title}`.trim();
+            highlightTargetMs = next.occ.getTime();
+            updateHighlightCountdown();
+        }
+
+        function updateHighlightCountdown() {
+            if (!highlightTargetMs) return;
+            const diff = highlightTargetMs - Date.now();
+            const days = Math.max(0, Math.floor(diff / 86400000));
+            const hours = Math.max(0, Math.floor((diff % 86400000) / 3600000));
+            const min = Math.max(0, Math.floor((diff % 3600000) / 60000));
+            const dEl = document.getElementById('highlight-days');
+            const hEl = document.getElementById('highlight-hours');
+            const mEl = document.getElementById('highlight-min');
+            if (dEl) dEl.innerText = days;
+            if (hEl) hEl.innerText = hours;
+            if (mEl) mEl.innerText = min;
+        }
+        setInterval(updateHighlightCountdown, 1000);
+
+        function renderCalendarGrid() {
+            const monthLabel = document.getElementById('calendar-grid-month');
+            const daysGrid = document.getElementById('calendar-grid-days');
+            const detail = document.getElementById('calendar-day-detail');
+            if (!monthLabel || !daysGrid) return;
+
+            detail.classList.add('hidden');
+            detail.innerHTML = "";
+
+            const year = calendarGridDate.getFullYear();
+            const month = calendarGridDate.getMonth();
+            monthLabel.textContent = calendarGridDate.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' });
+
+            const eventsByDay = {};
+            Object.keys(calendarEventsCache).forEach((id) => {
+                const ev = calendarEventsCache[id];
+                const occ = calOccurrenceInYear(ev, year);
+                if (!occ || occ.getMonth() !== month) return;
+                const key = occ.getDate();
+                if (!eventsByDay[key]) eventsByDay[key] = [];
+                eventsByDay[key].push({ id, ev });
+            });
+
+            const firstOfMonth = new Date(year, month, 1);
+            const startWeekday = (firstOfMonth.getDay() + 6) % 7; // Montag = 0
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            daysGrid.innerHTML = "";
+            for (let i = 0; i < startWeekday; i++) daysGrid.appendChild(document.createElement('div'));
+
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const hasEvents = !!eventsByDay[day];
+                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === day;
+
+                const cell = document.createElement('button');
+                cell.type = "button";
+                cell.className = "aspect-square rounded-lg flex flex-col items-center justify-center text-[10px] font-bold relative "
+                    + (isToday ? "bg-pink-500 text-white" : hasEvents ? "bg-pink-50 text-pink-600" : "text-gray-500 hover:bg-gray-50");
+                cell.innerHTML = `${day}${hasEvents ? '<span class="absolute bottom-0.5 w-1 h-1 rounded-full ' + (isToday ? 'bg-white' : 'bg-pink-400') + '"></span>' : ''}`;
+                if (hasEvents) {
+                    cell.onclick = () => {
+                        if (typeof playSound === 'function') playSound('click');
+                        detail.classList.remove('hidden');
+                        detail.innerHTML = eventsByDay[day].map(({ ev }) =>
+                            `<p class="text-xs font-bold text-gray-700">${CAL_CATEGORY_ICON[ev.category] || '✨'} ${escapeHtml(ev.title)}</p>`
+                        ).join('');
+                    };
+                }
+                daysGrid.appendChild(cell);
+            }
+        }
 
         const getCatLabel = (val) => val === 'Planung' ? '📅 Planung nötig' : '⚡ Spontan möglich';
         const getWeatherLabel = (val) => { if (val === 'Sonne') return '☀️ Bei Sonne schöner'; if (val === 'Regen') return '🏠 Indoor / Regen-Option'; return '☁️ Wetter egal'; };
@@ -3661,14 +3902,8 @@ const syncData = (currentUser) => {
 
             onValue(ref(db, 'stats/claimedCount'), (snap) => { globalClaimedCount = snap.val() || 0; if (globalDoneCount !== undefined) updateRewardUI(globalDoneCount, globalClaimedCount); });
             onValue(ref(db, 'systemStart'), (snap) => { relationshipStart = snap.val(); updateUptime(); });
-            onValue(ref(db, 'countdown/current'), (snap) => {
-                const item = snap.val();
-                if (item && item.target > Date.now()) {
-                    countdownTarget = item.target; countdownTitle = item.title;
-                    document.getElementById('countdown-title').innerText = item.title + " ❤️";
-                    document.getElementById('countdown-placeholder').classList.add('hidden'); document.getElementById('countdown-card').classList.remove('hidden'); updateCountdownUI();
-                } else { document.getElementById('countdown-card').classList.add('hidden'); document.getElementById('countdown-placeholder').classList.remove('hidden'); countdownTarget = null; }
-            });
+            bindCalendarUI();
+            renderCalendarEvents();
 
             onValue(ref(db, 'loveLetters'), (snap) => {
   activityCache.loveLetters = snap.val();
