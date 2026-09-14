@@ -966,7 +966,7 @@
                         <p class="text-[10px] uppercase text-gray-400 mb-1 tracking-widest font-bold">Euer Schicksal:</p>
                         <h2 id="final-choice" class="text-2xl font-bold text-pink-600 mb-1 leading-tight"></h2>
                         <p id="final-info" class="text-sm text-gray-600 mb-4 italic"></p>
-                        <div id="map-container" class="hidden mb-6 rounded-3xl overflow-hidden border-4 border-white shadow-sm"><iframe id="map-frame" width="100%" height="180" frameborder="0" style="border:0"></iframe></div>
+                        <div id="map-container" class="hidden mb-6 rounded-3xl overflow-hidden border-4 border-white shadow-sm"><div id="mini-map" style="width:100%; height:180px;"></div></div>
                         <div id="result-info" class="mb-6 flex flex-col items-center justify-center"><span id="result-creator-badge" class="user-badge mb-2"></span><div id="result-labels" class="flex justify-center gap-2"></div></div>
                         <div class="flex flex-col gap-3">
                             <button id="btn-accept-date-only-main" onclick="playSound('success')" class="w-full bg-teal-500 text-white py-4 rounded-2xl font-bold uppercase text-[11px] shadow-lg">Date annehmen ✓</button>
@@ -1643,7 +1643,32 @@ async function callAI(prompt) {
         // --- MAP LOGIC ---
         let map;
         let markers = [];
-        let markerClusterGroup; 
+        let markerClusterGroup;
+        let resultMiniMap = null;
+        let resultMiniMarker = null;
+
+        function updateResultMiniMap(location) {
+            const container = document.getElementById('map-container');
+            if (!container) return;
+            if (!location) { container.classList.add('hidden'); return; }
+
+            getCoordinates(location).then((coords) => {
+                if (!coords) { container.classList.add('hidden'); return; }
+                container.classList.remove('hidden');
+                if (!resultMiniMap) {
+                    resultMiniMap = L.map('mini-map', { zoomControl: false, attributionControl: false }).setView([coords.lat, coords.lon], 13);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                        subdomains: 'abcd',
+                        maxZoom: 20
+                    }).addTo(resultMiniMap);
+                    resultMiniMarker = L.marker([coords.lat, coords.lon]).addTo(resultMiniMap);
+                } else {
+                    resultMiniMap.setView([coords.lat, coords.lon], 13);
+                    resultMiniMarker.setLatLng([coords.lat, coords.lon]);
+                    setTimeout(() => resultMiniMap.invalidateSize(), 50);
+                }
+            });
+        }
 
         window.initMap = function() { 
             if (map) return;
@@ -4733,8 +4758,7 @@ const syncData = (currentUser) => {
             const weatherMap = { 'Egal': '☁️ Wetter spielt keine Rolle', 'Sonne': '☀️ Bei Sonne schöner', 'Regen': '🏠 Indoor / Auch bei schlechten Wetter möglich' };
             document.getElementById('result-labels').innerHTML = `<span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${catMap[chosen.cat] || chosen.cat}</span><span class="user-badge bg-teal-50 text-teal-600 border border-teal-100">${weatherMap[chosen.weather] || chosen.weather}</span>`;
             
-            if(chosen.location) { document.getElementById('map-frame').src = `https://maps.google.com/maps?q=${encodeURIComponent(chosen.location)}&output=embed`; document.getElementById('map-container').classList.remove('hidden'); } 
-            else document.getElementById('map-container').classList.add('hidden');
+            updateResultMiniMap(chosen.location || null);
             
             const b = document.getElementById('result-creator-badge'); 
             // UPDATED LABEL LOGIC
