@@ -561,6 +561,7 @@
                     <p id="view-date" class="text-[10px] uppercase font-bold text-gray-400 mb-4"></p>
                     <div id="view-dots" class="hidden flex justify-center gap-2 mb-4"></div>
                     <p id="view-note" class="text-sm text-gray-600 italic font-medium leading-relaxed"></p>
+                    <audio id="view-voice" class="hidden w-full mt-3" controls></audio>
                 </div>
             </div>
         </div>
@@ -581,6 +582,12 @@
                     <!-- thumbs injected by JS -->
                 </div>
 <textarea id="memory-note" placeholder="Schreibe einen Kommentar..." class="w-full p-4 bg-teal-50 rounded-xl outline-none text-sm h-24 resize-none border border-transparent focus:border-teal-300 transition-all"></textarea>
+                <div class="flex items-center gap-2">
+                    <button type="button" id="btn-record-voice" class="teal-btn flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-widest">🎤 Sprachnachricht</button>
+                    <span id="voice-record-status" class="text-[10px] text-gray-400"></span>
+                </div>
+                <audio id="voice-preview" class="hidden w-full mt-1" controls></audio>
+                <button type="button" id="btn-remove-voice" onclick="removeVoiceRecording()" class="hidden text-[9px] text-gray-400 underline">Aufnahme entfernen</button>
             </div>
             <div class="mt-6 space-y-2">
                 <button id="btn-save-memory" onclick="playSound('success')" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest shadow-lg text-xs">Speichern / Kommentieren</button>
@@ -1118,7 +1125,7 @@
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, remove, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getStorage, ref as sRef, uploadString, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+        import { getStorage, ref as sRef, uploadString, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
 
@@ -2860,18 +2867,24 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             const titleEl = document.getElementById('view-title');
             const noteEl = document.getElementById('view-note');
             const dateEl = document.getElementById('view-date');
+            const voiceEl = document.getElementById('view-voice');
 
             // Reset
             imgEl.src = ""; titleEl.innerText = "Laden..."; noteEl.innerText = ""; dateEl.innerText = "";
+            if (voiceEl) { voiceEl.pause(); voiceEl.src = ""; voiceEl.classList.add('hidden'); }
             modal.classList.remove('hidden');
             playSound('photo');
 
             const snapshot = await get(ref(db, `wishes/${id}`));
             const data = snapshot.val();
-            
+
             if (data && (data.memoryPhoto || (data.memoryPhotos && data.memoryPhotos.length))) {
                 titleEl.innerText = data.text || "";
                 noteEl.innerText = data.memoryNote || "Keine Notiz dazu.";
+                if (voiceEl && data.memoryVoiceUrl) {
+                    voiceEl.src = data.memoryVoiceUrl;
+                    voiceEl.classList.remove('hidden');
+                }
                 const d = new Date(data.doneAt || Date.now());
                 dateEl.innerText = d.toLocaleDateString('de-DE') + (data.location ? (" • " + data.location) : "");
 
@@ -3468,7 +3481,7 @@ const syncData = (currentUser) => {
                             const isMeriam = comment.by === 'Meriam';
                             const cDate = new Date(comment.timestamp).toLocaleDateString('de-DE', {day: '2-digit', month: '2-digit', hour: '2-digit', minute:'2-digit'});
                             const containerClass = isMeriam ? "bg-pink-50 border-pink-100 text-pink-800" : "bg-teal-50 border-teal-100 text-teal-800";
-                            memoryHTML += `<div class="p-2 rounded-xl border ${containerClass} text-xs relative"><div class="flex justify-between items-center mb-1 opacity-70"><span class="font-bold">${comment.by}</span><span class="text-[8px]">${cDate}</span></div><p class="italic">"${comment.text}"</p></div>`;
+                            memoryHTML += `<div class="p-2 rounded-xl border ${containerClass} text-xs relative"><div class="flex justify-between items-center mb-1 opacity-70"><span class="font-bold">${comment.by}</span><span class="text-[8px]">${cDate}</span></div>${comment.text ? `<p class="italic">"${comment.text}"</p>` : ''}${comment.voiceUrl ? `<audio controls src="${comment.voiceUrl}" class="w-full mt-1" style="height:32px"></audio>` : ''}</div>`;
                         });
                         memoryHTML += `</div>`;
                     } else if (item.memoryNote) {
@@ -3826,6 +3839,70 @@ const syncData = (currentUser) => {
         initQuiz2Once();
         window.markAsDone = (id) => { currentCompletingId = id; openMemoryModalInternal(); };
         window.openCommentModal = (id) => { currentCompletingId = id; openMemoryModalInternal(); }
+
+        // --- Voice-Note Recording ---
+        let voiceMediaRecorder = null;
+        let voiceChunks = [];
+        let recordedVoiceBlob = null;
+        let voiceMaxDurationTimer = null;
+
+        window.removeVoiceRecording = () => {
+            recordedVoiceBlob = null;
+            const preview = document.getElementById('voice-preview');
+            if (preview) { preview.pause(); preview.src = ""; preview.classList.add('hidden'); }
+            const removeBtn = document.getElementById('btn-remove-voice');
+            if (removeBtn) removeBtn.classList.add('hidden');
+            const recBtn = document.getElementById('btn-record-voice');
+            if (recBtn) recBtn.innerText = "🎤 Sprachnachricht";
+        };
+
+        async function toggleVoiceRecording() {
+            const btn = document.getElementById('btn-record-voice');
+            const status = document.getElementById('voice-record-status');
+
+            if (voiceMediaRecorder && voiceMediaRecorder.state === 'recording') {
+                voiceMediaRecorder.stop();
+                return;
+            }
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Sprachaufnahme wird auf diesem Gerät/Browser nicht unterstützt.");
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                voiceChunks = [];
+                voiceMediaRecorder = new MediaRecorder(stream);
+                voiceMediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) voiceChunks.push(e.data); };
+                voiceMediaRecorder.onstop = () => {
+                    clearTimeout(voiceMaxDurationTimer);
+                    recordedVoiceBlob = new Blob(voiceChunks, { type: 'audio/webm' });
+                    const preview = document.getElementById('voice-preview');
+                    if (preview) {
+                        preview.src = URL.createObjectURL(recordedVoiceBlob);
+                        preview.classList.remove('hidden');
+                    }
+                    const removeBtn = document.getElementById('btn-remove-voice');
+                    if (removeBtn) removeBtn.classList.remove('hidden');
+                    stream.getTracks().forEach((t) => t.stop());
+                    btn.innerText = "🎤 Neu aufnehmen";
+                    if (status) status.innerText = "";
+                };
+                voiceMediaRecorder.start();
+                btn.innerText = "⏹ Stopp";
+                if (status) status.innerText = "Aufnahme läuft...";
+                voiceMaxDurationTimer = setTimeout(() => {
+                    if (voiceMediaRecorder && voiceMediaRecorder.state === 'recording') voiceMediaRecorder.stop();
+                }, 120000);
+            } catch (e) {
+                alert("Mikrofon-Zugriff nicht möglich: " + (e?.message || e));
+            }
+        }
+
+        const recordVoiceBtn = document.getElementById('btn-record-voice');
+        if (recordVoiceBtn) recordVoiceBtn.onclick = toggleVoiceRecording;
+
         const openMemoryModalInternal = () => {
             document.getElementById('memory-modal').classList.remove('hidden');
             const fileEl = document.getElementById('memory-photo-file');
@@ -3839,6 +3916,7 @@ const syncData = (currentUser) => {
             currentPhotosBase64 = [];
             currentThumbIndex = 0;
             document.getElementById('memory-note').value = "";
+            window.removeVoiceRecording();
         }
         window.closeMemoryModal = () => { document.getElementById('memory-modal').classList.add('hidden'); currentCompletingId = null; };
 
@@ -3877,13 +3955,27 @@ const syncData = (currentUser) => {
             }
 
 
+            let voiceUrl = null;
+            if (recordedVoiceBlob) {
+                const voiceRef = sRef(storage, `wishes/${currentCompletingId}/voice/${Date.now()}.webm`);
+                await uploadBytes(voiceRef, recordedVoiceBlob);
+                voiceUrl = await getDownloadURL(voiceRef);
+            }
+
             if (note) {
                 // Für Viewer / Zeitreise
                 updates[`wishes/${currentCompletingId}/memoryNote`] = note;
-
+            }
+            if (voiceUrl) {
+                updates[`wishes/${currentCompletingId}/memoryVoiceUrl`] = voiceUrl;
+            }
+            if (note || voiceUrl) {
                 // Zusätzlich als Kommentar (wie bisher)
                 const commentId = push(ref(db, `wishes/${currentCompletingId}/comments`)).key;
-                updates[`wishes/${currentCompletingId}/comments/${commentId}`] = { text: note, by: user, timestamp: Date.now() };
+                const commentData = { by: user, timestamp: Date.now() };
+                if (note) commentData.text = note;
+                if (voiceUrl) commentData.voiceUrl = voiceUrl;
+                updates[`wishes/${currentCompletingId}/comments/${commentId}`] = commentData;
             }
             await update(ref(db), updates); closeMemoryModal(); document.getElementById('result-box').classList.add('hidden');
             saveBtn.disabled = false;
