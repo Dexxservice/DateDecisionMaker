@@ -3844,10 +3844,12 @@ const syncData = (currentUser) => {
         let voiceMediaRecorder = null;
         let voiceChunks = [];
         let recordedVoiceBlob = null;
+        let recordedVoiceMimeType = null;
         let voiceMaxDurationTimer = null;
 
         window.removeVoiceRecording = () => {
             recordedVoiceBlob = null;
+            recordedVoiceMimeType = null;
             const preview = document.getElementById('voice-preview');
             if (preview) { preview.pause(); preview.src = ""; preview.classList.add('hidden'); }
             const removeBtn = document.getElementById('btn-remove-voice');
@@ -3873,11 +3875,19 @@ const syncData = (currentUser) => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 voiceChunks = [];
-                voiceMediaRecorder = new MediaRecorder(stream);
+
+                // iOS Safari nimmt z.B. als audio/mp4 auf, andere Browser oft audio/webm —
+                // nie fest annehmen, sondern das tatsächlich unterstützte Format abfragen.
+                const mimeCandidates = ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'];
+                const supportedMime = mimeCandidates.find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t));
+                voiceMediaRecorder = supportedMime ? new MediaRecorder(stream, { mimeType: supportedMime }) : new MediaRecorder(stream);
+
                 voiceMediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) voiceChunks.push(e.data); };
                 voiceMediaRecorder.onstop = () => {
                     clearTimeout(voiceMaxDurationTimer);
-                    recordedVoiceBlob = new Blob(voiceChunks, { type: 'audio/webm' });
+                    const actualMime = voiceMediaRecorder.mimeType || supportedMime || 'audio/webm';
+                    recordedVoiceMimeType = actualMime;
+                    recordedVoiceBlob = new Blob(voiceChunks, { type: actualMime });
                     const preview = document.getElementById('voice-preview');
                     if (preview) {
                         preview.src = URL.createObjectURL(recordedVoiceBlob);
@@ -3957,8 +3967,10 @@ const syncData = (currentUser) => {
 
             let voiceUrl = null;
             if (recordedVoiceBlob) {
-                const voiceRef = sRef(storage, `wishes/${currentCompletingId}/voice/${Date.now()}.webm`);
-                await uploadBytes(voiceRef, recordedVoiceBlob);
+                const mime = recordedVoiceMimeType || recordedVoiceBlob.type || 'audio/webm';
+                const ext = mime.includes('mp4') ? 'm4a' : mime.includes('ogg') ? 'ogg' : 'webm';
+                const voiceRef = sRef(storage, `wishes/${currentCompletingId}/voice/${Date.now()}.${ext}`);
+                await uploadBytes(voiceRef, recordedVoiceBlob, { contentType: mime });
                 voiceUrl = await getDownloadURL(voiceRef);
             }
 
