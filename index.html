@@ -2325,7 +2325,8 @@ bindPolaroidUIOnce();
         };
 
         // --- MULTI PHOTO (max 3) for Date Memories ---
-        let currentPhotosBase64 = [];   // array of compressed data_urls (temporary, not stored in DB)
+        let currentPhotosBase64 = [];   // array of compressed data_urls OR already-uploaded URLs
+        let currentPhotosThumbUrls = []; // parallel array: existing thumbUrl for already-uploaded entries ("" for new ones)
         let currentThumbIndex = 0;
         let memoryManageMode = false;
 
@@ -2429,21 +2430,28 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
 
         window.handleMemoryFilesUpload = async (input) => {
             try {
-                const files = Array.from(input.files || []).filter(Boolean).slice(0, 3);
+                const files = Array.from(input.files || []).filter(Boolean);
                 if (!files.length) return;
 
-                currentPhotosBase64 = [];
-                currentThumbIndex = 0;
+                const remainingSlots = 3 - currentPhotosBase64.length;
+                if (remainingSlots <= 0) {
+                    alert("Maximal 3 Fotos möglich. Entferne erst eins, bevor du ein neues hinzufügst.");
+                    input.value = "";
+                    return;
+                }
 
-                // compress sequentially to keep memory low
-                for (const f of files) {
+                // Neue Auswahl ERGÄNZT die bereits vorhandenen/vorher hochgeladenen Fotos, statt sie zu ersetzen
+                const toAdd = files.slice(0, remainingSlots);
+                for (const f of toAdd) {
                     const dataUrl = await compressImageFileToDataUrl(f, 900, 0.65);
                     currentPhotosBase64.push(dataUrl);
+                    currentPhotosThumbUrls.push("");
                 }
 
                 // Keep compatibility with existing code paths that expect 1 photo
                 currentPhotoBase64 = currentPhotosBase64[0] || "";
 
+                input.value = "";
                 renderMemoryThumbs();
             } catch (e) {
                 console.error("handleMemoryFilesUpload failed:", e);
@@ -2451,12 +2459,12 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             }
         };
 
-        async function uploadPhotoForWishAtIndex(wishId, idx, dataUrl) {
+        async function uploadPhotoForWishAtIndex(wishId, idx, dataUrl, existingThumbUrl) {
             if (!dataUrl) return { fullUrl: "", thumbUrl: "" };
 
-            // If already URL, keep it
+            // If already URL, keep it (und den vorhandenen Thumbnail-Link wiederverwenden statt ihn zu verlieren)
             if (typeof dataUrl === "string" && !dataUrl.startsWith("data:")) {
-                return { fullUrl: dataUrl, thumbUrl: "" };
+                return { fullUrl: dataUrl, thumbUrl: existingThumbUrl || "" };
             }
 
             const thumbDataUrl = await makeThumbnailDataURL(dataUrl, 480, 0.90);
@@ -4145,7 +4153,7 @@ const syncData = (currentUser) => {
         const recordVoiceBtn = document.getElementById('btn-record-voice');
         if (recordVoiceBtn) recordVoiceBtn.onclick = toggleVoiceRecording;
 
-        const openMemoryModalInternal = () => {
+        const openMemoryModalInternal = async () => {
             document.getElementById('memory-modal').classList.remove('hidden');
             const fileEl = document.getElementById('memory-photo-file');
             if (fileEl) fileEl.value = "";
@@ -4156,9 +4164,26 @@ const syncData = (currentUser) => {
             document.getElementById('upload-text').innerText = "📸 Fotos hinzufügen (max 3)";
             currentPhotoBase64 = "";
             currentPhotosBase64 = [];
+            currentPhotosThumbUrls = [];
             currentThumbIndex = 0;
             document.getElementById('memory-note').value = "";
             window.removeVoiceRecording();
+
+            // Bereits gespeicherte Fotos laden, damit sie beim Ergänzen nicht verloren gehen
+            if (currentCompletingId) {
+                try {
+                    const snap = await get(ref(db, `wishes/${currentCompletingId}`));
+                    const existing = snap.val();
+                    if (existing && Array.isArray(existing.memoryPhotos) && existing.memoryPhotos.length) {
+                        currentPhotosBase64 = existing.memoryPhotos.map((p) => p.fullUrl || "");
+                        currentPhotosThumbUrls = existing.memoryPhotos.map((p) => p.thumbUrl || "");
+                        currentThumbIndex = Math.min(existing.memoryThumbIndex || 0, currentPhotosBase64.length - 1);
+                        renderMemoryThumbs();
+                    }
+                } catch (e) {
+                    console.error("Konnte bestehende Fotos nicht laden:", e);
+                }
+            }
         }
         window.closeMemoryModal = () => { document.getElementById('memory-modal').classList.add('hidden'); currentCompletingId = null; };
 
@@ -4178,7 +4203,7 @@ const syncData = (currentUser) => {
           if (currentPhotosBase64 && currentPhotosBase64.length) {
                 const uploaded = [];
                 for (let i = 0; i < currentPhotosBase64.length; i++) {
-                    const { fullUrl, thumbUrl } = await uploadPhotoForWishAtIndex(currentCompletingId, i, currentPhotosBase64[i]);
+                    const { fullUrl, thumbUrl } = await uploadPhotoForWishAtIndex(currentCompletingId, i, currentPhotosBase64[i], currentPhotosThumbUrls[i]);
                     uploaded.push({ fullUrl, thumbUrl });
                 }
                 // Persist array + selected thumb index
