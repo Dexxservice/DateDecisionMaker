@@ -1016,9 +1016,9 @@
                 </div>
             </div>
 
-            <!-- FUNZONE: Wahrheit oder Pflicht -->
+            <!-- FUNZONE: Spiele für uns (Wahrheit oder Pflicht / Nie hab ich je) -->
             <div class="mint-card p-6 mb-6 text-center animate-slide-up">
-                <h3 class="font-black text-pink-600 mb-2 uppercase text-xs tracking-widest">💋 Wahrheit oder Pflicht</h3>
+                <h3 class="font-black text-pink-600 mb-2 uppercase text-xs tracking-widest">💋 Spiele für uns</h3>
                 <p class="text-[10px] text-gray-400 mb-4">Nur für euch zwei.</p>
 
                 <div class="flex items-center justify-center gap-3 mb-5 bg-gray-50 rounded-2xl p-3">
@@ -1027,14 +1027,29 @@
                     <span class="text-[10px] font-bold text-pink-500 uppercase tracking-widest">Extra Spicy 🔥🔞</span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <button onclick="playTruthOrDare('truth')" class="teal-btn py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">🗣️ Wahrheit</button>
-                    <button onclick="playTruthOrDare('dare')" class="pink-btn py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">😈 Pflicht</button>
+                <div class="flex gap-2 mb-5">
+                    <button type="button" id="game-tab-tod" onclick="switchGameTab('tod')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-pink-500 text-white shadow-sm transition-all">Wahrheit / Pflicht</button>
+                    <button type="button" id="game-tab-nhie" onclick="switchGameTab('nhie')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 shadow-sm transition-all">Nie hab ich je</button>
                 </div>
 
-                <div id="tod-result-card" class="hidden bg-pink-50 border border-pink-100 rounded-2xl p-5 text-left">
-                    <p id="tod-result-label" class="text-[9px] font-black text-pink-500 uppercase tracking-widest mb-2"></p>
-                    <p id="tod-result" class="text-sm font-bold text-gray-700 leading-relaxed"></p>
+                <div id="game-panel-tod">
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <button onclick="playTruthOrDare('truth')" class="teal-btn py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">🗣️ Wahrheit</button>
+                        <button onclick="playTruthOrDare('dare')" class="pink-btn py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">😈 Pflicht</button>
+                    </div>
+                    <div id="tod-result-card" class="hidden bg-pink-50 border border-pink-100 rounded-2xl p-5 text-left">
+                        <p id="tod-result-label" class="text-[9px] font-black text-pink-500 uppercase tracking-widest mb-2"></p>
+                        <p id="tod-result" class="text-sm font-bold text-gray-700 leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <div id="game-panel-nhie" class="hidden">
+                    <p class="text-[10px] text-gray-500 mb-4 italic">"Ich habe noch nie..." – wer's schon gemacht hat, verrät sich 😏</p>
+                    <button onclick="playNeverHaveIEver()" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg mb-4">🍹 Nächste Runde</button>
+                    <div id="nhie-result-card" class="hidden bg-pink-50 border border-pink-100 rounded-2xl p-5 text-left">
+                        <p id="nhie-result-label" class="text-[9px] font-black text-pink-500 uppercase tracking-widest mb-2"></p>
+                        <p id="nhie-result" class="text-sm font-bold text-gray-700 leading-relaxed"></p>
+                    </div>
                 </div>
             </div>
 
@@ -4729,36 +4744,195 @@ const syncData = (currentUser) => {
             "Beendet das Spiel jetzt und geht ins Schlafzimmer 😉."
         ];
 
-        let todLastResult = "";
+        const NHIE_MILD = [
+            "im Urlaub den Flug oder Zug verpasst",
+            "beim ersten Date gelogen, um cooler zu wirken",
+            "heimlich das letzte Stück vom Essen gegessen und behauptet, es war schon weg",
+            "eine Nachricht 3x umgeschrieben, bevor ich sie abgeschickt habe",
+            "im Auto laut mitgesungen, obwohl ich schlecht singe",
+            "vorgetäuscht, krank zu sein, um nicht arbeiten zu müssen",
+            "jemandem hinterhergeschaut, weil er/sie gut aussah",
+            "ein Geschenk zurückgegeben und heimlich ein anderes gekauft",
+            "über meinen eigenen Witz lauter gelacht als alle anderen",
+            "einen Jahrestag vergessen und in letzter Sekunde improvisiert",
+            "heimlich meinem Partner geschrieben, während er/sie direkt neben mir saß",
+            "bei einem Film geweint und es abgestritten",
+            "etwas kaputt gemacht und einfach nichts gesagt",
+            "vorgetäuscht, eine Serie zu kennen, nur um mitreden zu können",
+            "meinen Partner beim Schlafen fotografiert",
+            "als Kind etwas geklaut, und sei es nur ein Kaugummi"
+        ];
 
-        function pickRandomTod(arr) {
+        const NHIE_SPICY = [
+            "an einem ungewöhnlichen Ort Sex gehabt",
+            "eine Fantasie, die ich noch nie laut ausgesprochen habe",
+            "mich danach geschämt, wie laut ich beim Sex war",
+            "jemandem beim Ausziehen zugeschaut und mir dabei etwas gedacht",
+            "ein intimes Foto verschickt",
+            "in der Dusche oder Badewanne intim geworden",
+            "morgens Sex gehabt, bevor überhaupt einer wach war",
+            "beim Sex etwas komplett Neues ausprobiert",
+            "draußen (Auto, Balkon, Natur) intim geworden",
+            "ein Rollenspiel im Bett ausprobiert",
+            "jemanden nur mit den Augen \"ausgezogen\"",
+            "an einem Ort Sex gehabt, wo man hätte erwischt werden können",
+            "eine Massage gegeben, die intimer wurde als geplant",
+            "länger vorgespielt, als ich eigentlich wollte, weil es einfach zu gut war"
+        ];
+
+        function pickRandomFrom(arr, avoid) {
             if (!arr.length) return "";
             if (arr.length === 1) return arr[0];
             let choice = arr[Math.floor(Math.random() * arr.length)];
             let tries = 0;
-            while (choice === todLastResult && tries < 10) {
+            while (choice === avoid && tries < 10) {
                 choice = arr[Math.floor(Math.random() * arr.length)];
                 tries++;
             }
             return choice;
         }
 
-        window.playTruthOrDare = (type) => {
-            const spicy = document.getElementById('tod-spicy-toggle')?.checked;
-            const pool = type === 'truth'
-                ? (spicy ? TOD_TRUTH_SPICY : TOD_TRUTH_MILD)
-                : (spicy ? TOD_DARE_SPICY : TOD_DARE_MILD);
+        function buildGamePrompt(kind, level, history) {
+            const isSpicy = level === 'spicy';
+            const historyLines = history.length ? history.map((h) => `- ${h}`).join("\n") : "- (keine)";
 
-            const choice = pickRandomTod(pool);
-            todLastResult = choice;
+            if (kind === 'truth') {
+                return `Erstelle EINE "Wahrheit"-Frage für ein Wahrheit-oder-Pflicht-Spiel zwischen einem festen, erwachsenen Paar (einvernehmlich, in einer Beziehung). Sprache: Deutsch. Nur 1 Satz, direkt als Frage gestellt.
+
+${isSpicy
+  ? 'Thema: Sex, Anziehung, Erregung, Fantasien, Vorlieben im Bett, Verführung, Begehren. Ton: explizit-erwachsen, aber elegant formuliert - wie eine gewagte Frage aus einem hochwertigen Erwachsenen-Kartenspiel für Paare, nicht vulgär.'
+  : 'Thema: Zuneigung, gemeinsame Erinnerungen, Anziehung, kleine Geständnisse, Romantik. Ton: charmant, warm, leicht neckisch.'}
+
+Vermeide Wiederholungen/Ähnlichkeit zu diesen letzten Fragen:
+${historyLines}
+
+Antworte NUR mit der Frage, keine Anführungszeichen, keine Erklärung.`;
+            }
+
+            if (kind === 'dare') {
+                return `Erstelle EINE "Pflicht"-Aufgabe für ein Wahrheit-oder-Pflicht-Spiel zwischen einem festen, erwachsenen Paar (einvernehmlich, in einer Beziehung). Sprache: Deutsch. Nur 1 Satz, als direkte Handlungsanweisung ("Küss...", "Flüster...", "Zieh...", "Massiere...").
+
+${isSpicy
+  ? 'Thema: Vorspiel, Küssen, Berührung, Verführung, Ausziehen, körperliche Nähe und Erregung zwischen den beiden. Ton: explizit-erwachsen, sinnlich, wie eine Aufgabe aus einem hochwertigen Erwachsenen-Kartenspiel für Paare.'
+  : 'Thema: Zärtlichkeit, Komplimente, kleine romantische Gesten, Nähe. Ton: charmant, liebevoll, leicht verspielt.'}
+
+Vermeide Wiederholungen/Ähnlichkeit zu diesen letzten Aufgaben:
+${historyLines}
+
+Antworte NUR mit der Aufgabe, keine Anführungszeichen, keine Erklärung.`;
+            }
+
+            // nhie
+            return `Erstelle EINE Aussage für das Spiel "Ich habe noch nie" für ein festes, erwachsenes Paar (einvernehmlich). Sprache: Deutsch. Format: Fortsetzung des Satzes "Ich habe noch nie...", OHNE diesen Satzanfang selbst zu schreiben - nur die Fortsetzung, 1 kurzer Satz.
+
+${isSpicy
+  ? 'Thema: Sex, Vorspiel, Fantasien, ausprobierte Dinge, besondere Orte, Erregung, Verführung - im Kontext einer festen Beziehung. Ton: explizit-erwachsen, elegant, wie aus einem hochwertigen Erwachsenen-Partyspiel.'
+  : 'Thema: Alltag, Beziehung, kleine Geständnisse, lustige Erlebnisse, Marotten. Ton: leicht, witzig, warmherzig.'}
+
+Vermeide Wiederholungen/Ähnlichkeit zu diesen letzten Aussagen:
+${historyLines}
+
+Antworte NUR mit der Fortsetzung (ohne "Ich habe noch nie" davor), keine Anführungszeichen, keine Erklärung.`;
+        }
+
+        const gameHistory = {
+            truth_mild: [], truth_spicy: [], dare_mild: [], dare_spicy: [],
+            nhie_mild: [], nhie_spicy: []
+        };
+
+        function pushGameHistory(key, value) {
+            gameHistory[key].push(value);
+            if (gameHistory[key].length > 5) gameHistory[key].shift();
+        }
+
+        window.switchGameTab = (which) => {
+            const todTab = document.getElementById('game-tab-tod');
+            const nhieTab = document.getElementById('game-tab-nhie');
+            const todPanel = document.getElementById('game-panel-tod');
+            const nhiePanel = document.getElementById('game-panel-nhie');
+            if (!todTab || !nhieTab || !todPanel || !nhiePanel) return;
+
+            const active = ['bg-pink-500', 'text-white'];
+            const inactive = ['bg-gray-100', 'text-gray-500'];
+
+            if (which === 'nhie') {
+                todPanel.classList.add('hidden'); nhiePanel.classList.remove('hidden');
+                nhieTab.classList.remove(...inactive); nhieTab.classList.add(...active);
+                todTab.classList.remove(...active); todTab.classList.add(...inactive);
+            } else {
+                nhiePanel.classList.add('hidden'); todPanel.classList.remove('hidden');
+                todTab.classList.remove(...inactive); todTab.classList.add(...active);
+                nhieTab.classList.remove(...active); nhieTab.classList.add(...inactive);
+            }
+            if (typeof playSound === 'function') playSound('click');
+        };
+
+        window.playTruthOrDare = async (type) => {
+            const spicy = document.getElementById('tod-spicy-toggle')?.checked;
+            const level = spicy ? 'spicy' : 'mild';
+            const key = `${type}_${level}`;
 
             const labelEl = document.getElementById('tod-result-label');
             const resultEl = document.getElementById('tod-result');
             const cardEl = document.getElementById('tod-result-card');
-            if (labelEl) labelEl.textContent = (type === 'truth' ? '🗣️ Wahrheit' : '😈 Pflicht') + (spicy ? ' · Extra Spicy 🔥' : ' · Charmant 💕');
-            if (resultEl) resultEl.textContent = choice;
+            const labelText = (type === 'truth' ? '🗣️ Wahrheit' : '😈 Pflicht') + (spicy ? ' · Extra Spicy 🔥' : ' · Charmant 💕');
+
             if (cardEl) cardEl.classList.remove('hidden');
+            if (labelEl) labelEl.textContent = labelText + ' · lädt...';
+            if (resultEl) resultEl.textContent = '';
+
+            let choice = null;
+            try {
+                const prompt = buildGamePrompt(type, level, gameHistory[key]);
+                const aiResult = await callAI(prompt);
+                if (aiResult && aiResult.trim().length > 5) choice = aiResult.replace(/["']/g, '').trim();
+            } catch (e) {
+                console.error('Truth-or-Dare AI generation failed:', e);
+            }
+
+            if (!choice) {
+                const pool = type === 'truth' ? (spicy ? TOD_TRUTH_SPICY : TOD_TRUTH_MILD) : (spicy ? TOD_DARE_SPICY : TOD_DARE_MILD);
+                choice = pickRandomFrom(pool, gameHistory[key][gameHistory[key].length - 1]);
+            }
+            pushGameHistory(key, choice);
+
+            if (labelEl) labelEl.textContent = labelText;
+            if (resultEl) resultEl.textContent = choice;
             if (typeof playSound === 'function') playSound(type === 'truth' ? 'pop' : 'click');
+        };
+
+        window.playNeverHaveIEver = async () => {
+            const spicy = document.getElementById('tod-spicy-toggle')?.checked;
+            const level = spicy ? 'spicy' : 'mild';
+            const key = `nhie_${level}`;
+
+            const labelEl = document.getElementById('nhie-result-label');
+            const resultEl = document.getElementById('nhie-result');
+            const cardEl = document.getElementById('nhie-result-card');
+            const labelText = spicy ? 'Extra Spicy 🔥' : 'Charmant 💕';
+
+            if (cardEl) cardEl.classList.remove('hidden');
+            if (labelEl) labelEl.textContent = labelText + ' · lädt...';
+            if (resultEl) resultEl.textContent = '';
+
+            let choice = null;
+            try {
+                const prompt = buildGamePrompt('nhie', level, gameHistory[key]);
+                const aiResult = await callAI(prompt);
+                if (aiResult && aiResult.trim().length > 5) choice = aiResult.replace(/["']/g, '').trim();
+            } catch (e) {
+                console.error('Never-Have-I-Ever AI generation failed:', e);
+            }
+
+            if (!choice) {
+                const pool = spicy ? NHIE_SPICY : NHIE_MILD;
+                choice = pickRandomFrom(pool, gameHistory[key][gameHistory[key].length - 1]);
+            }
+            pushGameHistory(key, choice);
+
+            if (labelEl) labelEl.textContent = labelText;
+            if (resultEl) resultEl.textContent = 'Ich habe noch nie ' + choice;
+            if (typeof playSound === 'function') playSound('pop');
         };
 
 const initPolaroidCropCanvas = () => {
