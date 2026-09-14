@@ -3210,6 +3210,11 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             await update(ref(db, `giftWishes/${id}`), { reservedBy: null, reservedAt: null });
         };
 
+        window.markGiftWishBought = async (id) => {
+            await update(ref(db, `giftWishes/${id}`), { bought: true, boughtAt: Date.now() });
+            if (typeof playSound === 'function') playSound('success');
+        };
+
         window.deleteGiftWish = (id) => remove(ref(db, `giftWishes/${id}`));
 
         function bindWishlistUI() {
@@ -3237,7 +3242,9 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                         by: user,
                         timestamp: Date.now(),
                         reservedBy: null,
-                        reservedAt: null
+                        reservedAt: null,
+                        bought: false,
+                        boughtAt: null
                     });
                     textEl.value = ""; linkEl.value = ""; noteEl.value = "";
                     if (typeof playSound === 'function') playSound('success');
@@ -3268,6 +3275,11 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                     const item = data[id];
                     if (!item || !item.text || !item.by) return;
                     const isOwn = item.by === currentUser;
+
+                    // Bereits gekaufte Wünsche verschwinden aus der Sicht des Käufers (erledigt),
+                    // bleiben aber in der eigenen Liste des Wünschenden ganz normal sichtbar (kein Hinweis auf "gekauft").
+                    if (!isOwn && item.bought === true) return;
+
                     const badgeClass = item.by === 'Meriam' ? 'badge-meriam' : 'badge-samet';
 
                     const div = document.createElement('div');
@@ -3279,13 +3291,14 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                     if (item.link) html += `<a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer" class="text-[10px] text-teal-600 underline break-all block mt-1">${escapeHtml(item.link)}</a>`;
 
                     if (isOwn) {
-                        // Eigener Wunsch: Reservierungsstatus wird NIE angezeigt (Überraschung bleibt geheim)
+                        // Eigener Wunsch: Reservierungs-/Kaufstatus wird NIE angezeigt (Überraschung bleibt geheim)
                         html += `<button onclick="deleteGiftWish('${id}')" class="text-[9px] text-gray-400 underline mt-2">Entfernen</button>`;
                     } else if (item.reservedBy === currentUser) {
-                        html += `<div class="mt-2 flex items-center justify-between">
+                        html += `<div class="mt-2 flex items-center justify-between gap-2">
                             <span class="text-[10px] font-bold text-green-600 uppercase">✅ Von dir reserviert</span>
                             <button onclick="unreserveGiftWish('${id}')" class="text-[9px] text-gray-400 underline">Rückgängig</button>
-                        </div>`;
+                        </div>
+                        <button onclick="markGiftWishBought('${id}')" class="pink-btn w-full py-2 rounded-lg text-[10px] font-black uppercase tracking-widest mt-2">🛍️ Gekauft</button>`;
                     } else if (item.reservedBy) {
                         html += `<span class="text-[10px] font-bold text-gray-400 uppercase mt-2 block">Bereits reserviert</span>`;
                     } else {
