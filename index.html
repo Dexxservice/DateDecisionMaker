@@ -5148,41 +5148,52 @@ Antworte NUR mit der Frage.`;
             const photos = Object.values(data)
                 .filter((w) => w && w.memoryThumb)
                 .map((w) => w.memoryThumb);
-            const unique = Array.from(new Set(photos));
+            const allUnique = Array.from(new Set(photos)).sort(() => Math.random() - 0.5);
             const hintEl = document.getElementById('memory-game-hint');
             const idleEl = document.getElementById('memory-game-idle');
             const boardEl = document.getElementById('memory-game-board');
 
-            if (unique.length < 4) {
-                if (hintEl) hintEl.textContent = `Noch nicht genug Fotos (${unique.length}/4) – fügt mehr Erinnerungen mit Foto hinzu!`;
+            if (allUnique.length < 4) {
+                if (hintEl) hintEl.textContent = `Noch nicht genug Fotos (${allUnique.length}/4) – fügt mehr Erinnerungen mit Foto hinzu!`;
                 return;
             }
 
-            const pairCount = Math.min(8, unique.length);
-            const shuffledPool = unique.sort(() => Math.random() - 0.5).slice(0, pairCount);
-
             // Alle Fotos VOR dem Spielstart laden (Cache), damit das Umdrehen bei schlechter
-            // Verbindung (z.B. Zug) nicht hängt - Karten sollen sofort sichtbar sein.
+            // Verbindung (z.B. Zug) nicht hängt. Kaputte/fehlgeschlagene Bilder werden erkannt
+            // und automatisch durch andere aus dem Fotopool ersetzt, statt als Dreieck im Spiel zu landen.
             memoryGameLoading = true;
             idleEl.classList.remove('hidden');
             boardEl.classList.add('hidden');
-            let loaded = 0;
-            if (hintEl) hintEl.textContent = `📸 Lädt Fotos... (0/${shuffledPool.length})`;
 
-            await Promise.all(shuffledPool.map((url) => new Promise((resolve) => {
+            const targetCount = Math.min(8, allUnique.length);
+            const working = [];
+            let poolIdx = 0;
+
+            const tryLoad = (url) => new Promise((resolve) => {
                 const img = new Image();
-                img.onload = img.onerror = () => {
-                    loaded++;
-                    if (hintEl) hintEl.textContent = `📸 Lädt Fotos... (${loaded}/${shuffledPool.length})`;
-                    resolve();
-                };
+                img.onload = () => resolve(true);
+                img.onerror = () => resolve(false);
                 img.src = url;
-            })));
+            });
+
+            while (working.length < targetCount && poolIdx < allUnique.length) {
+                const needed = targetCount - working.length;
+                const batch = allUnique.slice(poolIdx, poolIdx + needed);
+                poolIdx += batch.length;
+                if (hintEl) hintEl.textContent = `📸 Lädt Fotos... (${working.length}/${targetCount})`;
+                const results = await Promise.all(batch.map((url) => tryLoad(url).then((ok) => ({ url, ok }))));
+                results.forEach((r) => { if (r.ok) working.push(r.url); });
+            }
 
             memoryGameLoading = false;
-            if (hintEl) hintEl.textContent = '';
 
-            let cards = [...shuffledPool, ...shuffledPool].map((url, i) => ({ id: i, url, matched: false }));
+            if (working.length < 4) {
+                if (hintEl) hintEl.textContent = `Nur ${working.length} Fotos konnten geladen werden – das reicht leider nicht für ein Spiel. Versuch's später nochmal.`;
+                return;
+            }
+            if (hintEl) hintEl.textContent = working.length < targetCount ? `ℹ️ ${targetCount - working.length} Foto(s) waren kaputt und wurden übersprungen, gespielt wird mit ${working.length}.` : '';
+
+            let cards = [...working, ...working].map((url, i) => ({ id: i, url, matched: false }));
             cards = cards.sort(() => Math.random() - 0.5);
 
             memoryGameState = { cards, flipped: [], matched: [], lock: false, moves: 0 };
