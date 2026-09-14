@@ -1944,6 +1944,7 @@ document.getElementById('btn-deeptalk').onclick = async () => {
             }
 
             const isSeductive = /Verführerisch/i.test(mood);
+            if (isSeductive) topic = "Sex & Verführung";
 
             const prompt = `Erstelle EINE Deep‑Talk‑Frage für ein Paar. Sprache: Deutsch. 1–2 Sätze, Alltagssprache.
 Kategorie/Schwerpunkt: ${topic}.
@@ -1958,10 +1959,10 @@ Wichtig:
 - Ton soll zur Stimmung passen (falls gewählt).
 - Keine Therapeutensprache, keine Floskeln, keine generischen Standardfragen.
 - Konkret, überraschend, menschlich.
-${isSeductive ? `- Die Stimmung ist "Verführerisch & sinnlich": Die Frage darf flirty, sinnlich und anziehungsbezogen sein (Begehren, Fantasien, Anziehung, Berührung) – romantisch-erwachsen und einladend zum Erzählen, aber geschmackvoll formuliert, keine expliziten sexuellen Beschreibungen in der Frage selbst.` : ""}
+${isSeductive ? `- Die Stimmung ist "Verführerisch & sinnlich": Ignoriere die generische Deep-Talk-Ausrichtung unten komplett. Stell stattdessen eine explizit-erwachsene, sexuell aufgeladene Frage für ein festes, einvernehmliches Paar - Thema: Sex, Fantasien, Vorlieben im Bett, Begehren, auch gerne freaky/gewagte Wünsche. Ton: direkt, explizit, nicht zurückhaltend oder verschämt formuliert - wie eine gewagte Frage aus einem hochwertigen Erwachsenen-Kartenspiel für Paare.` : ""}
 
-Die Frage darf ALLE Deep‑Talk‑Themen abdecken (z.B. Werte, Grenzen, Intimität, Familie, Freundschaft, Geld, Eifersucht, Kommunikation, Träume, Humor, Konflikte, Spiritualität/Religion – inkl. Islam – usw.).
-Wichtig: NICHT nur Vergangenheit oder NICHT nur Zukunft. Wenn du „Vergangenheit“ oder „Zukunft“ wählst, mach es trotzdem konkret und nicht klischeehaft. In allen anderen Kategorien bitte Fokus auf Gegenwart/Alltag/Charakter/Beziehung – nicht auf „früher“ oder „später“.
+${isSeductive ? "" : `Die Frage darf ALLE Deep‑Talk‑Themen abdecken (z.B. Werte, Grenzen, Intimität, Familie, Freundschaft, Geld, Eifersucht, Kommunikation, Träume, Humor, Konflikte, Spiritualität/Religion – inkl. Islam – usw.).
+Wichtig: NICHT nur Vergangenheit oder NICHT nur Zukunft. Wenn du „Vergangenheit“ oder „Zukunft“ wählst, mach es trotzdem konkret und nicht klischeehaft. In allen anderen Kategorien bitte Fokus auf Gegenwart/Alltag/Charakter/Beziehung – nicht auf „früher“ oder „später“.`}
 
 Variation:
 - Vermeide Wiederholung oder ähnliche Fragen zu den letzten 3:
