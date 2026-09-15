@@ -1346,6 +1346,12 @@
         const db = getDatabase(app);
         const storage = getStorage(app);
 
+        // Service Worker sofort registrieren (unabhängig von Notification-Erlaubnis), damit Offline-Fähigkeit
+        // für alle funktioniert, auch wenn "Notifications aktivieren" noch nie angetippt wurde.
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js').catch((e) => console.error('SW registration failed:', e));
+        }
+
         // --- PUSH NOTIFICATIONS (FCM) ---
         const FCM_VAPID_KEY = "BE1kwrMihVuy_EEjeUMDjb20PTTu95952Vjy2XMiUT2uVhQvajOZ4-E9One-R7nUJ-gwqaoIDLYX4JLwX1frH98";
 
