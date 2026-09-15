@@ -3748,9 +3748,9 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
             };
 
             btn.onclick = send;
-            input.addEventListener('keydown', (ev) => {
+            input.onkeydown = (ev) => {
                 if (ev.key === 'Enter') send();
-            });
+            };
         }
 
         function escapeHtml(str) {
