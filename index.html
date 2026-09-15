@@ -1042,8 +1042,19 @@
 
         <div id="tab-fun" class="hidden pb-20 animate-fade-in">
 
+            <div class="flex gap-2 overflow-x-auto pb-2 mb-6" style="scrollbar-width: none;">
+                <button onclick="jumpToFun('fun-decide')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">🎡 Entscheiden</button>
+                <button onclick="jumpToFun('fun-games2')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">💋 Für uns</button>
+                <button onclick="jumpToFun('fun-deeptalk')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">🗣️ Deep Talk</button>
+                <button onclick="jumpToFun('fun-movie')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">🎬 Film</button>
+                <button onclick="jumpToFun('fun-quiz')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">❓ Quiz</button>
+                <button onclick="jumpToFun('fun-sync')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">🤝 Raten</button>
+                <button onclick="jumpToFun('fun-memory')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">🧠 Memory</button>
+                <button onclick="jumpToFun('fun-coupons')" class="shrink-0 bg-white border border-gray-200 rounded-full px-3 py-1.5 text-[10px] font-black uppercase tracking-wider text-gray-600 shadow-sm active:scale-95">💝 Coupons</button>
+            </div>
+
             <!-- FUNZONE: Eins oder Zwei / Mehrere Optionen -->
-            <div class="mint-card p-6 mb-6 animate-slide-up">
+            <div id="fun-decide" class="mint-card p-6 mb-6 animate-slide-up">
                 <div class="flex gap-2 mb-5">
                     <button type="button" id="picker-tab-onetwo" onclick="switchFunPicker('onetwo')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white shadow-sm transition-all">Eins oder Zwei</button>
                     <button type="button" id="picker-tab-multi" onclick="switchFunPicker('multi')" class="flex-1 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 shadow-sm transition-all">Mehrere Optionen</button>
@@ -1085,7 +1096,7 @@
             </div>
 
             <!-- FUNZONE: Spiele für uns (Wahrheit oder Pflicht / Nie hab ich je) -->
-            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+            <div id="fun-games2" class="mint-card p-6 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-pink-600 mb-2 uppercase text-xs tracking-widest">💋 Spiele für uns</h3>
                 <p class="text-[10px] text-gray-400 mb-4">Nur für euch zwei.</p>
 
@@ -1121,7 +1132,7 @@
                 </div>
             </div>
 
-            <div class="mint-card p-8 mb-6 text-center animate-slide-up">
+            <div id="fun-deeptalk" class="mint-card p-8 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-indigo-600 mb-4 uppercase text-xs tracking-widest">🗣️ Deep Talk</h3>
                 <p class="text-[10px] text-gray-400 mb-6">Keine Lust auf Smalltalk? Lass uns tiefer gehen.</p>
                 <div id="deeptalk-chips" class="text-left mb-5">
@@ -1175,7 +1186,7 @@
                 </div>
                 <button id="btn-deeptalk" onclick="playSound('deep-reveal')" class="bg-indigo-500 text-white px-8 py-3 rounded-2xl font-bold uppercase text-[10px] tracking-widest shadow-md hover:bg-indigo-600 transition-colors w-full">✨ Neues Thema</button>
             </div>
-            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+            <div id="fun-movie" class="mint-card p-6 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-red-600 mb-2 uppercase text-xs tracking-widest">🎬 Netflix Diplomat</h3>
                 <p class="text-[10px] text-gray-400 mb-4">Film-Streit? Ich finde den perfekten Kompromiss!</p>
                 <div class="space-y-3 mb-4">
@@ -1187,7 +1198,7 @@
                     <div class="absolute top-0 left-0 w-1 h-full bg-red-500"></div><p class="text-[9px] font-black text-gray-400 uppercase mb-2">Die Vorschläge der Jury:</p><div id="movie-text" class="text-xs text-gray-700 leading-relaxed whitespace-pre-line"></div>
                 </div>
             </div>
-            <div class="mint-card p-6 animate-slide-up" style="animation-delay: 0.2s;">
+            <div id="fun-quiz" class="mint-card p-6 animate-slide-up" style="animation-delay: 0.2s;">
                 <h3 class="font-bold text-pink-600 mb-4 uppercase text-xs tracking-widest">❓ Quiz-Arena</h3>
 
                 <!-- NEW (Index04V8+): Quiz Arena v2 (A/B/C + Timer + Reveal) -->
@@ -1259,7 +1270,7 @@
             </div>
 
             <!-- FUNZONE: Gleichzeitig antworten -->
-            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+            <div id="fun-sync" class="mint-card p-6 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-indigo-600 mb-2 uppercase text-xs tracking-widest">🤝 Gleichzeitig antworten</h3>
                 <p class="text-[10px] text-gray-400 mb-5">Ihr beantwortet dieselbe Frage unabhängig voneinander – matcht ihr?</p>
 
@@ -1300,7 +1311,7 @@
             </div>
 
             <!-- FUNZONE: Foto-Memory -->
-            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+            <div id="fun-memory" class="mint-card p-6 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-teal-800 mb-2 uppercase text-xs tracking-widest">🧠 Foto-Memory</h3>
                 <p class="text-[10px] text-gray-400 mb-5">Memory mit euren eigenen Erinnerungsfotos.</p>
                 <div id="memory-game-idle">
@@ -1315,7 +1326,7 @@
             </div>
 
             <!-- FUNZONE: Liebes-Coupons -->
-            <div class="mint-card p-6 mb-6 text-center animate-slide-up">
+            <div id="fun-coupons" class="mint-card p-6 mb-6 text-center animate-slide-up">
                 <h3 class="font-black text-pink-600 mb-2 uppercase text-xs tracking-widest">💝 Liebes-Coupons</h3>
                 <p class="text-[10px] text-gray-400 mb-5">Verschenkt kleine Gutscheine, die eingelöst werden können.</p>
                 <button onclick="playSound('click'); openLoveCoupons()" class="pink-btn w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg">Coupons ansehen</button>
@@ -2564,6 +2575,12 @@ bindPolaroidUIOnce();
             targetEl.classList.remove('hidden'); targetEl.classList.add('animate-fade-in'); 
             document.getElementById(`nav-${tab}`).classList.add('active'); 
             if (tab === 'map') setTimeout(() => { loadMapMarkers(); }, 100);
+        };
+
+        window.jumpToFun = (id) => {
+            if (typeof playSound === 'function') playSound('click');
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         };
 
         const getWeekKey = (date) => { 
