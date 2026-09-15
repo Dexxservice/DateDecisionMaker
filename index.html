@@ -41,6 +41,8 @@
         /* --- THEMES --- */
         body.theme-original { background: linear-gradient(-45deg, #E0F2F1, #FCE4EC, #E0F7FA, #F8BBD0); background-size: 400% 400%; animation: gradient 15s ease infinite; }
         body.theme-midnight { background: linear-gradient(to bottom, #0f172a, #334155); color: #e2e8f0; }
+        body.theme-midnight .home-chip { background: rgba(255,255,255,0.09) !important; border-color: rgba(255,255,255,0.16) !important; }
+        body.theme-midnight .home-chip-label { color: #94A3B8 !important; }
         body.theme-sunset { background: linear-gradient(to bottom right, #ffedd5, #fdba74, #fb7185); }
         body.theme-fresh { background: linear-gradient(to top left, #d1fae5, #ecfccb, #ccfbf1); }
         
@@ -447,11 +449,25 @@
 
     <div class="hanging-spider">
         <svg viewBox="0 0 100 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <line x1="50" y1="0" x2="50" y2="150" stroke="white" stroke-width="1.5" />
-            <circle cx="50" cy="160" r="10" fill="#b71c1c" stroke="white" stroke-width="2"/>
-            <path d="M40 160 Q30 150 25 165 M40 160 Q30 170 25 180 M60 160 Q70 150 75 165 M60 160 Q70 170 75 180" stroke="#b71c1c" stroke-width="2" fill="none"/>
-            <circle cx="47" cy="162" r="2" fill="white"/>
-            <circle cx="53" cy="162" r="2" fill="white"/>
+            <line x1="50" y1="0" x2="50" y2="144" stroke="white" stroke-width="1.5" />
+            <!-- 8 Beine, symmetrisch -->
+            <g stroke="#b71c1c" stroke-width="2.5" stroke-linecap="round" fill="none">
+                <path d="M45 154 Q28 148 17 156"/>
+                <path d="M45 159 Q26 158 14 168"/>
+                <path d="M45 164 Q28 170 18 182"/>
+                <path d="M45 168 Q32 178 26 191"/>
+                <path d="M55 154 Q72 148 83 156"/>
+                <path d="M55 159 Q74 158 86 168"/>
+                <path d="M55 164 Q72 170 82 182"/>
+                <path d="M55 168 Q68 178 74 191"/>
+            </g>
+            <!-- Hinterleib -->
+            <ellipse cx="50" cy="169" rx="14" ry="17" fill="#b71c1c" stroke="white" stroke-width="1.5"/>
+            <!-- Kopf -->
+            <circle cx="50" cy="151" r="9" fill="#b71c1c" stroke="white" stroke-width="1.5"/>
+            <!-- Augen -->
+            <circle cx="46.5" cy="149" r="2.2" fill="white"/>
+            <circle cx="53.5" cy="149" r="2.2" fill="white"/>
         </svg>
     </div>
 
@@ -875,17 +891,17 @@
                 <div id="activity-feed-list"></div>
             </div>
             <div class="flex gap-2 mb-6 animate-fade-in">
-                <button onclick="playSound('click'); openWishlist()" class="flex-1 bg-white/70 backdrop-blur-md border border-pink-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
+                <button onclick="playSound('click'); openWishlist()" class="home-chip flex-1 bg-white/70 backdrop-blur-md border border-pink-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
                     <span id="chip-gifts-count" class="block text-lg font-black text-pink-500 leading-none">0</span>
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Wünsche offen</span>
+                    <span class="home-chip-label text-[9px] font-bold text-gray-400 uppercase tracking-widest">Wünsche offen</span>
                 </button>
-                <button onclick="playSound('click'); document.getElementById('wish-list').scrollIntoView({behavior:'smooth', block:'start'})" class="flex-1 bg-white/70 backdrop-blur-md border border-teal-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
+                <button onclick="playSound('click'); document.getElementById('wish-list').scrollIntoView({behavior:'smooth', block:'start'})" class="home-chip flex-1 bg-white/70 backdrop-blur-md border border-teal-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
                     <span id="chip-ideas-count" class="block text-lg font-black text-teal-600 leading-none">0</span>
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Ideen offen</span>
+                    <span class="home-chip-label text-[9px] font-bold text-gray-400 uppercase tracking-widest">Ideen offen</span>
                 </button>
-                <button onclick="playSound('click'); switchTab('bucket')" class="flex-1 bg-white/70 backdrop-blur-md border border-yellow-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
+                <button onclick="playSound('click'); switchTab('bucket')" class="home-chip flex-1 bg-white/70 backdrop-blur-md border border-yellow-100 rounded-2xl px-3 py-2 text-left shadow-sm active:scale-95 transition-all">
                     <span id="chip-bucket-count" class="block text-lg font-black text-yellow-600 leading-none">0</span>
-                    <span class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bucket offen</span>
+                    <span class="home-chip-label text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bucket offen</span>
                 </button>
             </div>
             <button onclick="playSound('click'); openCalendar()" id="highlight-card" class="hidden w-full mint-card p-6 mb-6 bg-gradient-to-r from-pink-50 to-teal-50 border-none shadow-md relative overflow-hidden animate-scale-in text-left">
@@ -3566,8 +3582,8 @@ uploadText.innerText = currentPhotosBase64.length >= 3 ? "✅ 3 Foto(s) vorhande
                     previewEl.innerHTML = rest.map(({ ev, occ }) => {
                         const daysUntil = Math.round((occ - today) / 86400000);
                         const daysLabel = daysUntil === 0 ? "Heute" : daysUntil === 1 ? "Morgen" : `in ${daysUntil} Tagen`;
-                        return `<button onclick="playSound('click'); openCalendar()" class="w-full flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-100 rounded-xl px-3 py-2 text-left transition-all active:scale-95">
-                            <span class="text-xs font-bold text-gray-600">${CAL_CATEGORY_ICON[ev.category] || '✨'} ${escapeHtml(ev.title)}</span>
+                        return `<button onclick="playSound('click'); openCalendar()" class="home-chip w-full flex items-center justify-between bg-white/60 backdrop-blur-md border border-gray-100 rounded-xl px-3 py-2 text-left transition-all active:scale-95">
+                            <span class="home-chip-label text-xs font-bold text-gray-600">${CAL_CATEGORY_ICON[ev.category] || '✨'} ${escapeHtml(ev.title)}</span>
                             <span class="text-[10px] font-bold text-pink-400 shrink-0 ml-2">${daysLabel}</span>
                         </button>`;
                     }).join('') + `<button onclick="playSound('click'); openCalendar()" class="w-full text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest py-1">Alle Termine im Kalender →</button>`;
