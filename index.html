@@ -43,6 +43,9 @@
         body.theme-midnight { background: linear-gradient(to bottom, #0f172a, #334155); color: #e2e8f0; }
         body.theme-midnight .home-chip { background: rgba(255,255,255,0.09) !important; border-color: rgba(255,255,255,0.16) !important; }
         body.theme-midnight .home-chip-label { color: #94A3B8 !important; }
+        /* Text auf weißen Karten erbt sonst die helle Body-Schrift und wird unlesbar */
+        body.theme-midnight .mint-card { color: #1F2937; }
+        body.theme-midnight .bucket-card { color: #1F2937; }
         body.theme-sunset { background: linear-gradient(to bottom right, #ffedd5, #fdba74, #fb7185); }
         body.theme-fresh { background: linear-gradient(to top left, #d1fae5, #ecfccb, #ccfbf1); }
         
@@ -81,11 +84,9 @@
         /* Krabbelnde Spinne */
         .spawned-spider { position: fixed; width: 25px; height: 25px; z-index: 10000; pointer-events: none; opacity: 0.9; }
         .spawned-spider svg { fill: #222; filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3)); }
+        .spawned-spider .spider-inner { animation: spiderWiggle 0.28s ease-in-out infinite alternate; transform-origin: center; }
+        @keyframes spiderWiggle { from { transform: scaleX(0.9) rotate(-6deg); } to { transform: scaleX(1.1) rotate(6deg); } }
         
-        @keyframes peekTopAnim { 0% { top: -30px; opacity: 0; } 20% { top: 5px; opacity: 1; } 80% { top: 5px; opacity: 1; } 100% { top: -30px; opacity: 0; } }
-        @keyframes peekBottomAnim { 0% { bottom: -30px; opacity: 0; } 20% { bottom: 5px; opacity: 1; } 80% { bottom: 5px; opacity: 1; } 100% { bottom: -30px; opacity: 0; } }
-        @keyframes peekLeftAnim { 0% { left: -30px; opacity: 0; } 20% { left: 5px; opacity: 1; } 80% { left: 5px; opacity: 1; } 100% { left: -30px; opacity: 0; } }
-        @keyframes peekRightAnim { 0% { right: -30px; opacity: 0; } 20% { right: 5px; opacity: 1; } 80% { right: 5px; opacity: 1; } 100% { right: -30px; opacity: 0; } }
 
         /* TIMELINE STYLES */
         .timeline-wrapper { position: relative; padding-left: 24px; margin-bottom: 20px; }
@@ -1486,30 +1487,48 @@ const autoResizeField = (el) => {
 
         // SPIDEY RANDOM EVENT (Swarm)
         const spiderSVGStr = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 40 C 50 30 60 30 60 40 C 60 50 50 50 50 40" fill="black" /><circle cx="55" cy="40" r="8" fill="black" /><path d="M55 40 Q 30 20 20 30 M55 40 Q 80 20 90 30 M55 40 Q 20 40 10 50 M55 40 Q 90 40 100 50 M55 40 Q 30 60 20 50 M55 40 Q 80 60 90 50 M55 40 Q 40 70 30 80 M55 40 Q 70 70 80 80" stroke="black" stroke-width="3" fill="none" /></svg>`;
-        const spawnSpiderSwarm = () => {
+
+        // Spinne läuft von einem Punkt am Bildschirmrand zu einem zufälligen Punkt irgendwo auf dem Screen,
+        // statt nur kurz am Rand rauszugucken.
+        const spawnCrawlingSpider = () => {
             if (currentTheme !== 'theme-spiderman') return;
-            if(Math.random() > 0.7 && soundEnabled) playSound('click'); 
-            const count = Math.floor(Math.random() * 3) + 2; 
-            for(let i=0; i<count; i++) {
-                const spider = document.createElement('div');
-                spider.className = "spawned-spider";
-                spider.innerHTML = spiderSVGStr;
-                document.body.appendChild(spider);
-                const edge = ['top', 'bottom', 'left', 'right'][Math.floor(Math.random() * 4)];
-                const duration = 1.2 + Math.random() * 0.5;
-                const delay = Math.random() * 0.5;
-                spider.style.animation = `peek${edge.charAt(0).toUpperCase() + edge.slice(1)}Anim ${duration}s ease-in-out ${delay}s forwards`;
-                if(edge === 'top' || edge === 'bottom') {
-                    spider.style.left = (Math.random() * 90 + 5) + "vw";
-                    if(edge==='top') spider.style.transform = 'rotate(180deg)';
-                } else {
-                    spider.style.top = (Math.random() * 90 + 5) + "vh";
-                    if(edge==='left') spider.style.transform = 'rotate(90deg)'; else spider.style.transform = 'rotate(-90deg)';
-                }
-                setTimeout(() => { spider.remove(); }, 2000);
-            }
+            if (soundEnabled && Math.random() > 0.7) playSound('click');
+
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const edge = Math.floor(Math.random() * 4);
+            let startX, startY, endX, endY;
+
+            if (edge === 0) { startX = Math.random() * vw; startY = -20; endX = Math.random() * vw; endY = Math.random() * vh; }
+            else if (edge === 1) { startX = Math.random() * vw; startY = vh + 20; endX = Math.random() * vw; endY = Math.random() * vh; }
+            else if (edge === 2) { startX = -20; startY = Math.random() * vh; endX = Math.random() * vw; endY = Math.random() * vh; }
+            else { startX = vw + 20; startY = Math.random() * vh; endX = Math.random() * vw; endY = Math.random() * vh; }
+
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI + 90;
+            const duration = 3.5 + Math.random() * 2.5;
+
+            const spider = document.createElement('div');
+            spider.className = "spawned-spider";
+            spider.style.left = startX + "px";
+            spider.style.top = startY + "px";
+            spider.style.opacity = "0";
+            spider.style.transform = `rotate(${angle}deg)`;
+            spider.innerHTML = `<div class="spider-inner">${spiderSVGStr}</div>`;
+            document.body.appendChild(spider);
+
+            requestAnimationFrame(() => {
+                spider.style.transition = `left ${duration}s linear, top ${duration}s linear, opacity 0.4s ease`;
+                spider.style.opacity = "0.9";
+                spider.style.left = endX + "px";
+                spider.style.top = endY + "px";
+            });
+
+            setTimeout(() => {
+                spider.style.opacity = "0";
+                setTimeout(() => spider.remove(), 400);
+            }, duration * 1000);
         };
-        setInterval(() => { if(Math.random() > 0.5) spawnSpiderSwarm(); }, 8000);
+        setInterval(() => { if (Math.random() > 0.45) spawnCrawlingSpider(); }, 7000);
 
         window.openSettings = () => { document.getElementById('settings-modal').classList.remove('hidden'); };
         window.toggleSound = (el) => { soundEnabled = el.checked; localStorage.setItem('soundEnabled', soundEnabled); };
