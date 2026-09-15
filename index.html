@@ -4468,6 +4468,21 @@ const syncData = (currentUser) => {
             const open = items.filter(it => it.status !== "checked");
             const done = items.filter(it => it.status === "checked");
 
+            const buildQuiz2Item = (it) => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm animate-slide-up cursor-pointer hover:bg-pink-100 transition-colors";
+                const badge = it.status === "open" ? "🟣 Offen" : (it.status === "answered" ? "🟢 Beantwortet" : "✅ Abgehakt");
+                const who = it.by ? `von ${it.by}` : "";
+                div.innerHTML = `<div>
+                    <p class="font-bold">${badge} • ${who}</p>
+                    <p class="text-[10px] text-gray-500 mt-1">${(it.q || "").slice(0, 60)}${(it.q || "").length > 60 ? "…" : ""}</p>
+                </div>
+                <span class="text-xl">👉</span>`;
+                div.onclick = () => quiz2Open(it.id);
+                return div;
+            };
+
+            const QUIZ2_VISIBLE_COUNT = 2;
             const renderList = (container, arr, emptyText) => {
                 container.innerHTML = "";
                 if (!arr.length) {
@@ -4477,19 +4492,31 @@ const syncData = (currentUser) => {
                     container.appendChild(p);
                     return;
                 }
-                arr.forEach(it => {
-                    const div = document.createElement('div');
-                    div.className = "p-3 bg-pink-50 rounded-xl text-xs flex justify-between items-center shadow-sm animate-slide-up cursor-pointer hover:bg-pink-100 transition-colors";
-                    const badge = it.status === "open" ? "🟣 Offen" : (it.status === "answered" ? "🟢 Beantwortet" : "✅ Abgehakt");
-                    const who = it.by ? `von ${it.by}` : "";
-                    div.innerHTML = `<div>
-                        <p class="font-bold">${badge} • ${who}</p>
-                        <p class="text-[10px] text-gray-500 mt-1">${(it.q || "").slice(0, 60)}${(it.q || "").length > 60 ? "…" : ""}</p>
-                    </div>
-                    <span class="text-xl">👉</span>`;
-                    div.onclick = () => quiz2Open(it.id);
-                    container.appendChild(div);
-                });
+
+                const visible = arr.slice(0, QUIZ2_VISIBLE_COUNT);
+                const rest = arr.slice(QUIZ2_VISIBLE_COUNT);
+
+                visible.forEach(it => container.appendChild(buildQuiz2Item(it)));
+
+                if (rest.length) {
+                    const moreWrap = document.createElement('div');
+                    moreWrap.className = "hidden space-y-3 mt-3";
+                    rest.forEach(it => moreWrap.appendChild(buildQuiz2Item(it)));
+
+                    const toggleBtn = document.createElement('button');
+                    toggleBtn.type = "button";
+                    toggleBtn.className = "w-full mt-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest py-2 border border-dashed border-gray-200 rounded-xl hover:bg-gray-50 transition-colors";
+                    toggleBtn.textContent = `▾ ${rest.length} weitere anzeigen`;
+                    toggleBtn.onclick = () => {
+                        const isHidden = moreWrap.classList.contains('hidden');
+                        moreWrap.classList.toggle('hidden');
+                        toggleBtn.textContent = isHidden ? `▴ Weniger anzeigen` : `▾ ${rest.length} weitere anzeigen`;
+                        if (typeof playSound === 'function') playSound('click');
+                    };
+
+                    container.appendChild(toggleBtn);
+                    container.appendChild(moreWrap);
+                }
             };
 
             renderList(listOpen, open, "Noch keine Quizfragen 🙂");
